@@ -16,7 +16,7 @@
             KeyframeRate = 12;
             VideoWidth = 0;
             VideoHeight = 0;
-            VideoPixelFormat = BitmapPixelFormat.ARGB32;
+            VideoPixelFormat = ImagePixelFormat.ARGB32;
             Framerate = 30;
         }
 
@@ -44,7 +44,7 @@
         /// Gets or sets the output video pixel format. The default value is YUV444p.
         /// Sended frames will be automatically converted to this format
         /// </summary>
-        public BitmapPixelFormat VideoPixelFormat { get; set; }
+        public ImagePixelFormat VideoPixelFormat { get; set; }
 
         /// <summary>
         /// Gets or sets video frame rate (FPS) value. The default value is 30 frames/s

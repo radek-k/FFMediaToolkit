@@ -34,7 +34,7 @@
         /// <param name="width">The width of the image</param>
         /// <param name="format">The image format</param>
         /// <returns>Size of single image line measured in bytes</returns>
-        public static int GetStride(int width, BitmapPixelFormat format) => GetBytesPerPixel(format) * width;
+        public static int GetStride(int width, ImagePixelFormat format) => GetBytesPerPixel(format) * width;
 
         /// <summary>
         /// Gets the <see cref="SwsContext"/> that can convert the <paramref name="source"/> layout to the <paramref name="destination"/> layout.
@@ -54,17 +54,17 @@
             return cache;
         }
 
-        private static int GetBytesPerPixel(BitmapPixelFormat format)
+        private static int GetBytesPerPixel(ImagePixelFormat format)
         {
             switch (format)
             {
-                case BitmapPixelFormat.BGR24:
+                case ImagePixelFormat.BGR24:
                     return 3;
-                case BitmapPixelFormat.BGRA32:
+                case ImagePixelFormat.BGRA32:
                     return 4;
-                case BitmapPixelFormat.RGB24:
+                case ImagePixelFormat.RGB24:
                     return 3;
-                case BitmapPixelFormat.ARGB32:
+                case ImagePixelFormat.ARGB32:
                     return 4;
                 default:
                     return 0;

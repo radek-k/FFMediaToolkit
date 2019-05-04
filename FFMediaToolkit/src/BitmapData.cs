@@ -17,7 +17,7 @@
         /// <param name="height">The height</param>
         /// <param name="pixelFormat">The pixel format</param>
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height an pixelFormat</exception>
-        public BitmapData(Span<byte> data, int width, int height, BitmapPixelFormat pixelFormat)
+        public BitmapData(Span<byte> data, int width, int height, ImagePixelFormat pixelFormat)
         {
             var size = Scaler.GetStride(width, pixelFormat) * height;
             if (data.Length != size)
@@ -38,7 +38,7 @@
         /// <param name="width">The width</param>
         /// <param name="height">The height</param>
         /// <param name="pixelFormat">The pixel format</param>
-        public BitmapData(byte[] pixels, int width, int height, BitmapPixelFormat pixelFormat)
+        public BitmapData(byte[] pixels, int width, int height, ImagePixelFormat pixelFormat)
             : this(new Span<byte>(pixels), width, height, pixelFormat)
         {
         }
@@ -50,7 +50,7 @@
         /// <param name="width">The width</param>
         /// <param name="height">The height</param>
         /// <param name="pixelFormat">The pixel format</param>
-        public unsafe BitmapData(IntPtr pointer, int width, int height, BitmapPixelFormat pixelFormat)
+        public unsafe BitmapData(IntPtr pointer, int width, int height, ImagePixelFormat pixelFormat)
             : this(new Span<byte>(pointer.ToPointer(), Scaler.GetStride(width, pixelFormat) * height), width, height, pixelFormat)
         {
         }
@@ -73,7 +73,7 @@
         /// <summary>
         /// Gets the bitmap pixel format
         /// </summary>
-        public BitmapPixelFormat PixelFormat { get; }
+        public ImagePixelFormat PixelFormat { get; }
 
         /// <summary>
         /// Gets the image layout data
