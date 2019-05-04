@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28721.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFMediaToolkit", "FFMediaToolkit\FFMediaToolkit.csproj", "{F9957DDC-E1BF-4318-BC33-6B7C73C3536E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F9957DDC-E1BF-4318-BC33-6B7C73C3536E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9957DDC-E1BF-4318-BC33-6B7C73C3536E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9957DDC-E1BF-4318-BC33-6B7C73C3536E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9957DDC-E1BF-4318-BC33-6B7C73C3536E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A4EC0BD8-5AC2-46FB-9CC1-20AA18D1E60C}
+	EndGlobalSection
+EndGlobal
