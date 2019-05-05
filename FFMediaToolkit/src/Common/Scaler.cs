@@ -10,22 +10,22 @@
     /// </summary>
     internal unsafe class Scaler
     {
-        private SwsContext* inputScaler;
-        private SwsContext* outputScaler;
+        private SwsContext* scaleContext;
 
         /// <summary>
-        /// Overrides <paramref name="destinationFrame"/> image buffer with rescaled specified bitmap. Used in encoding
+        /// Overrides the <paramref name="destinationFrame"/> image buffer with rescaled specified bitmap. Used in encoding.
         /// </summary>
         /// <param name="bitmapPointer">Pointer to the input bitmap data</param>
-        /// <param name="bitmapLayout">Input bitmap layout</param>
-        /// <param name="destinationFrame">Video frame to override</param>
-        public void FillAVFrame(IntPtr bitmapPointer, Layout bitmapLayout, VideoFrame destinationFrame)
+        /// <param name="bitmapLayout">The input bitmap layout</param>
+        /// <param name="destinationFrame">The <see cref="AVFrame"/> to override</param>
+        /// <param name="frameLayout">The output <see cref="AVFrame"/> layout setting</param>
+        public void FillAVFrame(IntPtr bitmapPointer, Layout bitmapLayout, AVFrame* destinationFrame, Layout frameLayout)
         {
-            var context = GetCachedContext(ref inputScaler, bitmapLayout, destinationFrame.Layout);
+            var context = GetCachedContext(ref scaleContext, bitmapLayout, frameLayout);
             var ptr = (byte*)bitmapPointer.ToPointer();
             var data = new byte*[4] { ptr, null, null, null };
             var linesize = new int[4] { bitmapLayout.Stride, 0, 0, 0 };
-            ffmpeg.sws_scale(context, data, linesize, 0, bitmapLayout.Height, destinationFrame.ToPointer()->data, destinationFrame.ToPointer()->linesize);
+            ffmpeg.sws_scale(context, data, linesize, 0, bitmapLayout.Height, destinationFrame->data, destinationFrame->linesize);
         }
 
         /// <summary>
