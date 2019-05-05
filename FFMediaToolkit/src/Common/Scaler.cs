@@ -13,6 +13,14 @@
         private SwsContext* scaleContext;
 
         /// <summary>
+        /// Gets the estimated image line size based on the pixel format and width
+        /// </summary>
+        /// <param name="width">The width of the image</param>
+        /// <param name="format">The image pixel format</param>
+        /// <returns>The size of a single line of the image measured in bytes</returns>
+        public static int EstimateStride(int width, ImagePixelFormat format) => GetBytesPerPixel(format) * width;
+
+        /// <summary>
         /// Overrides the <paramref name="destinationFrame"/> image buffer with rescaled specified bitmap. Used in encoding.
         /// </summary>
         /// <param name="bitmapPointer">Pointer to the input bitmap data</param>
@@ -27,14 +35,6 @@
             var linesize = new int[4] { bitmapLayout.Stride, 0, 0, 0 };
             ffmpeg.sws_scale(context, data, linesize, 0, bitmapLayout.Height, destinationFrame->data, destinationFrame->linesize);
         }
-
-        /// <summary>
-        /// Gets the byte size of a single image line
-        /// </summary>
-        /// <param name="width">The width of the image</param>
-        /// <param name="format">The image format</param>
-        /// <returns>Size of single image line measured in bytes</returns>
-        public static int GetStride(int width, ImagePixelFormat format) => GetBytesPerPixel(format) * width;
 
         /// <summary>
         /// Gets the <see cref="SwsContext"/> that can convert the <paramref name="source"/> layout to the <paramref name="destination"/> layout.

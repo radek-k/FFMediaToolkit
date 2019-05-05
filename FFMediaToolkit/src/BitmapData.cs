@@ -19,7 +19,7 @@
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height an pixelFormat</exception>
         public BitmapData(Span<byte> data, int width, int height, ImagePixelFormat pixelFormat)
         {
-            var size = Scaler.GetStride(width, pixelFormat) * height;
+            var size = Scaler.EstimateStride(width, pixelFormat) * height;
             if (data.Length != size)
             {
                 throw new ArgumentException("Pixel buffer size doesn't match size required by this image format.");
@@ -51,7 +51,7 @@
         /// <param name="height">The height</param>
         /// <param name="pixelFormat">The pixel format</param>
         public unsafe BitmapData(IntPtr pointer, int width, int height, ImagePixelFormat pixelFormat)
-            : this(new Span<byte>(pointer.ToPointer(), Scaler.GetStride(width, pixelFormat) * height), width, height, pixelFormat)
+            : this(new Span<byte>(pointer.ToPointer(), Scaler.EstimateStride(width, pixelFormat) * height), width, height, pixelFormat)
         {
         }
 

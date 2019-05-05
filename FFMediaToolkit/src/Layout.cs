@@ -40,7 +40,7 @@
         /// <summary>
         /// Gets the image line size
         /// </summary>
-        public int Stride => Scaler.GetStride(Width, (ImagePixelFormat)PixelFormat);
+        public int Stride => Scaler.EstimateStride(Width, (ImagePixelFormat)PixelFormat);
 
         public static bool operator ==(Layout left, Layout right) => left.Equals(right);
 
