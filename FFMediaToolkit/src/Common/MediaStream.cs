@@ -7,7 +7,7 @@
     /// This is a base class of video and audio FFmpeg streams
     /// </summary>
     /// <typeparam name="TFrame">Type of frame</typeparam>
-    public abstract unsafe class MediaStream<TFrame> : IDisposable
+    public abstract unsafe class MediaStream<TFrame> : MediaObject, IDisposable
         where TFrame : MediaFrame
     {
         private readonly IntPtr codec;
@@ -40,7 +40,7 @@
         /// <summary>
         /// Gets the acces mode of this stream
         /// </summary>
-        public MediaAccess Acces => OwnerFile.Acces;
+        public override MediaAccess Access => OwnerFile.Access;
 
         /// <summary>
         /// Gets the <see cref="MediaContainer"/> that owns this stream
@@ -64,7 +64,7 @@
         /// <param name="frame">Media frame to encode</param>
         public void PushFrame(TFrame frame)
         {
-            // CheckAcces(MediaAccess.Write);
+            CheckAccess(MediaAccess.Write);
             OnPushing(frame);
         }
 

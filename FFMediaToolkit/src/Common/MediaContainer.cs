@@ -5,30 +5,9 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents a multimedia codec acces mode
-    /// </summary>
-    public enum MediaAccess
-    {
-        /// <summary>
-        /// When media is in the decoding mode
-        /// </summary>
-        Read,
-
-        /// <summary>
-        /// When media is in the encoding mode
-        /// </summary>
-        Write,
-
-        /// <summary>
-        /// When a media is in the encoding mode, but not yet configured for writing file
-        /// </summary>
-        WriteInit
-    }
-
-    /// <summary>
     /// Represent a multimedia file context
     /// </summary>
-    public unsafe sealed class MediaContainer : IDisposable
+    public unsafe sealed class MediaContainer : MediaObject, IDisposable
     {
         // TODO: Custom dictionary support: private AVDictionary* avDict;
         private bool isDisposed;
@@ -37,13 +16,8 @@
         {
             FormatContextPointer = format;
             Video = stream;
-            Acces = acces;
+            Access = acces;
         }
-
-        /// <summary>
-        /// Gets the current acces permission to the container
-        /// </summary>
-        public MediaAccess Acces { get; private set; }
 
         /// <summary>
         /// Gets the video stream in the container. To set the stream in encoding mode, please use the <see cref="AddVideoStream(VideoEncoderSettings)"/> method.
@@ -75,7 +49,7 @@
         /// <param name="config">The stream configuration</param>
         public void AddVideoStream(VideoEncoderSettings config)
         {
-            CheckAcces(MediaAccess.WriteInit);
+            CheckAccess(MediaAccess.WriteInit);
             if (Video != null)
             {
                 throw new InvalidOperationException("The video stream was already created");
@@ -90,7 +64,7 @@
         /// <param name="path">A path to create the file</param>
         public void LockFile(string path)
         {
-            CheckAcces(MediaAccess.WriteInit);
+            CheckAccess(MediaAccess.WriteInit);
             if (Video == null /*&& AudioStream == null*/)
             {
                 throw new InvalidOperationException("Cannot create empty media file. You have to add video or audio stream before locking the file");
@@ -98,6 +72,8 @@
 
             ffmpeg.avio_open(&FormatContextPointer->pb, path, ffmpeg.AVIO_FLAG_WRITE).ThrowIfError("opening the file");
             ffmpeg.avformat_write_header(FormatContextPointer, null);
+
+            Access = MediaAccess.Write;
         }
 
         /// <inheritdoc/>
@@ -110,7 +86,7 @@
 
             Video.Dispose();
 
-            if (Acces == MediaAccess.Write)
+            if (Access == MediaAccess.Write)
             {
                 ffmpeg.av_write_trailer(FormatContextPointer);
                 ffmpeg.avio_close(FormatContextPointer->pb);
@@ -131,16 +107,8 @@
         /// <param name="packet">Media packet to write</param>
         public void WritePacket(MediaPacket packet)
         {
-            CheckAcces(MediaAccess.Write);
+            CheckAccess(MediaAccess.Write);
             ffmpeg.av_interleaved_write_frame(FormatContextPointer, packet);
-        }
-
-        private void CheckAcces(MediaAccess acces)
-        {
-            if (Acces != acces)
-            {
-                throw new InvalidOperationException("Cannot use this method with current file acces");
-            }
         }
     }
 }
