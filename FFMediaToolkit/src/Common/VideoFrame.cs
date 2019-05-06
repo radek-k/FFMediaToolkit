@@ -46,22 +46,21 @@
         }
 
         /// <summary>
-        /// Overrides this video frame data with the converted, specified <paramref name="bitmap"/>
+        /// Overrides this video frame data with the converted <paramref name="bitmap"/> using specified <see cref="Scaler"/> object.
         /// </summary>
-        /// <param name="bitmap">Bitmap</param>
-        public void UpdateFromBitmap(BitmapData bitmap)
+        /// <param name="bitmap">The bitmap to convert.</param>
+        /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video</param>
+        public void UpdateFromBitmap(BitmapData bitmap, Scaler scaler)
         {
             fixed (byte* ptr = bitmap.Data)
             {
-                // TODO: Video frame converting
-                // scaler.FillAVFrame((IntPtr)ptr, Layout, this);
+                scaler.FillAVFrame((IntPtr)ptr, bitmap.Layout, ToPointer(), Layout);
             }
         }
 
-        // public BitmapData ToBitmap()
+        // public BitmapData ToBitmap(Scaler scaler)
         // {
-        //    // var scaler = new Scaler();
-        //    // scaler.
+        // TODO: VideoFrame to bitmap conversion
         // }
     }
 }
