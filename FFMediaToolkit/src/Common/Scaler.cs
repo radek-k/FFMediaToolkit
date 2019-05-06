@@ -1,14 +1,12 @@
 ﻿namespace FFMediaToolkit.Helpers
 {
     using System;
-    using System.Collections.Generic;
-    using FFMediaToolkit.Common;
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Contains helper methods for image converting
+    /// Represents a cache object for FFMpeg <see cref="SwsContext"/>. Useful when converting many bitmaps to the same format.
     /// </summary>
-    internal unsafe class Scaler
+    public unsafe class Scaler
     {
         private SwsContext* scaleContext;
 
@@ -27,7 +25,7 @@
         /// <param name="bitmapLayout">The input bitmap layout</param>
         /// <param name="destinationFrame">The <see cref="AVFrame"/> to override</param>
         /// <param name="frameLayout">The output <see cref="AVFrame"/> layout setting</param>
-        public void FillAVFrame(IntPtr bitmapPointer, Layout bitmapLayout, AVFrame* destinationFrame, Layout frameLayout)
+        internal void FillAVFrame(IntPtr bitmapPointer, Layout bitmapLayout, AVFrame* destinationFrame, Layout frameLayout)
         {
             var context = GetCachedContext(ref scaleContext, bitmapLayout, frameLayout);
             var ptr = (byte*)bitmapPointer.ToPointer();
@@ -43,7 +41,7 @@
         /// <param name="videoLayout">The video frame layout</param>
         /// <param name="destinationPointer">A pointer to the destination bitmap data buffer</param>
         /// <param name="destinationLayout">The destination bitmap layout</param>
-        public void AVFrameToBitmap(AVFrame* videoFrame, Layout videoLayout, IntPtr destinationPointer, Layout destinationLayout)
+        internal void AVFrameToBitmap(AVFrame* videoFrame, Layout videoLayout, IntPtr destinationPointer, Layout destinationLayout)
         {
             var context = GetCachedContext(ref scaleContext, videoLayout, destinationLayout);
             var ptr = (byte*)destinationPointer.ToPointer();
@@ -52,13 +50,6 @@
             ffmpeg.sws_scale(context, videoFrame->data, videoFrame->linesize, 0, videoLayout.Height, data, linesize);
         }
 
-        /// <summary>
-        /// Gets the <see cref="SwsContext"/> that can convert the <paramref name="source"/> layout to the <paramref name="destination"/> layout.
-        /// </summary>
-        /// <param name="cache">A field for use as object cache, to prevent unnecessary memory allocation. Can be <see langword="null"/>, it will be assigned with new object</param>
-        /// <param name="source">Source image layout</param>
-        /// <param name="destination">Destination image layout</param>
-        /// <returns>The scale context</returns>
         private static SwsContext* GetCachedContext(ref SwsContext* cache, Layout source, Layout destination)
         {
             if (source == destination)
@@ -86,6 +77,5 @@
                     return 0;
             }
         }
-
     }
 }
