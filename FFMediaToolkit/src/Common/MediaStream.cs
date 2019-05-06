@@ -91,13 +91,6 @@
         }
 
         /// <summary>
-        /// Method
-        /// </summary>
-        internal virtual void OnLocking()
-        {
-        }
-
-        /// <summary>
         /// Method called when frame is pushing
         /// </summary>
         /// <param name="frame">Media frame to encode</param>
