@@ -5,9 +5,9 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents an multimedia codec acces mode
+    /// Represents a multimedia codec acces mode
     /// </summary>
-    public enum AccesMode
+    public enum MediaAccess
     {
         /// <summary>
         /// When media is in the decoding mode
@@ -20,7 +20,7 @@
         Write,
 
         /// <summary>
-        /// When a media is in the encoding mode, but not configured for writing file
+        /// When a media is in the encoding mode, but not yet configured for writing file
         /// </summary>
         WriteInit
     }
@@ -33,7 +33,7 @@
         // TODO: Custom dictionary support: private AVDictionary* avDict;
         private bool isDisposed;
 
-        private MediaContainer(AVFormatContext* format, VideoStream stream, AccesMode acces)
+        private MediaContainer(AVFormatContext* format, VideoStream stream, MediaAccess acces)
         {
             FormatContextPointer = format;
             Video = stream;
@@ -43,7 +43,7 @@
         /// <summary>
         /// Gets the current acces permission to the container
         /// </summary>
-        public AccesMode Acces { get; private set; }
+        public MediaAccess Acces { get; private set; }
 
         /// <summary>
         /// Gets the video stream in the container. To set the stream in encoding mode, please use the <see cref="AddVideoStream(VideoEncoderSettings)"/> method.
@@ -66,7 +66,7 @@
             var format = ffmpeg.av_guess_format(null, path, null); // ->ThrowIfNull(() => new InvalidOperationException("Cannot find this output format"));
             var formatContext = ffmpeg.avformat_alloc_context();
             formatContext->oformat = format;
-            return new MediaContainer(formatContext, null, AccesMode.WriteInit);
+            return new MediaContainer(formatContext, null, MediaAccess.WriteInit);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@
         /// <param name="config">The stream configuration</param>
         public void AddVideoStream(VideoEncoderSettings config)
         {
-            CheckAcces(AccesMode.WriteInit);
+            CheckAcces(MediaAccess.WriteInit);
             if (Video != null)
             {
                 throw new InvalidOperationException("The video stream was already created");
@@ -90,7 +90,7 @@
         /// <param name="path">A path to create the file</param>
         public void LockFile(string path)
         {
-            CheckAcces(AccesMode.WriteInit);
+            CheckAcces(MediaAccess.WriteInit);
             if (Video == null /*&& AudioStream == null*/)
             {
                 throw new InvalidOperationException("Cannot create empty media file. You have to add video or audio stream before locking the file");
@@ -110,7 +110,7 @@
 
             Video.Dispose();
 
-            if (Acces == AccesMode.Write)
+            if (Acces == MediaAccess.Write)
             {
                 ffmpeg.av_write_trailer(FormatContextPointer);
                 ffmpeg.avio_close(FormatContextPointer->pb);
@@ -131,11 +131,11 @@
         /// <param name="packet">Media packet to write</param>
         public void WritePacket(MediaPacket packet)
         {
-            CheckAcces(AccesMode.Write);
+            CheckAcces(MediaAccess.Write);
             ffmpeg.av_interleaved_write_frame(FormatContextPointer, packet);
         }
 
-        private void CheckAcces(AccesMode acces)
+        private void CheckAcces(MediaAccess acces)
         {
             if (Acces != acces)
             {

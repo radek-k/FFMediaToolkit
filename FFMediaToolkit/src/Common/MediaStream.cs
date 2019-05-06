@@ -40,7 +40,7 @@
         /// <summary>
         /// Gets the acces mode of this stream
         /// </summary>
-        public AccesMode Acces => OwnerFile.Acces;
+        public MediaAccess Acces => OwnerFile.Acces;
 
         /// <summary>
         /// Gets the <see cref="MediaContainer"/> that owns this stream
@@ -64,7 +64,7 @@
         /// <param name="frame">Media frame to encode</param>
         public void PushFrame(TFrame frame)
         {
-            // CheckAcces(AccesMode.Write);
+            // CheckAcces(MediaAccess.Write);
             OnPushing(frame);
         }
 
