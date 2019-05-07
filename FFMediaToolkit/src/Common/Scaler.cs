@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Helpers
 {
     using System;
+    using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
 
     /// <summary>

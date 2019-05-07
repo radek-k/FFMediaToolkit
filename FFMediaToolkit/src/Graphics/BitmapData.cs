@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit
+﻿namespace FFMediaToolkit.Graphics
 {
     using System;
     using FFmpeg.AutoGen;

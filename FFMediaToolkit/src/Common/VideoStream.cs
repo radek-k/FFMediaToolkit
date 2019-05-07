@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using FFMediaToolkit.Graphics;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 

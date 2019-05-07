@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
     using Helpers;
 
@@ -43,12 +44,12 @@
         /// <param name="frame">Bitmap to write</param>
         public void AddFrame(BitmapData frame)
         {
-            fixed (byte* ptr = frame.Data)
-            {
-                scaler.FillAVFrame((IntPtr)ptr, frame.Layout, encodedFrame);
+            //fixed (byte* ptr = frame.Data.Span)
+            //{
+            //    scaler.FillAVFrame((IntPtr)ptr, frame.Layout, encodedFrame);
 
-                // PushFrame(encodedFrame);
-            }
+            //    // PushFrame(encodedFrame);
+            //}
         }
     }
 }
