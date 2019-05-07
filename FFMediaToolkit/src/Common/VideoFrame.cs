@@ -52,7 +52,7 @@
         /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video</param>
         public void UpdateFromBitmap(BitmapData bitmap, Scaler scaler)
         {
-            fixed (byte* ptr = bitmap.Data)
+            fixed (byte* ptr = bitmap.Data.Span)
             {
                 scaler.FillAVFrame((IntPtr)ptr, bitmap.Layout, ToPointer(), Layout);
             }
