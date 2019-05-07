@@ -12,11 +12,11 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="BitmapData"/> class using a <see cref="Span{T}"/> as the data source
         /// </summary>
-        /// <param name="data">Bitmap data</param>
+        /// <param name="data">The bitmap data</param>
         /// <param name="width">The width</param>
         /// <param name="height">The height</param>
         /// <param name="pixelFormat">The pixel format</param>
-        /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height an pixelFormat</exception>
+        /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format</exception>
         public BitmapData(Memory<byte> data, int width, int height, ImagePixelFormat pixelFormat)
         {
             var size = Scaler.EstimateStride(width, pixelFormat) * height;
@@ -29,30 +29,6 @@
             Width = width;
             Height = height;
             PixelFormat = pixelFormat;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BitmapData"/> class using a byte array as the data source
-        /// </summary>
-        /// <param name="pixels">Byte array containing pixels data</param>
-        /// <param name="width">The width</param>
-        /// <param name="height">The height</param>
-        /// <param name="pixelFormat">The pixel format</param>
-        public BitmapData(byte[] pixels, int width, int height, ImagePixelFormat pixelFormat)
-            : this(new Memory<byte>(pixels), width, height, pixelFormat)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BitmapData"/> class using a pointer to the unmanaged memory as the data source
-        /// </summary>
-        /// <param name="pointer">Byte array containing pixels data</param>
-        /// <param name="width">The width</param>
-        /// <param name="height">The height</param>
-        /// <param name="pixelFormat">The pixel format</param>
-        public unsafe BitmapData(IntPtr pointer, int width, int height, ImagePixelFormat pixelFormat)
-            : this(CreateMemory(pointer, width, height, pixelFormat), width, height, pixelFormat)
-        {
         }
 
         /// <summary>
@@ -79,6 +55,28 @@
         /// Gets the image layout data
         /// </summary>
         internal Layout Layout => new Layout((AVPixelFormat)PixelFormat, Width, Height);
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="BitmapData"/> class using a byte array as the data source
+        /// </summary>
+        /// <param name="pixels">The byte array containing bitmap data</param>
+        /// <param name="width">The bitmap width</param>
+        /// <param name="height">The bitmap height</param>
+        /// <param name="pixelFormat">The bitmap pixel format</param>
+        /// <returns>A new <see cref="BitmapData"/> instance</returns>
+        public static BitmapData FromArray(byte[] pixels, int width, int height, ImagePixelFormat pixelFormat)
+            => new BitmapData(new Memory<byte>(pixels), width, height, pixelFormat);
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="BitmapData"/> class using a pointer to the unmanaged memory as the data source
+        /// </summary>
+        /// <param name="pointer">The byte array containing bitmap data</param>
+        /// <param name="width">The bitmap width</param>
+        /// <param name="height">The bitmap height</param>
+        /// <param name="pixelFormat">The bitmap pixel format</param>
+        /// <returns>A new <see cref="BitmapData"/> instance</returns>
+        public static BitmapData FromPointer(IntPtr pointer, int width, int height, ImagePixelFormat pixelFormat)
+            => new BitmapData(CreateMemory(pointer, width, height, pixelFormat), width, height, pixelFormat);
 
         private static unsafe Memory<byte> CreateMemory(IntPtr pointer, int width, int heigth, ImagePixelFormat pixelFormat)
         {
