@@ -55,6 +55,9 @@
                 codecContext->flags |= ffmpeg.AV_CODEC_FLAG_GLOBAL_HEADER;
             }
 
+            var dict = config.CodecOptions.Pointer;
+            ffmpeg.avcodec_open2(codecContext, codec, &dict);
+
             return new VideoStream(videoStream, codecContext, container, config.ToLayout());
         }
 

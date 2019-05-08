@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit
 {
+    using Common;
     using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
 
@@ -19,6 +20,7 @@
             VideoHeight = 0;
             VideoPixelFormat = ImagePixelFormat.ARGB32;
             Framerate = 30;
+            CodecOptions = new FFDictionary();
         }
 
         /// <summary>
@@ -51,6 +53,11 @@
         /// Gets or sets video frame rate (FPS) value. The default value is 30 frames/s
         /// </summary>
         public int Framerate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the dictionary with custom codec options.
+        /// </summary>
+        public FFDictionary CodecOptions { get; set; }
 
         /// <summary>
         /// Creates a <see cref="Layout"/> object, containg dimensions and pixel format, based on this settings
