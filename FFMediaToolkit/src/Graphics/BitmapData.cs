@@ -34,7 +34,7 @@
         /// <summary>
         /// Gets the <see cref="Memory{T}"/> object containing bitmap data
         /// </summary>
-        public Memory<byte> Data { get; }
+        public virtual Memory<byte> Data { get; }
 
         /// <summary>
         /// Gets the image width
