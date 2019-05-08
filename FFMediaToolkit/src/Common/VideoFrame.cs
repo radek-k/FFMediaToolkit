@@ -59,9 +59,23 @@
             }
         }
 
-        // public BitmapData ToBitmap(Scaler scaler)
-        // {
-        // TODO: VideoFrame to bitmap conversion
-        // }
+        /// <summary>
+        /// Converts this video frame to the <see cref="BitmapData"/> with the specified pixel format.
+        /// </summary>
+        /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video</param>
+        /// <param name="targetFormat">The output bitmap pixel format</param>
+        /// <returns>A <see cref="BitmapData"/> instance containg converted bitmap data</returns>
+        public BitmapData ToBitmap(Scaler scaler, ImagePixelFormat targetFormat)
+        {
+            var bitmap = PooledBitmap.Create(Layout.Width, Layout.Height, targetFormat);
+            var targetLayout = new Layout((AVPixelFormat)targetFormat, Layout.Width, Layout.Height);
+
+            fixed (byte* ptr = bitmap.Data.Span)
+            {
+                scaler.AVFrameToBitmap(ToPointer(), Layout, (IntPtr)ptr, targetLayout);
+            }
+
+            return bitmap;
+        }
     }
 }
