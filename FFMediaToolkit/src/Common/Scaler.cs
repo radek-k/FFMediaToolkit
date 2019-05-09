@@ -7,9 +7,10 @@
     /// <summary>
     /// Represents a cache object for FFMpeg <see cref="SwsContext"/>. Useful when converting many bitmaps to the same format.
     /// </summary>
-    public unsafe class Scaler
+    public unsafe class Scaler : IDisposable
     {
         private SwsContext* scaleContext;
+        private bool isDisposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Scaler"/> class.
@@ -19,12 +20,28 @@
         }
 
         /// <summary>
+        /// Finalizes an instance of the <see cref="Scaler"/> class.
+        /// </summary>
+        ~Scaler() => Dispose();
+
+        /// <summary>
         /// Gets the estimated image line size based on the pixel format and width
         /// </summary>
         /// <param name="width">The width of the image</param>
         /// <param name="format">The image pixel format</param>
         /// <returns>The size of a single line of the image measured in bytes</returns>
         public static int EstimateStride(int width, ImagePixelFormat format) => GetBytesPerPixel(format) * width;
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            if (isDisposed)
+                return;
+
+            ffmpeg.sws_freeContext(scaleContext);
+
+            isDisposed = true;
+        }
 
         /// <summary>
         /// Overrides the <paramref name="destinationFrame"/> image buffer with rescaled specified bitmap. Used in encoding.
