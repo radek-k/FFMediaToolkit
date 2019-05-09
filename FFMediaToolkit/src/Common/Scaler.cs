@@ -12,6 +12,13 @@
         private SwsContext* scaleContext;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Scaler"/> class.
+        /// </summary>
+        public Scaler()
+        {
+        }
+
+        /// <summary>
         /// Gets the estimated image line size based on the pixel format and width
         /// </summary>
         /// <param name="width">The width of the image</param>
