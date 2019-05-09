@@ -34,6 +34,9 @@
         /// <returns>Video stream added to file</returns>
         internal static VideoStream CreateNew(MediaContainer container, VideoEncoderSettings config)
         {
+            if (container.Access != MediaAccess.WriteInit)
+                throw new InvalidOperationException("The Media container must be in WriteInit acces mode");
+
             var codec = ffmpeg.avcodec_find_encoder(AVCodecID.AV_CODEC_ID_MPEG4);
 
             var videoStream = ffmpeg.avformat_new_stream(container.FormatContextPointer, codec);
