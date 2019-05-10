@@ -1,9 +1,7 @@
 ﻿namespace FFMediaToolkit.Common
 {
     using System;
-    using System.Collections.Generic;
     using FFMediaToolkit.Graphics;
-    using FFmpeg.AutoGen;
     using Helpers;
 
     /// <summary>
