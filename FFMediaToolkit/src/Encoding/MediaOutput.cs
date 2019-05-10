@@ -8,7 +8,7 @@
     /// </summary>
     public class MediaOutput : IDisposable
     {
-        private MediaContainer container;
+        private readonly MediaContainer container;
         private bool isDisposed;
 
         /// <summary>

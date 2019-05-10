@@ -9,9 +9,9 @@
     /// </summary>
     public class VideoEncoderStream
     {
-        private VideoStream stream;
-        private VideoFrame encodedFrame;
-        private Scaler scaler;
+        private readonly VideoStream stream;
+        private readonly VideoFrame encodedFrame;
+        private readonly Scaler scaler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoEncoderStream"/> class.
