@@ -9,7 +9,7 @@
     /// <summary>
     /// Represents a video encoder stream
     /// </summary>
-    internal unsafe class VideoEncoderStream
+    public class VideoEncoderStream
     {
         private VideoStream stream;
         private VideoFrame encodedFrame;
