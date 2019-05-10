@@ -15,7 +15,12 @@
         private VideoFrame encodedFrame;
         private Scaler scaler;
 
-        private VideoEncoderStream(VideoStream stream, VideoEncoderSettings config)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VideoEncoderStream"/> class.
+        /// </summary>
+        /// <param name="stream">The video stream in encoding mode</param>
+        /// <param name="config">The stream setting</param>
+        internal VideoEncoderStream(VideoStream stream, VideoEncoderSettings config)
         {
             this.stream = stream;
             Configuration = config;
@@ -52,18 +57,6 @@
             encodedFrame.UpdateFromBitmap(frame, scaler);
             stream.PushFrame(encodedFrame);
             FramesCount++;
-        }
-
-        /// <summary>
-        /// Creates a new video stream in the specified container.
-        /// </summary>
-        /// <param name="container">The <see cref="MediaContainer"/> object in encoding mode</param>
-        /// <param name="settings">The stream setting</param>
-        /// <returns>The new instance of <see cref="VideoEncoderStream"/></returns>
-        internal static VideoEncoderStream Create(MediaContainer container, VideoEncoderSettings settings)
-        {
-            var stream = VideoStream.CreateNew(container, settings);
-            return new VideoEncoderStream(stream, settings);
         }
     }
 }
