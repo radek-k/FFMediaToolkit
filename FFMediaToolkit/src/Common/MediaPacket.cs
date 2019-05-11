@@ -10,17 +10,14 @@
     /// </summary>
     public unsafe sealed class MediaPacket : IDisposable
     {
-        private IntPtr pointer;
+        private readonly IntPtr pointer;
         private bool isDisposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaPacket"/> class.
         /// </summary>
         /// <param name="packet">The <see cref="AVPacket"/> object</param>
-        private MediaPacket(AVPacket* packet)
-        {
-            pointer = new IntPtr(packet);
-        }
+        private MediaPacket(AVPacket* packet) => pointer = new IntPtr(packet);
 
         /// <summary>
         /// Finalizes an instance of the <see cref="MediaPacket"/> class.
