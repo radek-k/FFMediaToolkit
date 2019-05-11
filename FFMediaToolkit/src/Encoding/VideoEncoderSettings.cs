@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit
+﻿namespace FFMediaToolkit.Encoding
 {
     using Common;
     using FFMediaToolkit.Graphics;

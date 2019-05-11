@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Common
 {
     using System;
+    using FFMediaToolkit.Encoding;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
