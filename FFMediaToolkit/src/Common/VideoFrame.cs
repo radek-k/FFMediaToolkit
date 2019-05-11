@@ -55,7 +55,7 @@
         {
             fixed (byte* ptr = bitmap.Data.Span)
             {
-                scaler.FillAVFrame((IntPtr)ptr, bitmap.Layout, ToPointer(), Layout);
+                scaler.FillAVFrame((IntPtr)ptr, bitmap.Layout, Pointer, Layout);
             }
         }
 
@@ -72,7 +72,7 @@
 
             fixed (byte* ptr = bitmap.Data.Span)
             {
-                scaler.AVFrameToBitmap(ToPointer(), Layout, (IntPtr)ptr, targetLayout);
+                scaler.AVFrameToBitmap(Pointer, Layout, (IntPtr)ptr, targetLayout);
             }
 
             return bitmap;

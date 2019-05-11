@@ -11,15 +11,16 @@
     public abstract unsafe class MediaFrame : IDisposable
     {
         private bool isDisposed;
+        private IntPtr pointer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaFrame"/> class.
         /// </summary>
-        /// <param name="frame">x</param>
-        /// <param name="stream">c </param>
+        /// <param name="frame">The <see cref="AVFrame"/> object</param>
+        /// <param name="stream">The index of the frame stream</param>
         protected MediaFrame(AVFrame* frame, int stream)
         {
-            Pointer = new IntPtr(frame);
+            pointer = new IntPtr(frame);
             StreamIndex = stream;
         }
 
@@ -31,7 +32,7 @@
         /// <summary>
         /// Gets a pointer to the underlying <see cref="AVFrame"/>
         /// </summary>
-        public IntPtr Pointer { get; private set; }
+        public AVFrame* Pointer => isDisposed ? null : (AVFrame*)pointer;
 
         /// <summary>
         /// Gets the frame stream
@@ -47,12 +48,6 @@
             set => ((AVFrame*)Pointer)->pts = value;
         }
 
-        /// <summary>
-        /// Gets a unsafe pointer to the frame
-        /// </summary>
-        /// <returns>Unsafe pointer</returns>
-        public AVFrame* ToPointer() => (AVFrame*)Pointer;
-
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
 
@@ -62,7 +57,7 @@
         /// <param name="frame">New frame</param>
         protected void Override(AVFrame* frame)
         {
-            Pointer = new IntPtr(frame);
+            pointer = new IntPtr(frame);
             isDisposed = false;
         }
 
@@ -71,7 +66,7 @@
             if (isDisposed)
                 return;
 
-            var ptr = (AVFrame*)Pointer;
+            var ptr = Pointer;
             ffmpeg.av_frame_free(&ptr);
             isDisposed = true;
 
