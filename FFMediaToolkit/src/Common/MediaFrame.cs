@@ -51,16 +51,6 @@
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
 
-        /// <summary>
-        /// Updates this instance with new <see cref="AVFrame"/>
-        /// </summary>
-        /// <param name="frame">New frame</param>
-        protected void Override(AVFrame* frame)
-        {
-            pointer = new IntPtr(frame);
-            isDisposed = false;
-        }
-
         private void Disposing(bool dispose)
         {
             if (isDisposed)
