@@ -10,7 +10,7 @@
     /// </summary>
     public abstract unsafe class MediaFrame : IDisposable
     {
-        private bool disposed;
+        private bool isDisposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaFrame"/> class.
@@ -22,6 +22,11 @@
             Pointer = new IntPtr(frame);
             StreamIndex = stream;
         }
+
+        /// <summary>
+        /// Finalizes an instance of the <see cref="MediaFrame"/> class.
+        /// </summary>
+        ~MediaFrame() => Disposing(false);
 
         /// <summary>
         /// Gets a pointer to the underlying <see cref="AVFrame"/>
@@ -49,17 +54,7 @@
         public AVFrame* ToPointer() => (AVFrame*)Pointer;
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            var ptr = (AVFrame*)Pointer;
-            ffmpeg.av_frame_free(&ptr);
-            disposed = true;
-        }
+        public void Dispose() => Disposing(true);
 
         /// <summary>
         /// Updates this instance with new <see cref="AVFrame"/>
@@ -68,7 +63,20 @@
         protected void Override(AVFrame* frame)
         {
             Pointer = new IntPtr(frame);
-            disposed = false;
+            isDisposed = false;
+        }
+
+        private void Disposing(bool dispose)
+        {
+            if (isDisposed)
+                return;
+
+            var ptr = (AVFrame*)Pointer;
+            ffmpeg.av_frame_free(&ptr);
+            isDisposed = true;
+
+            if (dispose)
+                GC.SuppressFinalize(this);
         }
     }
 }

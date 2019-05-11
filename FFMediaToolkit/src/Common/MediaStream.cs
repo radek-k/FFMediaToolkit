@@ -69,26 +69,7 @@
         }
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            if (isDisposed)
-            {
-                return;
-            }
-
-            if (stream != IntPtr.Zero)
-            {
-                ffmpeg.avcodec_close(StreamPointer->codec);
-            }
-
-            if (codec != IntPtr.Zero)
-            {
-                var ptr = CodecContextPointer;
-                ffmpeg.avcodec_free_context(&ptr);
-            }
-
-            isDisposed = true;
-        }
+        public void Dispose() => Disposing(true);
 
         /// <summary>
         /// Method called when frame is pushing
@@ -101,5 +82,25 @@
         /// </summary>
         /// <returns>null</returns>
         protected abstract TFrame OnReading();
+
+        private void Disposing(bool dispose)
+        {
+            if (isDisposed)
+                return;
+
+            if (stream != IntPtr.Zero)
+                ffmpeg.avcodec_close(StreamPointer->codec);
+
+            if (codec != IntPtr.Zero)
+            {
+                var ptr = CodecContextPointer;
+                ffmpeg.avcodec_free_context(&ptr);
+            }
+
+            isDisposed = true;
+
+            if (dispose)
+                GC.SuppressFinalize(this);
+        }
     }
 }

@@ -27,6 +27,11 @@
         internal FFDictionary(AVDictionary* dictionary) => dict = dictionary;
 
         /// <summary>
+        /// Finalizes an instance of the <see cref="FFDictionary"/> class.
+        /// </summary>
+        ~FFDictionary() => Disposing(false);
+
+        /// <summary>
         /// Gets a pointer to the underlying <see cref="AVDictionary"/>
         /// </summary>
         public AVDictionary* Pointer => isDisposed ? null : dict;
@@ -43,7 +48,9 @@
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        public void Dispose() => Disposing(true);
+
+        private void Disposing(bool dispose)
         {
             if (isDisposed)
                 return;
@@ -57,6 +64,9 @@
             }
 
             isDisposed = true;
+
+            if (dispose)
+                GC.SuppressFinalize(this);
         }
     }
 }

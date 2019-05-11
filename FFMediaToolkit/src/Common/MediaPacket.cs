@@ -11,7 +11,7 @@
     public unsafe sealed class MediaPacket : IDisposable
     {
         private IntPtr pointer;
-        private bool disposed;
+        private bool isDisposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaPacket"/> class.
@@ -25,12 +25,12 @@
         /// <summary>
         /// Finalizes an instance of the <see cref="MediaPacket"/> class.
         /// </summary>
-        ~MediaPacket() => Dispose();
+        ~MediaPacket() => Disposing(false);
 
         /// <summary>
         /// Gets the pointer to the underlying <see cref="AVPacket"/>
         /// </summary>
-        public AVPacket* Pointer => disposed ? null : (AVPacket*)pointer;
+        public AVPacket* Pointer => isDisposed ? null : (AVPacket*)pointer;
 
         /// <summary>
         /// Gets or sets a value indicating whether the packet is key
@@ -70,18 +70,20 @@
         public void RescaleTimestamp(AVRational codecTimeBase, AVRational streamTimeBase) => ffmpeg.av_packet_rescale_ts(Pointer, codecTimeBase, streamTimeBase);
 
         /// <inheritdoc/>
-        public void Dispose()
+        public void Dispose() => Disposing(true);
+
+        private void Disposing(bool dispose)
         {
-            if (disposed)
-            {
+            if (isDisposed)
                 return;
-            }
 
             var ptr = Pointer;
             ffmpeg.av_packet_unref(ptr);
             ffmpeg.av_packet_free(&ptr);
-            disposed = true;
-            GC.SuppressFinalize(this);
+            isDisposed = true;
+
+            if (dispose)
+                GC.SuppressFinalize(this);
         }
     }
 }

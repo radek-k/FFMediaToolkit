@@ -20,6 +20,11 @@
         }
 
         /// <summary>
+        /// Finalizes an instance of the <see cref="MediaContainer"/> class.
+        /// </summary>
+        ~MediaContainer() => Disposing(false);
+
+        /// <summary>
         /// Gets the video stream in the container. To set the stream in encoding mode, please use the <see cref="AddVideoStream(VideoEncoderSettings)"/> method.
         /// </summary>
         public VideoStream Video { get; private set; }
@@ -77,12 +82,22 @@
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        public void Dispose() => Disposing(true);
+
+        /// <summary>
+        /// Writes specified packet to the container. Uses <see cref="ffmpeg.av_interleaved_write_frame(AVFormatContext*, AVPacket*)"/>
+        /// </summary>
+        /// <param name="packet">Media packet to write</param>
+        public void WritePacket(MediaPacket packet)
+        {
+            CheckAccess(MediaAccess.Write);
+            ffmpeg.av_interleaved_write_frame(FormatContextPointer, packet);
+        }
+
+        private void Disposing(bool dispose)
         {
             if (isDisposed)
-            {
                 return;
-            }
 
             Video.Dispose();
 
@@ -99,16 +114,9 @@
             }
 
             isDisposed = true;
-        }
 
-        /// <summary>
-        /// Writes specified packet to the container. Uses <see cref="ffmpeg.av_interleaved_write_frame(AVFormatContext*, AVPacket*)"/>
-        /// </summary>
-        /// <param name="packet">Media packet to write</param>
-        public void WritePacket(MediaPacket packet)
-        {
-            CheckAccess(MediaAccess.Write);
-            ffmpeg.av_interleaved_write_frame(FormatContextPointer, packet);
+            if (dispose)
+                GC.SuppressFinalize(this);
         }
     }
 }

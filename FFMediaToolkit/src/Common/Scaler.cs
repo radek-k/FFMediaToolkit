@@ -22,7 +22,7 @@
         /// <summary>
         /// Finalizes an instance of the <see cref="Scaler"/> class.
         /// </summary>
-        ~Scaler() => Dispose();
+        ~Scaler() => Disposing(false);
 
         /// <summary>
         /// Gets the estimated image line size based on the pixel format and width
@@ -33,15 +33,7 @@
         public static int EstimateStride(int width, ImagePixelFormat format) => GetBytesPerPixel(format) * width;
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            if (isDisposed)
-                return;
-
-            ffmpeg.sws_freeContext(scaleContext);
-
-            isDisposed = true;
-        }
+        public void Dispose() => Disposing(true);
 
         /// <summary>
         /// Overrides the <paramref name="destinationFrame"/> image buffer with rescaled specified bitmap. Used in encoding.
@@ -101,6 +93,18 @@
                 default:
                     return 0;
             }
+        }
+
+        private void Disposing(bool dispose)
+        {
+            if (isDisposed)
+                return;
+
+            ffmpeg.sws_freeContext(scaleContext);
+            isDisposed = true;
+
+            if (dispose)
+                GC.SuppressFinalize(this);
         }
     }
 }
