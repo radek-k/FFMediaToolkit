@@ -16,7 +16,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaPacket"/> class.
         /// </summary>
-        /// <param name="packet">A</param>
+        /// <param name="packet">The <see cref="AVPacket"/> object</param>
         private MediaPacket(AVPacket* packet)
         {
             pointer = new IntPtr(packet);
@@ -41,13 +41,17 @@
             set => Pointer->flags |= value ? ffmpeg.AV_PKT_FLAG_KEY : ~ffmpeg.AV_PKT_FLAG_KEY;
         }
 
+        /// <summary>
+        /// Converts an instance of <see cref="MediaPacket"/> to the unmanaged pointer
+        /// </summary>
+        /// <param name="packet">A <see cref="MediaPacket"/> instance</param>
         public static implicit operator AVPacket*(MediaPacket packet) => packet.Pointer;
 
         /// <summary>
-        /// Allocates a new empty packet
+        /// Allocates a new empty packet.
         /// </summary>
-        /// <param name="streamIndex">Packet's stream</param>
-        /// <returns>Allocated packet</returns>
+        /// <param name="streamIndex">The packet stream</param>
+        /// <returns>An allocated packet</returns>
         public static MediaPacket AllocateEmpty(int streamIndex)
         {
             var packet = ffmpeg.av_packet_alloc();
@@ -61,7 +65,9 @@
         /// <summary>
         /// Sets valid PTS/DTS values. Used only in encoding.
         /// </summary>
-        public void RescaleTimestamp(AVRational codec, AVRational stream) => ffmpeg.av_packet_rescale_ts(Pointer, codec, stream);
+        /// <param name="codecTimeBase">The encoder time base</param>
+        /// <param name="streamTimeBase">The time base of media stream</param>
+        public void RescaleTimestamp(AVRational codecTimeBase, AVRational streamTimeBase) => ffmpeg.av_packet_rescale_ts(Pointer, codecTimeBase, streamTimeBase);
 
         /// <inheritdoc/>
         public void Dispose()
