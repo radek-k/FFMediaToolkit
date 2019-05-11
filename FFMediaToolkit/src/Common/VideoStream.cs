@@ -68,7 +68,7 @@
         /// <inheritdoc/>
         protected override void OnPushing(VideoFrame frame)
         {
-            ffmpeg.avcodec_send_frame(CodecContextPointer, frame.ToPointer()).ThrowIfError("sending the frame");
+            ffmpeg.avcodec_send_frame(CodecContextPointer, frame.Pointer).ThrowIfError("sending the frame");
 
             var packet = MediaPacket.AllocateEmpty(Index);
 
