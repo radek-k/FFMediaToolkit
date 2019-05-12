@@ -13,9 +13,7 @@
     public unsafe class VideoStream : MediaStream<VideoFrame>
     {
         private VideoStream(AVStream* stream, AVCodecContext* codec, MediaContainer container, Layout frameLayout)
-            : base(stream, codec, container)
-        {
-        }
+            : base(stream, codec, container) => FrameLayout = frameLayout;
 
         /// <summary>
         /// Gets the dimensions of video frames
