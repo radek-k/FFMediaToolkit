@@ -23,11 +23,6 @@
         public Layout FrameLayout { get; }
 
         /// <summary>
-        /// Gets the currently encoded frame
-        /// </summary>
-        internal VideoFrame EncodedFrame { get; private set; }
-
-        /// <summary>
         /// Creates a new video stream in the specified format context
         /// </summary>
         /// <param name="container">A output file's format context</param>
