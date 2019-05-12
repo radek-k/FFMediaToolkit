@@ -21,7 +21,7 @@
             if (frame->channels > 0) // Checks frame content type
                 throw new ArgumentException("Cannot create VideoFrame instance from AVFrame containing audio");
 
-            Layout = stream.EncodedFrame.Layout;
+            Layout = stream.FrameLayout;
         }
 
         /// <summary>
