@@ -19,7 +19,7 @@
         /// <param name="path">Path to create the output media file.</param>
         public MediaBuilder(string path)
         {
-            if (!Path.IsPathFullyQualified(path))
+            if (!Path.IsPathRooted(path))
                 throw new ArgumentException($"The path \"{path}\" is not valid");
 
             container = MediaContainer.CreateOutput(path);
