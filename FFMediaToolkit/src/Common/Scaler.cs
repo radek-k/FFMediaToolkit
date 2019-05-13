@@ -44,7 +44,7 @@
         /// <param name="frameLayout">The output <see cref="AVFrame"/> layout setting</param>
         internal void FillAVFrame(IntPtr bitmapPointer, Layout bitmapLayout, AVFrame* destinationFrame, Layout frameLayout)
         {
-            var context = GetCachedContext(ref scaleContext, bitmapLayout, frameLayout);
+            var context = GetCachedContext(bitmapLayout, frameLayout);
             var ptr = (byte*)bitmapPointer.ToPointer();
             var data = new byte*[4] { ptr, null, null, null };
             var linesize = new int[4] { bitmapLayout.Stride, 0, 0, 0 };
@@ -60,22 +60,11 @@
         /// <param name="destinationLayout">The destination bitmap layout</param>
         internal void AVFrameToBitmap(AVFrame* videoFrame, Layout videoLayout, IntPtr destinationPointer, Layout destinationLayout)
         {
-            var context = GetCachedContext(ref scaleContext, videoLayout, destinationLayout);
+            var context = GetCachedContext(videoLayout, destinationLayout);
             var ptr = (byte*)destinationPointer.ToPointer();
             var data = new byte*[4] { ptr, null, null, null };
             var linesize = new int[4] { destinationLayout.Stride, 0, 0, 0 };
             ffmpeg.sws_scale(context, videoFrame->data, videoFrame->linesize, 0, videoLayout.Height, data, linesize);
-        }
-
-        private static SwsContext* GetCachedContext(ref SwsContext* cache, Layout source, Layout destination)
-        {
-            if (source == destination)
-            {
-                return null;
-            }
-
-            cache = ffmpeg.sws_getCachedContext(cache, source.Width, source.Height, source.PixelFormat, destination.Width, destination.Height, destination.PixelFormat, ffmpeg.SWS_BICUBIC, null, null, null);
-            return cache;
         }
 
         private static int GetBytesPerPixel(ImagePixelFormat format)
@@ -93,6 +82,17 @@
                 default:
                     return 0;
             }
+        }
+
+        private SwsContext* GetCachedContext(Layout source, Layout destination)
+        {
+            if (source == destination)
+            {
+                return null;
+            }
+
+            scaleContext = ffmpeg.sws_getCachedContext(scaleContext, source.Width, source.Height, source.PixelFormat, destination.Width, destination.Height, destination.PixelFormat, ffmpeg.SWS_BICUBIC, null, null, null);
+            return scaleContext;
         }
 
         private void Disposing(bool dispose)
