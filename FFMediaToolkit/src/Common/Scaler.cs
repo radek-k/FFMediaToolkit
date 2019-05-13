@@ -74,7 +74,7 @@
                 return null;
             }
 
-            cache = ffmpeg.sws_getCachedContext(cache, source.Width, source.Height, source.PixelFormat, source.Width, source.Height, source.PixelFormat, ffmpeg.SWS_BICUBIC, null, null, null);
+            cache = ffmpeg.sws_getCachedContext(cache, source.Width, source.Height, source.PixelFormat, destination.Width, destination.Height, destination.PixelFormat, ffmpeg.SWS_BICUBIC, null, null, null);
             return cache;
         }
 
