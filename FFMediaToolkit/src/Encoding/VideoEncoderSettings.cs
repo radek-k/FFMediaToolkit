@@ -18,7 +18,7 @@
             KeyframeRate = 12;
             VideoWidth = 0;
             VideoHeight = 0;
-            VideoPixelFormat = ImagePixelFormat.ARGB32;
+            VideoPixelFormat = ImagePixelFormat.YUV420;
             Framerate = 30;
             CodecOptions = new FFDictionary();
         }
@@ -44,7 +44,7 @@
         public int VideoHeight { get; set; }
 
         /// <summary>
-        /// Gets or sets the output video pixel format. The default value is YUV444p.
+        /// Gets or sets the output video pixel format. The default value is YUV420p.
         /// Sended frames will be automatically converted to this format
         /// </summary>
         public ImagePixelFormat VideoPixelFormat { get; set; }
