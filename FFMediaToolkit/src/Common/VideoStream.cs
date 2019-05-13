@@ -45,7 +45,7 @@
             codecContext->time_base.den = config.Framerate;
             codecContext->time_base.num = 1;
             codecContext->gop_size = config.KeyframeRate;
-            codecContext->pix_fmt = AVPixelFormat.AV_PIX_FMT_YUV420P;
+            codecContext->pix_fmt = (AVPixelFormat)config.VideoPixelFormat;
 
             if ((container.FormatContextPointer->oformat->flags & ffmpeg.AVFMT_GLOBALHEADER) != 0)
             {
