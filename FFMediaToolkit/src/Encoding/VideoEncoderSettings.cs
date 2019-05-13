@@ -12,12 +12,14 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoEncoderSettings"/> class with default video settings values;
         /// </summary>
-        public VideoEncoderSettings()
+        /// <param name="width">The video width</param>
+        /// <param name="height">The video height</param>
+        public VideoEncoderSettings(int width, int height)
         {
             Bitrate = 30_000_000;
             KeyframeRate = 12;
-            VideoWidth = 0;
-            VideoHeight = 0;
+            VideoWidth = width;
+            VideoHeight = height;
             VideoPixelFormat = ImagePixelFormat.YUV420;
             Framerate = 30;
             CodecOptions = new FFDictionary();
@@ -34,12 +36,12 @@
         public int KeyframeRate { get; set; }
 
         /// <summary>
-        /// Gets or sets the video frame width. If not set, it will be set from the first pushed frame
+        /// Gets or sets the video frame width.
         /// </summary>
         public int VideoWidth { get; set; }
 
         /// <summary>
-        /// Gets or sets the video frame height. If not set, it will be set from the first pushed frame
+        /// Gets or sets the video frame height.
         /// </summary>
         public int VideoHeight { get; set; }
 
