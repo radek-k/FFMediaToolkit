@@ -38,6 +38,10 @@
         {
             var frame = ffmpeg.av_frame_alloc();
 
+            frame->width = stream.FrameLayout.Width;
+            frame->height = stream.FrameLayout.Height;
+            frame->format = (int)stream.FrameLayout.PixelFormat;
+
             var size = ffmpeg.av_image_get_buffer_size(stream.FrameLayout.PixelFormat, stream.FrameLayout.Width, stream.FrameLayout.Height, 32);
             var buffer = (byte*)ffmpeg.av_malloc((ulong)size);
 #pragma warning disable 618
