@@ -53,8 +53,6 @@
         {
             var packet = ffmpeg.av_packet_alloc();
             ffmpeg.av_init_packet(packet);
-            packet->data = null;
-            packet->size = 0;
             packet->stream_index = streamIndex;
             return new MediaPacket(packet);
         }
