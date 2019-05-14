@@ -42,11 +42,8 @@
             frame->height = stream.FrameLayout.Height;
             frame->format = (int)stream.FrameLayout.PixelFormat;
 
-            var size = ffmpeg.av_image_get_buffer_size(stream.FrameLayout.PixelFormat, stream.FrameLayout.Width, stream.FrameLayout.Height, 32);
-            var buffer = (byte*)ffmpeg.av_malloc((ulong)size);
-#pragma warning disable 618
-            ffmpeg.avpicture_fill((AVPicture*)frame, buffer, stream.FrameLayout.PixelFormat, stream.FrameLayout.Width, stream.FrameLayout.Height);
-#pragma warning restore
+            ffmpeg.av_frame_get_buffer(frame, 32);
+
             return new VideoFrame(frame, stream);
         }
 
