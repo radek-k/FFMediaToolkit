@@ -48,6 +48,13 @@
         }
 
         /// <summary>
+        /// Creates a null video frame
+        /// </summary>
+        /// <param name="stream">The video stream</param>
+        /// <returns>A <see cref="VideoFrame"/> instance containing null data</returns>
+        public static VideoFrame CreateNull(VideoStream stream) => new VideoFrame(null, stream);
+
+        /// <summary>
         /// Overrides this video frame data with the converted <paramref name="bitmap"/> using specified <see cref="Scaler"/> object.
         /// </summary>
         /// <param name="bitmap">The bitmap to convert.</param>
