@@ -39,11 +39,12 @@
         /// Creates an empty FFmpeg format container for encoding.
         /// After you add media streams configurations, you have to call the <see cref="LockFile(string)"/> before pushing frames
         /// </summary>
-        /// <param name="path">A</param>
-        /// <returns>B</returns>
+        /// <param name="path">A output file path</param>
+        /// <returns>A new instance of the <see cref="MediaContainer"/>.</returns>
+        /// <remarks>Before you write frames to a new container, you must call the <see cref="LockFile(string)"/> method to create an ouput file</remarks>
         public static MediaContainer CreateOutput(string path)
         {
-            var format = ffmpeg.av_guess_format(null, path, null); // ->ThrowIfNull(() => new InvalidOperationException("Cannot find this output format"));
+            var format = ffmpeg.av_guess_format(null, path, null);
             var formatContext = ffmpeg.avformat_alloc_context();
             formatContext->oformat = format;
             return new MediaContainer(formatContext, null, MediaAccess.WriteInit);
