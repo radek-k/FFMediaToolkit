@@ -52,7 +52,6 @@
         public static MediaPacket AllocateEmpty(int streamIndex)
         {
             var packet = ffmpeg.av_packet_alloc();
-            ffmpeg.av_init_packet(packet);
             packet->stream_index = streamIndex;
             return new MediaPacket(packet);
         }
