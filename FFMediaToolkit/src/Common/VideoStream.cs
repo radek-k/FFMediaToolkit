@@ -67,7 +67,7 @@
 
             if (ffmpeg.avcodec_receive_packet(CodecContextPointer, packet) == 0)
             {
-                packet.RescaleTimestamp(TimeBase, StreamPointer->time_base);
+                packet.RescaleTimestamp(CodecContextPointer->time_base, TimeBase);
 
                 if (CodecContextPointer->coded_frame->key_frame == 1)
                 {
