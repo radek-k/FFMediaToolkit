@@ -16,6 +16,8 @@
 
         private MediaContainer(AVFormatContext* format, VideoStream stream, MediaAccess acces)
         {
+            MediaCore.LoadFFmpeg();
+
             FormatContextPointer = format;
             Video = stream;
             Access = acces;
