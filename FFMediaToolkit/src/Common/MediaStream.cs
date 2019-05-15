@@ -30,7 +30,7 @@
         /// <summary>
         /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVStream"/>
         /// </summary>
-        public AVStream* StreamPointer => codec != IntPtr.Zero ? (AVStream*)codec : null;
+        public AVStream* StreamPointer => stream != IntPtr.Zero ? (AVStream*)stream : null;
 
         /// <summary>
         /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVCodecContext"/>
@@ -50,12 +50,12 @@
         /// <summary>
         /// Gets the current stream index
         /// </summary>
-        public int Index { get; }
+        public int Index => StreamPointer->index;
 
         /// <summary>
         /// Gets stream time base
         /// </summary>
-        public AVRational TimeBase { get; }
+        public AVRational TimeBase => StreamPointer->time_base;
 
         /// <summary>
         /// Sends the media frame to the encoder.
