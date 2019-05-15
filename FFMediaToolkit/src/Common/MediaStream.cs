@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Common
 {
     using System;
+    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -65,17 +66,26 @@
         public void PushFrame(TFrame frame)
         {
             CheckAccess(MediaAccess.Write);
-            OnPushing(frame);
+
+            ffmpeg.avcodec_send_frame(CodecContextPointer, frame.Pointer).ThrowIfError("sending the frame");
+
+            var packet = MediaPacket.AllocateEmpty(Index);
+
+            if (ffmpeg.avcodec_receive_packet(CodecContextPointer, packet) == 0)
+            {
+                packet.RescaleTimestamp(CodecContextPointer->time_base, TimeBase);
+
+                if (CodecContextPointer->coded_frame->key_frame == 1)
+                {
+                    packet.IsKeyPacket = true;
+                }
+
+                OwnerFile.WritePacket(packet);
+            }
         }
 
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
-
-        /// <summary>
-        /// Method called when frame is pushing
-        /// </summary>
-        /// <param name="frame">Media frame to encode</param>
-        protected abstract void OnPushing(TFrame frame);
 
         /// <summary>
         /// Method called when frame is pushing

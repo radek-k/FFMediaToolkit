@@ -59,26 +59,6 @@
         }
 
         /// <inheritdoc/>
-        protected override void OnPushing(VideoFrame frame)
-        {
-            ffmpeg.avcodec_send_frame(CodecContextPointer, frame.Pointer).ThrowIfError("sending the frame");
-
-            var packet = MediaPacket.AllocateEmpty(Index);
-
-            if (ffmpeg.avcodec_receive_packet(CodecContextPointer, packet) == 0)
-            {
-                packet.RescaleTimestamp(CodecContextPointer->time_base, TimeBase);
-
-                if (CodecContextPointer->coded_frame->key_frame == 1)
-                {
-                    packet.IsKeyPacket = true;
-                }
-
-                OwnerFile.WritePacket(packet);
-            }
-        }
-
-        /// <inheritdoc/>
         protected override VideoFrame OnReading() => throw new NotImplementedException();
     }
 }
