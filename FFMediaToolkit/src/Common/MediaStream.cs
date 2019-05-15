@@ -83,10 +83,27 @@
         /// <returns>null</returns>
         protected abstract TFrame OnReading();
 
+        private void Flush()
+        {
+            while (true)
+            {
+                var packet = MediaPacket.AllocateEmpty(Index);
+                ffmpeg.avcodec_send_frame(CodecContextPointer, null);
+
+                if (ffmpeg.avcodec_receive_packet(CodecContextPointer, packet) == 0)
+                    OwnerFile.WritePacket(packet);
+                else
+                    break;
+            }
+        }
+
         private void Disposing(bool dispose)
         {
             if (isDisposed)
                 return;
+
+            if (Access == MediaAccess.Write)
+                Flush();
 
             if (stream != IntPtr.Zero)
                 ffmpeg.avcodec_close(StreamPointer->codec);
