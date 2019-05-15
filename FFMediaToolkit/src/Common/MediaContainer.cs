@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Common
 {
     using System;
+    using System.IO;
     using FFMediaToolkit.Encoding;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
@@ -44,7 +45,14 @@
         /// <remarks>Before you write frames to a new container, you must call the <see cref="LockFile(string)"/> method to create an ouput file</remarks>
         public static MediaContainer CreateOutput(string path)
         {
+            if (Path.HasExtension(path))
+                throw new ArgumentException("The file path has no extension.");
+
             var format = ffmpeg.av_guess_format(null, path, null);
+
+            if (format == null)
+                throw new NotSupportedException($"Cannot find a container format for the \"{Path.GetExtension(path)}\" file extension.");
+
             var formatContext = ffmpeg.avformat_alloc_context();
             formatContext->oformat = format;
             return new MediaContainer(formatContext, null, MediaAccess.WriteInit);
