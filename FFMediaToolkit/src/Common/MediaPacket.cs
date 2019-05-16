@@ -72,7 +72,6 @@
                 return;
 
             var ptr = Pointer;
-            ffmpeg.av_packet_unref(ptr);
             ffmpeg.av_packet_free(&ptr);
             isDisposed = true;
 
