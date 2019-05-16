@@ -63,6 +63,11 @@
         /// <param name="streamTimeBase">The time base of media stream</param>
         public void RescaleTimestamp(AVRational codecTimeBase, AVRational streamTimeBase) => ffmpeg.av_packet_rescale_ts(Pointer, codecTimeBase, streamTimeBase);
 
+        /// <summary>
+        /// Wipes the packet data.
+        /// </summary>
+        public void Wipe() => ffmpeg.av_packet_unref(Pointer);
+
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
 
