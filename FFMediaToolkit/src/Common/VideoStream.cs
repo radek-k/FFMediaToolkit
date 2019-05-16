@@ -32,7 +32,17 @@
                 throw new InvalidOperationException("The Media container must be in WriteInit acces mode");
 
             var codecId = config.Codec ?? container.FormatContextPointer->oformat->video_codec;
+
+            if (codecId == AVCodecID.AV_CODEC_ID_NONE)
+                throw new InvalidOperationException("The media container doesn't support video!");
+
             var codec = ffmpeg.avcodec_find_encoder(codecId);
+
+            if (codec != null)
+                throw new InvalidOperationException($"Cannot find an encoder with the {codecId}!");
+
+            if (codec->type != AVMediaType.AVMEDIA_TYPE_VIDEO)
+                throw new InvalidOperationException($"The {codecId} encoder doesn't support video!");
 
             var videoStream = ffmpeg.avformat_new_stream(container.FormatContextPointer, codec);
             var codecContext = videoStream->codec;
