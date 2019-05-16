@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit
 {
     using System.IO;
+    using System.Runtime.InteropServices;
     using Interop;
 
     /// <summary>
@@ -27,7 +28,8 @@
 
             NativeMethods.SetDllLoadingDirectory(dir);
 
-            Libraries.LoadAll(dir);
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Libraries.LoadAll(dir);
         }
 
         /// <summary>
