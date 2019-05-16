@@ -62,6 +62,13 @@
         public FFDictionary CodecOptions { get; set; }
 
         /// <summary>
+        /// Gets or sets the codec for this stream.
+        /// If <see langword="null"/>, encoder will use default video codec for current container.
+        /// WARNING! Many codecs are deprecated or don't work with video.
+        /// </summary>
+        public AVCodecID? Codec { get; set; }
+
+        /// <summary>
         /// Creates a <see cref="Layout"/> object, containg dimensions and pixel format, based on this settings
         /// </summary>
         /// <returns>New <see cref="Layout"/> object</returns>

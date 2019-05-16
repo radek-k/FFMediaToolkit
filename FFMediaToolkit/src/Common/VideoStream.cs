@@ -31,11 +31,12 @@
             if (container.Access != MediaAccess.WriteInit)
                 throw new InvalidOperationException("The Media container must be in WriteInit acces mode");
 
-            var codec = ffmpeg.avcodec_find_encoder(AVCodecID.AV_CODEC_ID_MPEG4);
+            var codecId = config.Codec ?? container.FormatContextPointer->oformat->video_codec;
+            var codec = ffmpeg.avcodec_find_encoder(codecId);
 
             var videoStream = ffmpeg.avformat_new_stream(container.FormatContextPointer, codec);
             var codecContext = videoStream->codec;
-            codecContext->codec_id = AVCodecID.AV_CODEC_ID_MPEG4;
+            codecContext->codec_id = codecId;
             codecContext->codec_type = AVMediaType.AVMEDIA_TYPE_VIDEO;
 
             codecContext->bit_rate = config.Bitrate;
