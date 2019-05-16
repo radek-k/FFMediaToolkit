@@ -13,6 +13,7 @@
     {
         private readonly IntPtr codec;
         private readonly IntPtr stream;
+        private readonly MediaPacket packet;
         private bool isDisposed;
 
         /// <summary>
@@ -26,6 +27,7 @@
             this.codec = (IntPtr)codec;
             this.stream = (IntPtr)stream;
             OwnerFile = container;
+            packet = MediaPacket.AllocateEmpty(stream->index);
         }
 
         /// <summary>
@@ -69,8 +71,6 @@
 
             ffmpeg.avcodec_send_frame(CodecContextPointer, frame.Pointer).ThrowIfError("sending the frame");
 
-            var packet = MediaPacket.AllocateEmpty(Index);
-
             if (ffmpeg.avcodec_receive_packet(CodecContextPointer, packet) == 0)
             {
                 packet.RescaleTimestamp(CodecContextPointer->time_base, TimeBase);
@@ -82,6 +82,8 @@
 
                 OwnerFile.WritePacket(packet);
             }
+
+            packet.Wipe();
         }
 
         /// <inheritdoc/>
@@ -97,13 +99,14 @@
         {
             while (true)
             {
-                var packet = MediaPacket.AllocateEmpty(Index);
                 ffmpeg.avcodec_send_frame(CodecContextPointer, null);
 
                 if (ffmpeg.avcodec_receive_packet(CodecContextPointer, packet) == 0)
                     OwnerFile.WritePacket(packet);
                 else
                     break;
+
+                packet.Wipe();
             }
         }
 
@@ -114,6 +117,8 @@
 
             if (Access == MediaAccess.Write)
                 Flush();
+
+            packet.Dispose();
 
             if (stream != IntPtr.Zero)
                 ffmpeg.avcodec_close(StreamPointer->codec);
