@@ -68,7 +68,20 @@
         public void PushFrame(TFrame frame)
         {
             CheckAccess(MediaAccess.Write);
+            Push(frame);
+        }
 
+        /// <inheritdoc/>
+        public void Dispose() => Disposing(true);
+
+        /// <summary>
+        /// Method called when frame is pushing
+        /// </summary>
+        /// <returns>null</returns>
+        protected abstract TFrame OnReading();
+
+        private void Push(TFrame frame)
+        {
             ffmpeg.avcodec_send_frame(CodecContextPointer, frame.Pointer).ThrowIfError("sending the frame");
 
             if (ffmpeg.avcodec_receive_packet(CodecContextPointer, packet) == 0)
@@ -85,15 +98,6 @@
 
             packet.Wipe();
         }
-
-        /// <inheritdoc/>
-        public void Dispose() => Disposing(true);
-
-        /// <summary>
-        /// Method called when frame is pushing
-        /// </summary>
-        /// <returns>null</returns>
-        protected abstract TFrame OnReading();
 
         private void Flush()
         {
