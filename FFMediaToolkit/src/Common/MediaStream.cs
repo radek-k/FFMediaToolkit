@@ -14,6 +14,8 @@
         private readonly IntPtr codec;
         private readonly IntPtr stream;
         private readonly MediaPacket packet;
+
+        private readonly object syncLock = new object();
         private bool isDisposed;
 
         /// <summary>
@@ -68,7 +70,11 @@
         public void PushFrame(TFrame frame)
         {
             CheckAccess(MediaAccess.Write);
-            Push(frame);
+
+            lock (syncLock)
+            {
+                Push(frame);
+            }
         }
 
         /// <inheritdoc/>
@@ -116,27 +122,30 @@
 
         private void Disposing(bool dispose)
         {
-            if (isDisposed)
-                return;
-
-            if (Access == MediaAccess.Write)
-                Flush();
-
-            packet.Dispose();
-
-            if (stream != IntPtr.Zero)
-                ffmpeg.avcodec_close(StreamPointer->codec);
-
-            if (codec != IntPtr.Zero)
+            lock (syncLock)
             {
-                var ptr = CodecContextPointer;
-                ffmpeg.avcodec_free_context(&ptr);
+                if (isDisposed)
+                    return;
+
+                if (Access == MediaAccess.Write)
+                    Flush();
+
+                packet.Dispose();
+
+                if (stream != IntPtr.Zero)
+                    ffmpeg.avcodec_close(StreamPointer->codec);
+
+                if (codec != IntPtr.Zero)
+                {
+                    var ptr = CodecContextPointer;
+                    ffmpeg.avcodec_free_context(&ptr);
+                }
+
+                isDisposed = true;
+
+                if (dispose)
+                    GC.SuppressFinalize(this);
             }
-
-            isDisposed = true;
-
-            if (dispose)
-                GC.SuppressFinalize(this);
         }
     }
 }
