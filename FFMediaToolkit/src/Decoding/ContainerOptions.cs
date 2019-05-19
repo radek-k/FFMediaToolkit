@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
     using System.Collections.Generic;
+    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents a set of demuxer options and flags.
@@ -66,5 +67,56 @@
         /// Gets or sets the private demuxer-specific options.
         /// </summary>
         public Dictionary<string, string> PrivateOptions { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Applies flag settings specified in this class to an instance of <see cref="AVFormatContext"/>.
+        /// </summary>
+        /// <param name="formatContext">An empty instance of <see cref="AVFormatContext"/> before opening the stream</param>
+        internal unsafe void ApplyFlags(AVFormatContext* formatContext)
+        {
+            ref var formatFlags = ref formatContext->flags;
+
+            if (FlagDiscardCorrupt)
+            {
+                formatFlags |= ffmpeg.AVFMT_FLAG_DISCARD_CORRUPT;
+            }
+
+            if (FlagEnableFastSeek)
+            {
+                formatFlags |= ffmpeg.AVFMT_FLAG_FAST_SEEK;
+            }
+
+            if (FlagEnableNoFillIn)
+            {
+                formatFlags |= ffmpeg.AVFMT_FLAG_NOFILLIN;
+            }
+
+            if (FlagGeneratePts)
+            {
+                formatFlags |= ffmpeg.AVFMT_FLAG_GENPTS;
+            }
+
+            if (FlagIgnoreDts)
+            {
+                formatFlags |= ffmpeg.AVFMT_FLAG_IGNDTS;
+            }
+
+            if (FlagIgnoreIndex)
+            {
+                formatFlags |= ffmpeg.AVFMT_FLAG_IGNIDX;
+            }
+
+            if (FlagNoBuffer)
+            {
+                formatFlags |= ffmpeg.AVFMT_FLAG_NOBUFFER;
+            }
+
+            if (FlagSortDts)
+            {
+                formatFlags |= ffmpeg.AVFMT_FLAG_SORT_DTS;
+            }
+
+            formatContext->seek2any = SeekToAny ? 1 : 0;
+        }
     }
 }
