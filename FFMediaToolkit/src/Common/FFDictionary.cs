@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -37,6 +38,17 @@
         public AVDictionary* Pointer => isDisposed ? null : dict;
 
         /// <summary>
+        /// Gets or sets the value with the specified key.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>The value.</returns>
+        public string this[string key]
+        {
+            get => Get(key);
+            set => Set(key, value);
+        }
+
+        /// <summary>
         /// Creates a new instance of the <see cref="FFDictionary"/> class using given string dictionary.
         /// </summary>
         /// <param name="dictionary">The string dictionary</param>
@@ -45,6 +57,30 @@
         {
             // TODO: FFDictionary from string
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Gets the value with specified key.
+        /// </summary>
+        /// <param name="key">The dictionary key.</param>
+        /// <param name="matchCase">If <see langword="true"/> matches case.</param>
+        /// <returns>The value with specified key. If the key not exist, returns <see langword="null"/></returns>
+        public string Get(string key, bool matchCase = true)
+        {
+            var ptr = ffmpeg.av_dict_get(dict, key, null, matchCase ? ffmpeg.AV_DICT_MATCH_CASE : 0);
+            return ptr != null ? StringConverter.StringFromUtf8(new IntPtr(ptr)) : null;
+        }
+
+        /// <summary>
+        /// Sets the value for the specified key.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        public void Set(string key, string value)
+        {
+            var ptr = dict;
+            ffmpeg.av_dict_set(&ptr, key, value, 0);
+            dict = ptr;
         }
 
         /// <inheritdoc/>
