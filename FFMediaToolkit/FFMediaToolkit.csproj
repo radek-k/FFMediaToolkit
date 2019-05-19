@@ -29,8 +29,4 @@
     <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="src\Decoding\" />
-  </ItemGroup>
-
 </Project>
