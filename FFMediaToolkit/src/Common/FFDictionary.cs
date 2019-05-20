@@ -43,6 +43,11 @@
         public AVDictionary* Pointer => isDisposed ? null : dict;
 
         /// <summary>
+        /// Gets the number of elements in the dictionary.
+        /// </summary>
+        public int Count => dict == null ? 0 : ffmpeg.av_dict_count(dict);
+
+        /// <summary>
         /// Gets or sets the value with the specified key.
         /// </summary>
         /// <param name="key">The key.</param>
