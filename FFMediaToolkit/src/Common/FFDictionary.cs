@@ -11,15 +11,20 @@
     public unsafe class FFDictionary : IDisposable
     {
         private bool isDisposed;
-        private AVDictionary* dict;
+        private AVDictionary* dict = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FFDictionary"/> class.
         /// </summary>
         public FFDictionary()
-            : this(null)
         {
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FFDictionary"/> class.
+        /// </summary>
+        /// <param name="dictionary">The dictionary to copy.</param>
+        public FFDictionary(Dictionary<string, string> dictionary) => Copy(dictionary);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FFDictionary"/> class from given <see cref="AVDictionary"/>.
@@ -49,17 +54,6 @@
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="FFDictionary"/> class using given string dictionary.
-        /// </summary>
-        /// <param name="dictionary">The string dictionary</param>
-        /// <returns>A new instance of <see cref="FFDictionary"/> filled with data from specified string dictionary</returns>
-        public static FFDictionary FromDictionary(Dictionary<string, string> dictionary)
-        {
-            // TODO: FFDictionary from string
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// Gets the value with specified key.
         /// </summary>
         /// <param name="key">The dictionary key.</param>
@@ -81,6 +75,18 @@
             var ptr = dict;
             ffmpeg.av_dict_set(&ptr, key, value, 0);
             dict = ptr;
+        }
+
+        /// <summary>
+        /// Copies items from specified dictionary to this <see cref="FFDictionary"/>.
+        /// </summary>
+        /// <param name="dictionary">The dictionary to copy</param>
+        public void Copy(Dictionary<string, string> dictionary)
+        {
+            foreach (var item in dictionary)
+            {
+                this[item.Key] = item.Value;
+            }
         }
 
         /// <inheritdoc/>
