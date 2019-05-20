@@ -10,6 +10,13 @@
     public class ContainerOptions
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="ContainerOptions"/> class with the default settings.
+        /// </summary>
+        public ContainerOptions()
+        {
+        }
+
+        /// <summary>
         /// Discard corrupted packets.
         /// Port of 'discardcorrupt'.
         /// </summary>
