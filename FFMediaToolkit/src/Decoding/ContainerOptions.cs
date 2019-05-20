@@ -1,6 +1,5 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
-    using System.Collections.Generic;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -73,7 +72,7 @@
         /// <summary>
         /// Gets or sets the private demuxer-specific options.
         /// </summary>
-        public Dictionary<string, string> PrivateOptions { get; set; } = new Dictionary<string, string>();
+        public FFDictionary PrivateOptions { get; set; } = new FFDictionary();
 
         /// <summary>
         /// Applies flag settings specified in this class to an instance of <see cref="AVFormatContext"/>.
