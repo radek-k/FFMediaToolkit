@@ -3,6 +3,7 @@
     using System;
     using System.Runtime.InteropServices;
     using System.Text;
+    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Contains string conversion methods.
@@ -27,6 +28,21 @@
             Marshal.Copy(pointer, buffer, 0, lenght);
 
             return Encoding.UTF8.GetString(buffer);
+        }
+
+        /// <summary>
+        /// Gets the FFmpeg error message based on the error code.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <returns>The decoded error message.</returns>
+        public static unsafe string DecodeMessage(int errorCode)
+        {
+            const int bufferSize = 1024;
+            var buffer = stackalloc byte[bufferSize];
+            ffmpeg.av_strerror(errorCode, buffer, bufferSize);
+
+            var message = StringFromUtf8((IntPtr)buffer);
+            return message;
         }
     }
 }
