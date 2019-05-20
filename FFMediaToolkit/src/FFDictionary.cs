@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit.Common
+﻿namespace FFMediaToolkit
 {
     using System;
     using System.Collections.Generic;
