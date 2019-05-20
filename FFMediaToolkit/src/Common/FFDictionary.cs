@@ -97,6 +97,12 @@
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
 
+        /// <summary>
+        /// Updates the pointer to the dictionary.
+        /// </summary>
+        /// <param name="pointer">The pointer to the <see cref="AVDictionary"/>.</param>
+        internal void Update(AVDictionary* pointer) => dict = pointer;
+
         private void Disposing(bool dispose)
         {
             if (isDisposed)
