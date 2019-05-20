@@ -38,14 +38,14 @@
         ~FFDictionary() => Disposing(false);
 
         /// <summary>
-        /// Gets a pointer to the underlying <see cref="AVDictionary"/>
-        /// </summary>
-        public AVDictionary* Pointer => isDisposed ? null : dict;
-
-        /// <summary>
         /// Gets the number of elements in the dictionary.
         /// </summary>
         public int Count => dict == null ? 0 : ffmpeg.av_dict_count(dict);
+
+        /// <summary>
+        /// Gets a pointer to the underlying <see cref="AVDictionary"/>
+        /// </summary>
+        internal AVDictionary* Pointer => isDisposed ? null : dict;
 
         /// <summary>
         /// Gets or sets the value with the specified key.
