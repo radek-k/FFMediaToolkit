@@ -91,7 +91,10 @@
                 return null;
             }
 
-            scaleContext = ffmpeg.sws_getCachedContext(scaleContext, source.Width, source.Height, source.PixelFormat, destination.Width, destination.Height, destination.PixelFormat, ffmpeg.SWS_BICUBIC, null, null, null);
+            // If don't change the dimensions of the image, there is no need to use the high quality bicubic method.
+            var scaleMode = source.SizeEquals(destination) ? ffmpeg.SWS_POINT : ffmpeg.SWS_BICUBIC;
+
+            scaleContext = ffmpeg.sws_getCachedContext(scaleContext, source.Width, source.Height, source.PixelFormat, destination.Width, destination.Height, destination.PixelFormat, scaleMode, null, null, null);
             return scaleContext;
         }
 
