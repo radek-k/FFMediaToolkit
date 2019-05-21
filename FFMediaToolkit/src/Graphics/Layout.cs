@@ -46,6 +46,13 @@
 
         public static bool operator !=(Layout left, Layout right) => !(left == right);
 
+        /// <summary>
+        /// Indicates whether the width and height of this layout are equal to the other.
+        /// </summary>
+        /// <param name="other">The other <see cref="Layout"/> object to compare.</param>
+        /// <returns><see langword="true"/> if equal, otherwise <see langword="false"/>.</returns>
+        public bool SizeEquals(Layout other) => Width == other.Width && Height == other.Height;
+
         /// <inheritdoc/>
         public override bool Equals(object obj) => obj is Layout layout && Equals(layout);
 
