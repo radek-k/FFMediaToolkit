@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using FFMediaToolkit.Decoding;
     using FFMediaToolkit.Encoding;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
@@ -11,7 +12,6 @@
     /// </summary>
     public unsafe sealed class MediaContainer : MediaObject, IDisposable
     {
-        // TODO: Custom dictionary support: private AVDictionary* avDict;
         private bool isDisposed;
 
         private MediaContainer(AVFormatContext* format, VideoStream stream, MediaAccess acces)
@@ -61,6 +61,46 @@
         }
 
         /// <summary>
+        /// Opens a media container and stream codecs from given path.
+        /// </summary>
+        /// <param name="path">A path to the multimedia file.</param>
+        /// <param name="options">The media settings.</param>
+        /// <returns>A new instance of the <see cref="MediaContainer"/> class.</returns>
+        public static MediaContainer LoadFile(string path, MediaOptions options)
+        {
+            var context = ffmpeg.avformat_alloc_context();
+            options.DemuxerOptions.ApplyFlags(context);
+            var dict = options.DemuxerOptions.PrivateOptions.Pointer;
+
+            ffmpeg.avformat_open_input(&context, path, null, &dict);
+
+            options.DemuxerOptions.PrivateOptions.Update(dict);
+
+            VideoStream videoStream = null;
+            // AudioStream audioStream = null;
+
+            if (options.StreamsToLoad != MediaMode.Audio)
+            {
+                var index = FindBestStream(context, AVMediaType.AVMEDIA_TYPE_VIDEO);
+                if (index != null)
+                {
+                    // Video stream opening code.
+                }
+            }
+
+            // if (options.StreamsToLoad != MediaMode.Video)
+            // {
+            //    var index = FindBestStream(context, AVMediaType.AVMEDIA_TYPE_AUDIO);
+            //    if (index != null)
+            //    {
+            //        // Audio stream opening code.
+            //    }
+            // }
+
+            return new MediaContainer(context, videoStream, MediaAccess.Read);
+        }
+
+        /// <summary>
         /// Adds a new video stream to the container. Usable only in encoding, before locking file
         /// </summary>
         /// <param name="config">The stream configuration</param>
@@ -104,6 +144,13 @@
         {
             CheckAccess(MediaAccess.Write);
             ffmpeg.av_interleaved_write_frame(FormatContextPointer, packet);
+        }
+
+        private static int? FindBestStream(AVFormatContext* container, AVMediaType type, int relStream = -1)
+        {
+            AVCodec* codec = null;
+            var id = ffmpeg.av_find_best_stream(container, type, -1, -1, &codec, 0);
+            return id >= 0 ? (int?)id : null;
         }
 
         private void Disposing(bool dispose)
