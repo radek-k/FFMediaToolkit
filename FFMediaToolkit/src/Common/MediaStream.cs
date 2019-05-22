@@ -5,9 +5,9 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// This is a base class of video and audio FFmpeg streams
+    /// This is a base class of video and audio FFmpeg streams.
     /// </summary>
-    /// <typeparam name="TFrame">Type of frame</typeparam>
+    /// <typeparam name="TFrame">Type of frame.</typeparam>
     public abstract unsafe class MediaStream<TFrame> : MediaObject, IDisposable
         where TFrame : MediaFrame
     {
@@ -21,9 +21,9 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaStream{TFrame}"/> class.
         /// </summary>
-        /// <param name="stream">The media stream</param>
-        /// <param name="codec">The media <see cref="AVCodecContext"/></param>
-        /// <param name="container">The media container</param>
+        /// <param name="stream">The media stream.</param>
+        /// <param name="codec">The media <see cref="AVCodecContext"/>.</param>
+        /// <param name="container">The media container.</param>
         protected MediaStream(AVStream* stream, AVCodecContext* codec, MediaContainer container)
         {
             this.codec = (IntPtr)codec;
@@ -33,40 +33,50 @@
         }
 
         /// <summary>
-        /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVStream"/>
+        /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVStream"/>.
         /// </summary>
         public AVStream* StreamPointer => stream != IntPtr.Zero ? (AVStream*)stream : null;
 
         /// <summary>
-        /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVCodecContext"/>
+        /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVCodecContext"/>.
         /// </summary>
         public AVCodecContext* CodecContextPointer => codec != IntPtr.Zero ? (AVCodecContext*)codec : null;
 
         /// <summary>
-        /// Gets the acces mode of this stream
+        /// Gets the acces mode of this stream.
         /// </summary>
         public override MediaAccess Access => OwnerFile.Access;
 
         /// <summary>
-        /// Gets the <see cref="MediaContainer"/> that owns this stream
+        /// Gets the <see cref="MediaContainer"/> that owns this stream.
         /// </summary>
         public MediaContainer OwnerFile { get; }
 
         /// <summary>
-        /// Gets the current stream index
+        /// Gets the current stream index.
         /// </summary>
         public int Index => StreamPointer->index;
 
         /// <summary>
-        /// Gets stream time base
+        /// Gets the stream time base.
         /// </summary>
         public AVRational TimeBase => StreamPointer->time_base;
 
         /// <summary>
-        /// Sends the media frame to the encoder.
-        /// Usable only in encoding mode, otherwise throws <see cref="InvalidOperationException"/>
+        /// Gets the stream bit rate.
         /// </summary>
-        /// <param name="frame">Media frame to encode</param>
+        public long Bitrate => CodecContextPointer->bit_rate;
+
+        /// <summary>
+        /// Gets the codec name.
+        /// </summary>
+        public string CodecName => ffmpeg.avcodec_get_name(CodecContextPointer->codec_id);
+
+        /// <summary>
+        /// Sends the media frame to the encoder.
+        /// Usable only in encoding mode, otherwise throws <see cref="InvalidOperationException"/>.
+        /// </summary>
+        /// <param name="frame">Media frame to encode.</param>
         public void PushFrame(TFrame frame)
         {
             CheckAccess(MediaAccess.Write);
@@ -81,9 +91,9 @@
         public void Dispose() => Disposing(true);
 
         /// <summary>
-        /// Method called when frame is pushing
+        /// Method called when frame is pushing.
         /// </summary>
-        /// <returns>null</returns>
+        /// <returns>null.</returns>
         protected abstract TFrame OnReading();
 
         private void Push(TFrame frame)
