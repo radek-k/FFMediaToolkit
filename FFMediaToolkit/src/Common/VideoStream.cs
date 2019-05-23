@@ -1,7 +1,7 @@
 ﻿namespace FFMediaToolkit.Common
 {
     using System;
-    using System.Collections.Generic;
+    using FFMediaToolkit.Decoding;
     using FFMediaToolkit.Encoding;
     using FFMediaToolkit.Graphics;
     using FFMediaToolkit.Helpers;
@@ -19,6 +19,43 @@
         /// Gets the dimensions of video frames
         /// </summary>
         public Layout FrameLayout { get; }
+
+        /// <summary>
+        /// Opens the video stream with the specified index in the media container.
+        /// </summary>
+        /// <param name="container">The media container.</param>
+        /// <param name="index">The video stream index.</param>
+        /// <param name="options">The media options.</param>
+        /// <returns>The opened <see cref="VideoStream"/>.</returns>
+        internal static VideoStream Open(MediaContainer container, int index, MediaOptions options)
+        {
+            if (container.Access != MediaAccess.WriteInit)
+                throw new InvalidOperationException("The Media container must be in Read acces mode");
+
+            var format = container.FormatContextPointer;
+            var stream = format->streams[index];
+
+            var codecContext = ffmpeg.avcodec_alloc_context3(null);
+            ffmpeg.avcodec_parameters_to_context(codecContext, stream->codecpar)
+                .ThrowIfError("Cannot create codec parameters.");
+
+            codecContext->pkt_timebase = stream->time_base;
+            var codec = ffmpeg.avcodec_find_decoder(stream->codec->codec_id);
+
+            if (codec == null)
+                throw new InvalidOperationException("Cannot find a codec for this stream.");
+
+            var dict = options.DecoderOptions.Pointer;
+
+            ffmpeg.avcodec_open2(codecContext, codec, &dict)
+                .ThrowIfError("Cannot open the video codec");
+
+            options.DecoderOptions.Update(dict);
+
+            var layout = new Layout(codecContext->pix_fmt, codecContext->width, codecContext->height);
+
+            return new VideoStream(stream, codecContext, container, layout);
+        }
 
         /// <summary>
         /// Creates a new video stream in the specified format context
