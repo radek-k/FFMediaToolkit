@@ -168,6 +168,13 @@
                 ffmpeg.avio_close(FormatContextPointer->pb);
             }
 
+            if (Access == MediaAccess.Read)
+            {
+                var ptr = FormatContextPointer;
+                ffmpeg.avformat_close_input(&ptr);
+                FormatContextPointer = null;
+            }
+
             if (FormatContextPointer != null)
             {
                 ffmpeg.avformat_free_context(FormatContextPointer);
