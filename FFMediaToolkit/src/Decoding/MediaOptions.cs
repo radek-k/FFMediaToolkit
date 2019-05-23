@@ -1,5 +1,7 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
+    using FFMediaToolkit.Graphics;
+
     /// <summary>
     /// Represents the audio/video streams loading modes.
     /// </summary>
@@ -48,6 +50,11 @@
         /// Gets or sets which streams (audio/video) will be loaded.
         /// </summary>
         public MediaMode StreamsToLoad { get; set; } = MediaMode.AudioVideo;
+
+        /// <summary>
+        /// Gets or sets the target pixel format for decoded video frames conversion. The default value is <c>BGR24</c>.
+        /// </summary>
+        public ImagePixelFormat VideoPixelFormat { get; set; } = ImagePixelFormat.BGR24;
 
         /// <summary>
         /// Gets or sets the number of decoder threads (by the 'threads' flag). The default value is <see langword="null"/> - 'auto'.
