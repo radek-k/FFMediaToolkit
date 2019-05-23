@@ -8,7 +8,7 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represent a multimedia file context
+    /// Represent a multimedia file context.
     /// </summary>
     public unsafe sealed class MediaContainer : MediaObject, IDisposable
     {
@@ -34,17 +34,17 @@
         public VideoStream Video { get; private set; }
 
         /// <summary>
-        /// Gets a pointer to the underlying <see cref="AVFormatContext"/>
+        /// Gets a pointer to the underlying <see cref="AVFormatContext"/>.
         /// </summary>
         internal AVFormatContext* FormatContextPointer { get; private set; }
 
         /// <summary>
         /// Creates an empty FFmpeg format container for encoding.
-        /// After you add media streams configurations, you have to call the <see cref="LockFile(string)"/> before pushing frames
+        /// After you add media streams configurations, you have to call the <see cref="LockFile(string)"/> before pushing frames.
         /// </summary>
-        /// <param name="path">A output file path</param>
+        /// <param name="path">A output file path.</param>
         /// <returns>A new instance of the <see cref="MediaContainer"/>.</returns>
-        /// <remarks>Before you write frames to a new container, you must call the <see cref="LockFile(string)"/> method to create an ouput file</remarks>
+        /// <remarks>Before you write frames to a new container, you must call the <see cref="LockFile(string)"/> method to create an ouput file.</remarks>
         public static MediaContainer CreateOutput(string path)
         {
             if (Path.HasExtension(path))
@@ -82,9 +82,9 @@
         }
 
         /// <summary>
-        /// Adds a new video stream to the container. Usable only in encoding, before locking file
+        /// Adds a new video stream to the container. Usable only in encoding, before locking file.
         /// </summary>
-        /// <param name="config">The stream configuration</param>
+        /// <param name="config">The stream configuration.</param>
         public void AddVideoStream(VideoEncoderSettings config)
         {
             CheckAccess(MediaAccess.WriteInit);
@@ -97,9 +97,9 @@
         }
 
         /// <summary>
-        /// Creates a media file for this container and writes format header into it. Usable only in encoding
+        /// Creates a media file for this container and writes format header into it. Usable only in encoding.
         /// </summary>
-        /// <param name="path">A path to create the file</param>
+        /// <param name="path">A path to create the file.</param>
         public void LockFile(string path)
         {
             CheckAccess(MediaAccess.WriteInit);
@@ -118,9 +118,9 @@
         public void Dispose() => Disposing(true);
 
         /// <summary>
-        /// Writes specified packet to the container. Uses <see cref="ffmpeg.av_interleaved_write_frame(AVFormatContext*, AVPacket*)"/>
+        /// Writes specified packet to the container. Uses <see cref="ffmpeg.av_interleaved_write_frame(AVFormatContext*, AVPacket*)"/>.
         /// </summary>
-        /// <param name="packet">Media packet to write</param>
+        /// <param name="packet">Media packet to write.</param>
         public void WritePacket(MediaPacket packet)
         {
             CheckAccess(MediaAccess.Write);
