@@ -76,28 +76,9 @@
 
             options.DemuxerOptions.PrivateOptions.Update(dict);
 
-            VideoStream videoStream = null;
-            // AudioStream audioStream = null;
-
-            if (options.StreamsToLoad != MediaMode.Audio)
-            {
-                var index = FindBestStream(context, AVMediaType.AVMEDIA_TYPE_VIDEO);
-                if (index != null)
-                {
-                    // Video stream opening code.
-                }
-            }
-
-            // if (options.StreamsToLoad != MediaMode.Video)
-            // {
-            //    var index = FindBestStream(context, AVMediaType.AVMEDIA_TYPE_AUDIO);
-            //    if (index != null)
-            //    {
-            //        // Audio stream opening code.
-            //    }
-            // }
-
-            return new MediaContainer(context, videoStream, MediaAccess.Read);
+            var container = new MediaContainer(context, null, MediaAccess.Read);
+            container.OpenStreams(options);
+            return container;
         }
 
         /// <summary>
@@ -151,6 +132,27 @@
             AVCodec* codec = null;
             var id = ffmpeg.av_find_best_stream(container, type, -1, -1, &codec, 0);
             return id >= 0 ? (int?)id : null;
+        }
+
+        private void OpenStreams(MediaOptions options)
+        {
+            if (options.StreamsToLoad != MediaMode.Audio)
+            {
+                var index = FindBestStream(FormatContextPointer, AVMediaType.AVMEDIA_TYPE_VIDEO);
+                if (index != null)
+                {
+                    Video = VideoStream.Open(this, index.Value, options);
+                }
+            }
+
+            // if (options.StreamsToLoad != MediaMode.Video)
+            // {
+            //    var index = FindBestStream(context, AVMediaType.AVMEDIA_TYPE_AUDIO);
+            //    if (index != null)
+            //    {
+            //        Audio = AudioStream.Open(this, index.Value, options);
+            //    }
+            // }
         }
 
         private void Disposing(bool dispose)
