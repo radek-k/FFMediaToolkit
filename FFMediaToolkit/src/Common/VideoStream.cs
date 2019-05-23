@@ -8,7 +8,7 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents a low-level wrapper of FFMPEG AvStream.
+    /// Represents a FFmpeg video stream.
     /// </summary>
     public unsafe class VideoStream : MediaStream<VideoFrame>
     {
@@ -60,9 +60,9 @@
         /// <summary>
         /// Creates a new video stream in the specified format context.
         /// </summary>
-        /// <param name="container">A output file's format context.</param>
+        /// <param name="container">A output file format context.</param>
         /// <param name="config">A <see cref="VideoEncoderSettings"/> object containing the configuration of the video stream.</param>
-        /// <returns>Video stream added to file.</returns>
+        /// <returns>Video stream added to the file.</returns>
         internal static VideoStream CreateNew(MediaContainer container, VideoEncoderSettings config)
         {
             if (container.Access != MediaAccess.WriteInit)
