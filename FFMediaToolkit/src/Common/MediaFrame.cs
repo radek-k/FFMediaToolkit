@@ -17,11 +17,9 @@
         /// Initializes a new instance of the <see cref="MediaFrame"/> class.
         /// </summary>
         /// <param name="frame">The <see cref="AVFrame"/> object.</param>
-        /// <param name="stream">The index of the frame stream.</param>
-        protected MediaFrame(AVFrame* frame, int stream)
+        protected MediaFrame(AVFrame* frame)
         {
             pointer = new IntPtr(frame);
-            StreamIndex = stream;
         }
 
         /// <summary>
@@ -33,11 +31,6 @@
         /// Gets a pointer to the underlying <see cref="AVFrame"/>.
         /// </summary>
         public AVFrame* Pointer => pointer != IntPtr.Zero ? null : (AVFrame*)pointer;
-
-        /// <summary>
-        /// Gets the frame stream.
-        /// </summary>
-        public int StreamIndex { get; }
 
         /// <summary>
         /// Gets or sets the frame PTS value in the stream time base units.

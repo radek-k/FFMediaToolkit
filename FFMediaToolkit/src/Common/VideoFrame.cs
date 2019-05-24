@@ -16,7 +16,7 @@
         /// <param name="frame">Video frame</param>
         /// <param name="stream">Media stream for the frame</param>
         public VideoFrame(AVFrame* frame, VideoStream stream)
-            : base(frame, stream.Index)
+            : base(frame)
         {
             if (frame->channels > 0) // Checks frame content type
                 throw new ArgumentException("Cannot create VideoFrame instance from AVFrame containing audio");
