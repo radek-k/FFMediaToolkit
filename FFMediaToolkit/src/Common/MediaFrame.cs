@@ -6,7 +6,7 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents a base class of audio and video frames
+    /// Represents a base class of audio and video frames.
     /// </summary>
     public abstract unsafe class MediaFrame : IDisposable
     {
@@ -16,8 +16,8 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaFrame"/> class.
         /// </summary>
-        /// <param name="frame">The <see cref="AVFrame"/> object</param>
-        /// <param name="stream">The index of the frame stream</param>
+        /// <param name="frame">The <see cref="AVFrame"/> object.</param>
+        /// <param name="stream">The index of the frame stream.</param>
         protected MediaFrame(AVFrame* frame, int stream)
         {
             pointer = new IntPtr(frame);
@@ -30,22 +30,22 @@
         ~MediaFrame() => Disposing(false);
 
         /// <summary>
-        /// Gets a pointer to the underlying <see cref="AVFrame"/>
+        /// Gets a pointer to the underlying <see cref="AVFrame"/>.
         /// </summary>
-        public AVFrame* Pointer => isDisposed ? null : (AVFrame*)pointer;
+        public AVFrame* Pointer => pointer != IntPtr.Zero ? null : (AVFrame*)pointer;
 
         /// <summary>
-        /// Gets the frame stream
+        /// Gets the frame stream.
         /// </summary>
         public int StreamIndex { get; }
 
         /// <summary>
-        /// Gets or sets the frame PTS value in the stream time base units
+        /// Gets or sets the frame PTS value in the stream time base units.
         /// </summary>
         public long PresentationTime
         {
-            get => ((AVFrame*)Pointer)->pts;
-            set => ((AVFrame*)Pointer)->pts = value;
+            get => Pointer->pts;
+            set => Pointer->pts = value;
         }
 
         /// <inheritdoc/>
