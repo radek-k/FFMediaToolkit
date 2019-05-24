@@ -17,10 +17,7 @@
         /// Initializes a new instance of the <see cref="MediaFrame"/> class.
         /// </summary>
         /// <param name="frame">The <see cref="AVFrame"/> object.</param>
-        protected MediaFrame(AVFrame* frame)
-        {
-            pointer = new IntPtr(frame);
-        }
+        protected MediaFrame(AVFrame* frame) => pointer = new IntPtr(frame);
 
         /// <summary>
         /// Finalizes an instance of the <see cref="MediaFrame"/> class.
@@ -43,6 +40,12 @@
 
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
+
+        /// <summary>
+        /// Changes the pointer to the media frame.
+        /// </summary>
+        /// <param name="newFrame">The new pointer to a <see cref="AVFrame"/> object.</param>
+        internal virtual void Update(AVFrame* newFrame) => pointer = new IntPtr(newFrame);
 
         private void Disposing(bool dispose)
         {
