@@ -35,16 +35,6 @@
         }
 
         /// <summary>
-        /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVStream"/>.
-        /// </summary>
-        public AVStream* StreamPointer => stream != IntPtr.Zero ? (AVStream*)stream : null;
-
-        /// <summary>
-        /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVCodecContext"/>.
-        /// </summary>
-        public AVCodecContext* CodecContextPointer => codec != IntPtr.Zero ? (AVCodecContext*)codec : null;
-
-        /// <summary>
         /// Gets the acces mode of this stream.
         /// </summary>
         public override MediaAccess Access => OwnerFile.Access;
@@ -73,6 +63,16 @@
         /// Gets the codec name.
         /// </summary>
         public string CodecName => ffmpeg.avcodec_get_name(CodecContextPointer->codec_id);
+
+        /// <summary>
+        /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVStream"/>.
+        /// </summary>
+        internal AVStream* StreamPointer => stream != IntPtr.Zero ? (AVStream*)stream : null;
+
+        /// <summary>
+        /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVCodecContext"/>.
+        /// </summary>
+        internal AVCodecContext* CodecContextPointer => codec != IntPtr.Zero ? (AVCodecContext*)codec : null;
 
         /// <summary>
         /// Sends the media frame to the encoder.
