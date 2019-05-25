@@ -105,8 +105,5 @@
 
             return new VideoStream(videoStream, codecContext, container, config.ToLayout());
         }
-
-        /// <inheritdoc/>
-        protected override VideoFrame OnReading() => throw new NotImplementedException();
     }
 }

@@ -113,12 +113,6 @@
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
 
-        /// <summary>
-        /// Method called when frame is pushing.
-        /// </summary>
-        /// <returns>null.</returns>
-        protected abstract TFrame OnReading();
-
         private bool Read(TFrame frame)
         {
             var frameDecoded = false;
