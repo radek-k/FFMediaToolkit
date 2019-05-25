@@ -192,6 +192,8 @@
             }
         }
 
+        private void FlushBuffers() => ffmpeg.avcodec_flush_buffers(CodecContextPointer);
+
         private void Disposing(bool dispose)
         {
             lock (syncLock)
