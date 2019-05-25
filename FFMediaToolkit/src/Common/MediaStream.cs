@@ -177,7 +177,7 @@
             packet.Wipe();
         }
 
-        private void Flush()
+        private void FlushEncoder()
         {
             while (true)
             {
@@ -200,7 +200,7 @@
                     return;
 
                 if (Access == MediaAccess.Write)
-                    Flush();
+                    FlushEncoder();
 
                 packet.Dispose();
 
