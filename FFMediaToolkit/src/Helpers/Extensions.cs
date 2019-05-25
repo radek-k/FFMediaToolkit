@@ -9,7 +9,7 @@
     public static class Extensions
     {
         /// <summary>
-        /// Converts a rational number to a double
+        /// Converts a rational number to a double.
         /// </summary>
         /// <param name="rational">The <see cref="AVRational"/> to convert.</param>
         /// <returns>The <see cref="double"/> value.</returns>
@@ -21,7 +21,7 @@
         /// </summary>
         /// <param name="timestamp">The timestamp.</param>
         /// <param name="timeBase">The time base unit.</param>
-        /// <returns>The converted <see cref="TimeSpan"/></returns>
+        /// <returns>The converted <see cref="TimeSpan"/>.</returns>
         public static TimeSpan ToTimeSpan(this long timestamp, AVRational timeBase)
         {
             var ts = Convert.ToDouble(timestamp);
@@ -33,5 +33,23 @@
 
             return TimeSpan.FromTicks(Convert.ToInt64(TimeSpan.TicksPerMillisecond * 1000 * ts / timeBase.ToDouble()));
         }
+
+        /// <summary>
+        /// Converts this <see cref="TimeSpan"/> to a frame number based on the specified <paramref name="timeBase"/>.
+        /// </summary>
+        /// <param name="time">The time.</param>
+        /// <param name="timeBase">The stream time base.</param>
+        /// <returns>The frame number.</returns>
+        public static int ToFrameNumber(this TimeSpan time, AVRational timeBase)
+            => (int)(time.Milliseconds / timeBase.ToDouble());
+
+        /// <summary>
+        /// Converts this frame number to a timestamp in the <paramref name="timeBase"/> units.
+        /// </summary>
+        /// <param name="frameNumber">The frame number.</param>
+        /// <param name="timeBase">The stream time base.</param>
+        /// <returns>The timestamp.</returns>
+        public static long ToTimestamp(this int frameNumber, AVRational timeBase)
+            => timeBase.den == 0 ? 0 : timeBase.num * frameNumber / timeBase.den;
     }
 }
