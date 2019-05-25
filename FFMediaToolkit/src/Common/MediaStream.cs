@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Common
 {
     using System;
+    using System.IO;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
@@ -17,6 +18,7 @@
 
         private readonly object syncLock = new object();
         private bool isDisposed;
+        private bool packetFull;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaStream{TFrame}"/> class.
@@ -87,6 +89,27 @@
             }
         }
 
+        /// <summary>
+        /// Reads the next frame from this stream.
+        /// </summary>
+        /// <param name="frame">A media frame to reuse.</param>
+        /// <returns>The decoded media frame.</returns>
+        public TFrame ReadNextFrame(TFrame frame)
+        {
+            CheckAccess(MediaAccess.Read);
+
+            lock (syncLock)
+            {
+                var result = Read(frame);
+                if (!result)
+                {
+                    throw new FFmpegException("An error ocurred during decoding the frame");
+                }
+
+                return frame;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
 
@@ -96,9 +119,54 @@
         /// <returns>null.</returns>
         protected abstract TFrame OnReading();
 
+        private bool Read(TFrame frame)
+        {
+            var frameDecoded = false;
+            var continueDecoding = true;
+
+            while (!frameDecoded && continueDecoding)
+            {
+                ReadPacket();
+                var result = ffmpeg.avcodec_receive_frame(CodecContextPointer, frame.Pointer)
+                   .Catch(0, x => frameDecoded = true)
+                   .Catch(ffmpeg.AVERROR_EOF, x => throw new EndOfStreamException())
+                   .Catch(-ffmpeg.EINVAL, x => continueDecoding = false);
+
+                if (result == -ffmpeg.EAGAIN)
+                {
+                    if (packetFull)
+                    {
+                        continueDecoding = false;
+                    }
+                    else
+                    {
+                        packetFull = true;
+                    }
+                }
+            }
+
+            return frameDecoded;
+        }
+
+        private void ReadPacket()
+        {
+            if (packetFull)
+                return;
+
+            ffmpeg.av_read_frame(OwnerFile.FormatContextPointer, packet.Pointer)
+                .Catch(ffmpeg.AVERROR_EOF, x => throw new EndOfStreamException())
+                .CatchAll("Cannot read next packet from stream");
+
+            ffmpeg.avcodec_send_packet(CodecContextPointer, packet)
+                .Catch(ffmpeg.AVERROR_EOF, x => throw new EndOfStreamException())
+                .Catch(ffmpeg.EAGAIN, x => packetFull = true)
+                .CatchAll("Cannot send a packet to the decoder.");
+        }
+
         private void Push(TFrame frame)
         {
-            ffmpeg.avcodec_send_frame(CodecContextPointer, frame.Pointer).ThrowIfError("sending the frame");
+            ffmpeg.avcodec_send_frame(CodecContextPointer, frame.Pointer)
+                .CatchAll("Cannot send a frame to the encoder.");
 
             if (ffmpeg.avcodec_receive_packet(CodecContextPointer, packet) == 0)
             {
