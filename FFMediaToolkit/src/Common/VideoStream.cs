@@ -37,7 +37,7 @@
 
             var codecContext = ffmpeg.avcodec_alloc_context3(null);
             ffmpeg.avcodec_parameters_to_context(codecContext, stream->codecpar)
-                .ThrowIfError("Cannot create codec parameters.");
+                .CatchAll("Cannot create codec parameters.");
 
             codecContext->pkt_timebase = stream->time_base;
             var codec = ffmpeg.avcodec_find_decoder(stream->codec->codec_id);
@@ -48,7 +48,7 @@
             var dict = options.DecoderOptions.Pointer;
 
             ffmpeg.avcodec_open2(codecContext, codec, &dict)
-                .ThrowIfError("Cannot open the video codec");
+                .CatchAll("Cannot open the video codec");
 
             options.DecoderOptions.Update(dict);
 
