@@ -34,6 +34,11 @@
         public VideoStream Video { get; private set; }
 
         /// <summary>
+        /// Gets a value indicating whether the reader is at end of the file.
+        /// </summary>
+        public bool IsAtEndOfFile { get; private set; }
+
+        /// <summary>
         /// Gets a pointer to the underlying <see cref="AVFormatContext"/>.
         /// </summary>
         internal AVFormatContext* FormatContextPointer { get; private set; }
@@ -127,11 +132,47 @@
             ffmpeg.av_interleaved_write_frame(FormatContextPointer, packet);
         }
 
+        /// <summary>
+        /// Reads the next packet from this file and sends it to the packet queue.
+        /// </summary>
+        public void ReadPacket()
+        {
+            CheckAccess(MediaAccess.Read);
+            var packet = MediaPacket.AllocateEmpty(0);
+            var result = ffmpeg.av_read_frame(FormatContextPointer, packet.Pointer);
+
+            if (result == ffmpeg.AVERROR_EOF)
+            {
+                IsAtEndOfFile = true;
+                return;
+            }
+            else
+            {
+                result.CatchAll("Cannot read next packet from the file");
+            }
+
+            IsAtEndOfFile = false;
+            EnqueuePacket(packet);
+        }
+
         private static int? FindBestStream(AVFormatContext* container, AVMediaType type, int relStream = -1)
         {
             AVCodec* codec = null;
             var id = ffmpeg.av_find_best_stream(container, type, -1, -1, &codec, 0);
             return id >= 0 ? (int?)id : null;
+        }
+
+        private void EnqueuePacket(MediaPacket packet)
+        {
+            if (Video != null && packet.StreamIndex == Video.Index)
+            {
+                Video.PacketQueue.Enqueue(packet);
+            }
+
+            // else if (Audio != null && packet.StreamIndex == Audio.Index)
+            // {
+            //     Audio.PacketQueue.Enqueue(packet);
+            // }
         }
 
         private void OpenStreams(MediaOptions options)
