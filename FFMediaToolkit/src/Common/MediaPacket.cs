@@ -1,12 +1,10 @@
 ﻿namespace FFMediaToolkit.Common
 {
     using System;
-    using System.Collections.Generic;
-    using System.Text;
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents a FFMpeg media packet
+    /// Represents a FFMpeg media packet.
     /// </summary>
     public unsafe sealed class MediaPacket : IDisposable
     {
@@ -16,7 +14,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaPacket"/> class.
         /// </summary>
-        /// <param name="packet">The <see cref="AVPacket"/> object</param>
+        /// <param name="packet">The <see cref="AVPacket"/> object.</param>
         private MediaPacket(AVPacket* packet) => pointer = new IntPtr(packet);
 
         /// <summary>
@@ -25,12 +23,12 @@
         ~MediaPacket() => Disposing(false);
 
         /// <summary>
-        /// Gets the pointer to the underlying <see cref="AVPacket"/>
+        /// Gets the pointer to the underlying <see cref="AVPacket"/>.
         /// </summary>
         public AVPacket* Pointer => isDisposed ? null : (AVPacket*)pointer;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the packet is key
+        /// Gets or sets a value indicating whether this packet is a key packet.
         /// </summary>
         public bool IsKeyPacket
         {
@@ -44,16 +42,16 @@
         public int StreamIndex => Pointer->stream_index;
 
         /// <summary>
-        /// Converts an instance of <see cref="MediaPacket"/> to the unmanaged pointer
+        /// Converts an instance of <see cref="MediaPacket"/> to the unmanaged pointer.
         /// </summary>
-        /// <param name="packet">A <see cref="MediaPacket"/> instance</param>
+        /// <param name="packet">A <see cref="MediaPacket"/> instance.</param>
         public static implicit operator AVPacket*(MediaPacket packet) => packet.Pointer;
 
         /// <summary>
         /// Allocates a new empty packet.
         /// </summary>
-        /// <param name="streamIndex">The packet stream</param>
-        /// <returns>An allocated packet</returns>
+        /// <param name="streamIndex">The packet stream index.</param>
+        /// <returns>The new <see cref="MediaPacket"/>.</returns>
         public static MediaPacket AllocateEmpty(int streamIndex)
         {
             var packet = ffmpeg.av_packet_alloc();
@@ -64,8 +62,8 @@
         /// <summary>
         /// Sets valid PTS/DTS values. Used only in encoding.
         /// </summary>
-        /// <param name="codecTimeBase">The encoder time base</param>
-        /// <param name="streamTimeBase">The time base of media stream</param>
+        /// <param name="codecTimeBase">The encoder time base.</param>
+        /// <param name="streamTimeBase">The time base of media stream.</param>
         public void RescaleTimestamp(AVRational codecTimeBase, AVRational streamTimeBase) => ffmpeg.av_packet_rescale_ts(Pointer, codecTimeBase, streamTimeBase);
 
         /// <summary>
