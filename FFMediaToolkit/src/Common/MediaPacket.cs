@@ -39,6 +39,11 @@
         }
 
         /// <summary>
+        /// Gets the stream index.
+        /// </summary>
+        public int StreamIndex => Pointer->stream_index;
+
+        /// <summary>
         /// Converts an instance of <see cref="MediaPacket"/> to the unmanaged pointer
         /// </summary>
         /// <param name="packet">A <see cref="MediaPacket"/> instance</param>
