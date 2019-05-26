@@ -110,6 +110,27 @@
             }
         }
 
+        /// <summary>
+        /// Seeks this stream to the specified frame position.
+        /// </summary>
+        /// <param name="frameIndex">The frame number.</param>
+        /// <param name="seekToAny">If <see langword="true"/>, it will seek exactly to the specified frame (non keyframe). This doesn't work correctly on many formats.</param>
+        public void SeekTo(int frameIndex, bool seekToAny)
+        {
+            CheckAccess(MediaAccess.Read);
+
+            lock (syncLock)
+            {
+                var ts = frameIndex.ToTimestamp(TimeBase);
+                ffmpeg.av_seek_frame(OwnerFile.FormatContextPointer, Index, ts, seekToAny ? ffmpeg.AVSEEK_FLAG_ANY : ffmpeg.AVSEEK_FLAG_BACKWARD);
+
+                if (!seekToAny)
+                {
+                    // TODO: Frame reading
+                }
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
 
