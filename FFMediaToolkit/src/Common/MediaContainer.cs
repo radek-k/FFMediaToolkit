@@ -158,7 +158,7 @@
         private static int? FindBestStream(AVFormatContext* container, AVMediaType type, int relStream = -1)
         {
             AVCodec* codec = null;
-            var id = ffmpeg.av_find_best_stream(container, type, -1, -1, &codec, 0);
+            var id = ffmpeg.av_find_best_stream(container, type, -1, relStream, &codec, 0);
             return id >= 0 ? (int?)id : null;
         }
 
