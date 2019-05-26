@@ -207,7 +207,7 @@
             if (!packetFull)
             {
                 PacketQueue.TryDequeue(out var _);
-                PacketDequeued.Invoke(this, EventArgs.Empty);
+                PacketDequeued?.Invoke(this, EventArgs.Empty);
             }
         }
 
