@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Common
 {
     using System;
+    using System.Collections.Concurrent;
     using System.IO;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
@@ -32,7 +33,18 @@
             this.stream = (IntPtr)stream;
             OwnerFile = container;
             packet = MediaPacket.AllocateEmpty(stream->index);
+
+            // Packet queue is currently supported only in the reading mode.
+            if (OwnerFile.Access == MediaAccess.Read)
+            {
+                PacketQueue = new ConcurrentQueue<MediaPacket>();
+            }
         }
+
+        /// <summary>
+        /// Event invoked when dequeuing packet.
+        /// </summary>
+        internal event EventHandler PacketDequeued;
 
         /// <summary>
         /// Gets the acces mode of this stream.
@@ -73,6 +85,11 @@
         /// Gets an unsafe pointer to the underlying FFmpeg <see cref="AVCodecContext"/>.
         /// </summary>
         internal AVCodecContext* CodecContextPointer => codec != IntPtr.Zero ? (AVCodecContext*)codec : null;
+
+        /// <summary>
+        /// Gets the packet queue.
+        /// </summary>
+        internal ConcurrentQueue<MediaPacket> PacketQueue { get; }
 
         /// <summary>
         /// Sends the media frame to the encoder.
@@ -168,14 +185,30 @@
             if (packetFull)
                 return;
 
-            ffmpeg.av_read_frame(OwnerFile.FormatContextPointer, packet.Pointer)
-                .Catch(ffmpeg.AVERROR_EOF, x => throw new EndOfStreamException())
-                .CatchAll("Cannot read next packet from stream");
+            var result = PacketQueue.TryPeek(out var pkt);
 
-            ffmpeg.avcodec_send_packet(CodecContextPointer, packet)
+            if (!result)
+            {
+                if (OwnerFile.IsAtEndOfFile)
+                {
+                    throw new EndOfStreamException();
+                }
+                else
+                {
+                    throw new Exception("No packets in queue!");
+                }
+            }
+
+            ffmpeg.avcodec_send_packet(CodecContextPointer, pkt)
                 .Catch(ffmpeg.AVERROR_EOF, x => throw new EndOfStreamException())
                 .Catch(ffmpeg.EAGAIN, x => packetFull = true)
                 .CatchAll("Cannot send a packet to the decoder.");
+
+            if (!packetFull)
+            {
+                PacketQueue.TryDequeue(out var _);
+                PacketDequeued.Invoke(this, EventArgs.Empty);
+            }
         }
 
         private void Push(TFrame frame)
