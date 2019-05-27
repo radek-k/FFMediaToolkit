@@ -78,7 +78,7 @@
 
             var codec = ffmpeg.avcodec_find_encoder(codecId);
 
-            if (codec != null)
+            if (codec == null)
                 throw new InvalidOperationException($"Cannot find an encoder with the {codecId}!");
 
             if (codec->type != AVMediaType.AVMEDIA_TYPE_VIDEO)
