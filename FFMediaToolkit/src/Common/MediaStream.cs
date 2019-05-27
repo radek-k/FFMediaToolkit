@@ -57,6 +57,11 @@
         public MediaContainer OwnerFile { get; }
 
         /// <summary>
+        /// Gets the type of this stream.
+        /// </summary>
+        public abstract MediaType Type { get; }
+
+        /// <summary>
         /// Gets the current stream index.
         /// </summary>
         public int Index => StreamPointer->index;

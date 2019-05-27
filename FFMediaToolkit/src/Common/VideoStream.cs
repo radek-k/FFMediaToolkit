@@ -20,6 +20,9 @@
         /// </summary>
         public Layout FrameLayout { get; }
 
+        /// <inheritdoc/>
+        public override MediaType Type => MediaType.Video;
+
         /// <summary>
         /// Opens the video stream with the specified index in the media container.
         /// </summary>
