@@ -2,7 +2,7 @@
 {
     using System.IO;
     using System.Runtime.InteropServices;
-    using Interop;
+    using FFMediaToolkit.Interop;
 
     /// <summary>
     /// Contains methods for managing FFmpeg libraries.

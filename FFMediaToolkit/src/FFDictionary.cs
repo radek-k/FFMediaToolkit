@@ -29,7 +29,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="FFDictionary"/> class from given <see cref="AVDictionary"/>.
         /// </summary>
-        /// <param name="dictionary">The <see cref="AVDictionary"/></param>
+        /// <param name="dictionary">The <see cref="AVDictionary"/>.</param>
         internal FFDictionary(AVDictionary* dictionary) => dict = dictionary;
 
         /// <summary>
@@ -43,7 +43,7 @@
         public int Count => dict == null ? 0 : ffmpeg.av_dict_count(dict);
 
         /// <summary>
-        /// Gets a pointer to the underlying <see cref="AVDictionary"/>
+        /// Gets a pointer to the underlying <see cref="AVDictionary"/>.
         /// </summary>
         internal AVDictionary* Pointer => isDisposed ? null : dict;
 
@@ -63,7 +63,7 @@
         /// </summary>
         /// <param name="key">The dictionary key.</param>
         /// <param name="matchCase">If <see langword="true"/> matches case.</param>
-        /// <returns>The value with specified key. If the key not exist, returns <see langword="null"/></returns>
+        /// <returns>The value with specified key. If the key not exist, returns <see langword="null"/>.</returns>
         public string Get(string key, bool matchCase = true)
         {
             var ptr = ffmpeg.av_dict_get(dict, key, null, matchCase ? ffmpeg.AV_DICT_MATCH_CASE : 0);
@@ -85,7 +85,7 @@
         /// <summary>
         /// Copies items from specified dictionary to this <see cref="FFDictionary"/>.
         /// </summary>
-        /// <param name="dictionary">The dictionary to copy</param>
+        /// <param name="dictionary">The dictionary to copy.</param>
         public void Copy(Dictionary<string, string> dictionary)
         {
             foreach (var item in dictionary)

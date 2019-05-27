@@ -6,14 +6,14 @@
     using System.Runtime.InteropServices;
 
     /// <summary>
-    /// Contains native operating system methods
+    /// Contains the native operating system methods.
     /// </summary>
     internal static class NativeMethods
     {
         /// <summary>
-        /// Gets the default FFMpeg directory for current platform
+        /// Gets the default FFmpeg directory for current platform.
         /// </summary>
-        /// <returns>The default FFMpeg directory</returns>
+        /// <returns>A path to the default directory for FFmpeg libraries.</returns>
         internal static string GetDefaultDirectory()
         {
             switch (Environment.OSVersion.Platform)
@@ -33,9 +33,9 @@
         }
 
         /// <summary>
-        /// Sets DLL loading directory if current system is Windows
+        /// Sets DLL loading directory if current OS is Windows.
         /// </summary>
-        /// <param name="dir">The directory path</param>
+        /// <param name="dir">The directory path.</param>
         internal static void SetDllLoadingDirectory(string dir)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

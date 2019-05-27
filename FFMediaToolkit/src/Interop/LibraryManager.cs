@@ -6,7 +6,7 @@
     using System.Linq;
 
     /// <summary>
-    /// a
+    /// Represents a FFMpeg native library manager.
     /// </summary>
     public class LibraryManager
     {
@@ -21,49 +21,49 @@
                 AVFormat,
                 AVUtil,
                 SWResample,
-                SWScale
+                SWScale,
             });
         }
 
         /// <summary>
-        /// Gets the <c>avcodec</c> library
+        /// Gets the <c>avcodec</c> library.
         /// </summary>
         public Library AVCodec { get; } = new Library(Names.AVCodec, Versions.AVCodec);
 
         /// <summary>
-        /// Gets the <code>avformat</code> library
+        /// Gets the <code>avformat</code> library.
         /// </summary>
         public Library AVFormat { get; } = new Library(Names.AVFormat, Versions.AVFormat);
 
         /// <summary>
-        /// Gets the <c>avutil</c> library
+        /// Gets the <c>avutil</c> library.
         /// </summary>
         public Library AVUtil { get; } = new Library(Names.AVUtil, Versions.AVUtil);
 
         /// <summary>
-        /// Gets the <c>swresample</c> library
+        /// Gets the <c>swresample</c> library.
         /// </summary>
         public Library SWResample { get; } = new Library(Names.SWResample, Versions.SWResample);
 
         /// <summary>
-        /// Gets the <c>swscale</c> library
+        /// Gets the <c>swscale</c> library.
         /// </summary>
         public Library SWScale { get; } = new Library(Names.SWScale, Versions.SWScale);
 
         /// <summary>
-        /// Gets all FFmpeg libraries instances
+        /// Gets all FFmpeg libraries instances.
         /// </summary>
         public IReadOnlyCollection<Library> All { get; }
 
         /// <summary>
-        /// Gets a value indicating whether all FFMpeg libraries are loaded correctly
+        /// Gets a value indicating whether all FFMpeg libraries are loaded correctly.
         /// </summary>
         public bool IsLoaded => All.All(x => x.IsLoaded);
 
         /// <summary>
-        /// Loads all FFmpeg libraries
+        /// Loads all FFmpeg libraries.
         /// </summary>
-        /// <param name="dir">Path to the directory containing FFmpeg assembles</param>
+        /// <param name="dir">Path to the directory containing FFmpeg assembles.</param>
         internal void LoadAll(string dir)
         {
             foreach (var lib in All)
