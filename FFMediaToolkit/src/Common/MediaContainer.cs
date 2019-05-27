@@ -28,6 +28,13 @@
         /// </summary>
         ~MediaContainer() => Disposing(false);
 
+        private enum MediaType
+        {
+            Video,
+            Audio,
+            None,
+        }
+
         /// <summary>
         /// Gets the video stream in the container. To set the stream in encoding mode, please use the <see cref="AddVideoStream(VideoEncoderSettings)"/> method.
         /// </summary>
