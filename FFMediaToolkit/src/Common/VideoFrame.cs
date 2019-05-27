@@ -27,17 +27,17 @@
         public Layout Layout => Pointer != null ? new Layout((AVPixelFormat)Pointer->format, Pointer->width, Pointer->height) : default;
 
         /// <summary>
-        /// Creates an empty video frame
+        /// Creates a video frame with given dimensions and allocates a buffer for it.
         /// </summary>
-        /// <param name="stream">Video stream</param>
-        /// <returns>Allocated video frame</returns>
-        public static VideoFrame CreateEmpty(VideoStream stream)
+        /// <param name="dimensions">The dimensions of the video frame.</param>
+        /// <returns>The new video frame.</returns>
+        public static VideoFrame Create(Layout dimensions)
         {
             var frame = ffmpeg.av_frame_alloc();
 
-            frame->width = stream.FrameLayout.Width;
-            frame->height = stream.FrameLayout.Height;
-            frame->format = (int)stream.FrameLayout.PixelFormat;
+            frame->width = dimensions.Width;
+            frame->height = dimensions.Height;
+            frame->format = (int)dimensions.PixelFormat;
 
             ffmpeg.av_frame_get_buffer(frame, 32);
 

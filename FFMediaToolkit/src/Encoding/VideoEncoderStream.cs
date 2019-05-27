@@ -23,7 +23,7 @@
         {
             this.stream = stream;
             Configuration = config;
-            encodedFrame = VideoFrame.CreateEmpty(stream);
+            encodedFrame = VideoFrame.Create(stream.FrameLayout);
             scaler = new Scaler();
         }
 
