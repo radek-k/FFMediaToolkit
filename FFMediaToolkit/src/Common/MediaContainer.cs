@@ -73,7 +73,7 @@
         /// <remarks>Before you write frames to a new container, you must call the <see cref="LockFile(string)"/> method to create an ouput file.</remarks>
         public static MediaContainer CreateOutput(string path)
         {
-            if (Path.HasExtension(path))
+            if (!Path.HasExtension(path))
                 throw new ArgumentException("The file path has no extension.");
 
             var format = ffmpeg.av_guess_format(null, path, null);
