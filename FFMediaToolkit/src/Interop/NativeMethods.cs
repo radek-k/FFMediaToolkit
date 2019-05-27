@@ -24,7 +24,7 @@
                     return Environment.Is64BitOperatingSystem ? "/usr/lib/x86_64-linux-gnu" : "/usr/lib/x86-linux-gnu";
                 case PlatformID.Win32NT:
                     var root = GetAssemblyDirectory();
-                    var dir = Environment.Is64BitProcess ? @"\ffmpeg\x86_64" : @"\ffmpeg\x86";
+                    var dir = Environment.Is64BitProcess ? @"ffmpeg\x86_64" : @"ffmpeg\x86";
                     var path = Path.Combine(root, dir);
                     return path;
                 default:
