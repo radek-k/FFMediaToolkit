@@ -208,6 +208,8 @@
                 if (index != null)
                 {
                     Video = VideoStream.Open(this, index.Value, options);
+                    Video.PacketDequeued += OnPacketDequeued;
+                    AddPacket(MediaType.Video);
                 }
             }
 
@@ -217,8 +219,31 @@
             //    if (index != null)
             //    {
             //        Audio = AudioStream.Open(this, index.Value, options);
+            //        Audio.PacketDequeued += OnPacketDequeued;
+            //        AddPacket(MediaType.Audio);
             //    }
             // }
+        }
+
+        private void OnPacketDequeued(object sender, EventArgs eventArgs)
+        {
+            var stream = (MediaStream<MediaFrame>)sender;
+
+            if (stream.PacketQueue.Count > 5)
+            {
+                return;
+            }
+
+            AddPacket(stream.Type);
+        }
+
+        private void AddPacket(MediaType type)
+        {
+            var packetAdded = false;
+            while (!packetAdded)
+            {
+                packetAdded = ReadPacket() == type;
+            }
         }
 
         private void Disposing(bool dispose)
