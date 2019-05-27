@@ -45,6 +45,12 @@
         }
 
         /// <summary>
+        /// Creates an empty frame for decoding.
+        /// </summary>
+        /// <returns>The empty <see cref="VideoFrame"/>.</returns>
+        public static VideoFrame CreateEmpty() => new VideoFrame(ffmpeg.av_frame_alloc());
+
+        /// <summary>
         /// Overrides this video frame data with the converted <paramref name="bitmap"/> using specified <see cref="Scaler"/> object.
         /// </summary>
         /// <param name="bitmap">The bitmap to convert.</param>
