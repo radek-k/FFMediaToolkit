@@ -6,28 +6,25 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represent a video frame
+    /// Represent a video frame.
     /// </summary>
     public unsafe class VideoFrame : MediaFrame
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoFrame"/> class using existing <see cref="AVFrame"/> and <see cref="VideoStream"/>
         /// </summary>
-        /// <param name="frame">Video frame</param>
-        /// <param name="stream">Media stream for the frame</param>
-        public VideoFrame(AVFrame* frame, VideoStream stream)
+        /// <param name="frame">The video <see cref="AVFrame"/>.</param>
+        public VideoFrame(AVFrame* frame)
             : base(frame)
         {
             if (frame->channels > 0) // Checks frame content type
                 throw new ArgumentException("Cannot create VideoFrame instance from AVFrame containing audio");
-
-            Layout = stream.FrameLayout;
         }
 
         /// <summary>
-        /// Gets the frame layout
+        /// Gets the frame dimensions.
         /// </summary>
-        public Layout Layout { get;  }
+        public Layout Layout => Pointer != null ? new Layout((AVPixelFormat)Pointer->format, Pointer->width, Pointer->height) : default;
 
         /// <summary>
         /// Creates an empty video frame
@@ -44,7 +41,7 @@
 
             ffmpeg.av_frame_get_buffer(frame, 32);
 
-            return new VideoFrame(frame, stream);
+            return new VideoFrame(frame);
         }
 
         /// <summary>
