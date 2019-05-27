@@ -8,6 +8,27 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
+    /// Represents the multimedia stream types.
+    /// </summary>
+    public enum MediaType
+    {
+        /// <summary>
+        /// Video.
+        /// </summary>
+        Video,
+
+        /// <summary>
+        /// Audio.
+        /// </summary>
+        Audio,
+
+        /// <summary>
+        /// None.
+        /// </summary>
+        None,
+    }
+
+    /// <summary>
     /// Represent a multimedia file context.
     /// </summary>
     public unsafe sealed class MediaContainer : MediaObject, IDisposable
@@ -27,13 +48,6 @@
         /// Finalizes an instance of the <see cref="MediaContainer"/> class.
         /// </summary>
         ~MediaContainer() => Disposing(false);
-
-        private enum MediaType
-        {
-            Video,
-            Audio,
-            None,
-        }
 
         /// <summary>
         /// Gets the video stream in the container. To set the stream in encoding mode, please use the <see cref="AddVideoStream(VideoEncoderSettings)"/> method.
@@ -142,7 +156,8 @@
         /// <summary>
         /// Reads the next packet from this file and sends it to the packet queue.
         /// </summary>
-        public void ReadPacket()
+        /// <returns>Type of the readed packet.</returns>
+        public MediaType ReadPacket()
         {
             CheckAccess(MediaAccess.Read);
             var packet = MediaPacket.AllocateEmpty(0);
@@ -151,7 +166,7 @@
             if (result == ffmpeg.AVERROR_EOF)
             {
                 IsAtEndOfFile = true;
-                return;
+                return MediaType.None;
             }
             else
             {
@@ -159,7 +174,7 @@
             }
 
             IsAtEndOfFile = false;
-            EnqueuePacket(packet);
+            return EnqueuePacket(packet);
         }
 
         private static int? FindBestStream(AVFormatContext* container, AVMediaType type, int relStream = -1)
@@ -169,17 +184,20 @@
             return id >= 0 ? (int?)id : null;
         }
 
-        private void EnqueuePacket(MediaPacket packet)
+        private MediaType EnqueuePacket(MediaPacket packet)
         {
             if (Video != null && packet.StreamIndex == Video.Index)
             {
                 Video.PacketQueue.Enqueue(packet);
+                return MediaType.Video;
             }
 
-            // else if (Audio != null && packet.StreamIndex == Audio.Index)
+            // if (Audio != null && packet.StreamIndex == Audio.Index)
             // {
             //     Audio.PacketQueue.Enqueue(packet);
+            //     return MediaType.Audio;
             // }
+            return MediaType.None;
         }
 
         private void OpenStreams(MediaOptions options)
