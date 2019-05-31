@@ -80,7 +80,7 @@
         /// </summary>
         /// <param name="item">The object.</param>
         /// <returns>If succes <see langword="true"/>, otherwise <see langword="false"/>.</returns>
-        public bool Peek(out T item)
+        public bool TryPeek(out T item)
         {
             lock (readLock)
             {
