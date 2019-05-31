@@ -37,14 +37,9 @@
             // Packet queue is currently supported only in the reading mode.
             if (OwnerFile.Access == MediaAccess.Read)
             {
-                PacketQueue = new ConcurrentQueue<MediaPacket>();
+                PacketQueue = new ObservableQueue<MediaPacket>();
             }
         }
-
-        /// <summary>
-        /// Event invoked when dequeuing packet.
-        /// </summary>
-        internal event EventHandler PacketDequeued;
 
         /// <summary>
         /// Gets the acces mode of this stream.
@@ -94,7 +89,7 @@
         /// <summary>
         /// Gets the packet queue.
         /// </summary>
-        internal ConcurrentQueue<MediaPacket> PacketQueue { get; }
+        internal ObservableQueue<MediaPacket> PacketQueue { get; }
 
         /// <summary>
         /// Sends the media frame to the encoder.
@@ -212,7 +207,6 @@
             if (!packetFull)
             {
                 PacketQueue.TryDequeue(out var _);
-                PacketDequeued?.Invoke(this, EventArgs.Empty);
             }
         }
 

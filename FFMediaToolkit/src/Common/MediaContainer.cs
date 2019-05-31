@@ -208,7 +208,7 @@
                 if (index != null)
                 {
                     Video = VideoStream.Open(this, index.Value, options);
-                    Video.PacketDequeued += OnPacketDequeued;
+                    Video.PacketQueue.Dequeued += OnPacketDequeued;
                     AddPacket(MediaType.Video);
                 }
             }
