@@ -7,8 +7,12 @@
     <Authors>Radosław Kmiotek</Authors>
     <Company>radek41</Company>
     <Copyright>Copyright (c) 2019 Radosław Kmiotek</Copyright>
-    <Description>FFMediaToolkit is a cross-platform multimedia library for .NET based on FFmpeg native library bindings</Description>
-    <PackageTags>video;audio;multimedia;encoding;decoding;mp4;ffmpeg</PackageTags>
+    <Description>FFMediaToolkit is a cross-platform multimedia library for .NET based on the native FFmpeg libraries.</Description>
+    <PackageTags>video;multimedia;encoding;decoding;mp4;ffmpeg</PackageTags>
+    <Version>0.1.0</Version>
+    <RepositoryUrl>https://github.com/radek41/FFMediaToolkit</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/radek41/FFMediaToolkit</PackageProjectUrl>
+    <PackageLicenseFile>https:\github.com\radek41\FFMediaToolkit\blob\master\LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -26,6 +30,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Memory" Version="4.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
