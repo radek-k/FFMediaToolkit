@@ -33,6 +33,7 @@
     /// </summary>
     public unsafe sealed class MediaContainer : MediaObject, IDisposable
     {
+        private readonly object syncLock = new object();
         private bool isDisposed;
 
         private MediaContainer(AVFormatContext* format, VideoStream stream, MediaAccess acces)
@@ -150,7 +151,11 @@
         public void WritePacket(MediaPacket packet)
         {
             CheckAccess(MediaAccess.Write);
-            ffmpeg.av_interleaved_write_frame(FormatContextPointer, packet);
+
+            lock (syncLock)
+            {
+                ffmpeg.av_interleaved_write_frame(FormatContextPointer, packet);
+            }
         }
 
         /// <summary>
@@ -160,21 +165,25 @@
         public MediaType ReadPacket()
         {
             CheckAccess(MediaAccess.Read);
-            var packet = MediaPacket.AllocateEmpty(0);
-            var result = ffmpeg.av_read_frame(FormatContextPointer, packet.Pointer);
 
-            if (result == ffmpeg.AVERROR_EOF)
+            lock (syncLock)
             {
-                IsAtEndOfFile = true;
-                return MediaType.None;
-            }
-            else
-            {
-                result.CatchAll("Cannot read next packet from the file");
-            }
+                var packet = MediaPacket.AllocateEmpty(0);
+                var result = ffmpeg.av_read_frame(FormatContextPointer, packet.Pointer);
 
-            IsAtEndOfFile = false;
-            return EnqueuePacket(packet);
+                if (result == ffmpeg.AVERROR_EOF)
+                {
+                    IsAtEndOfFile = true;
+                    return MediaType.None;
+                }
+                else
+                {
+                    result.CatchAll("Cannot read next packet from the file");
+                }
+
+                IsAtEndOfFile = false;
+                return EnqueuePacket(packet);
+            }
         }
 
         private static int? FindBestStream(AVFormatContext* container, AVMediaType type, int relStream = -1)
