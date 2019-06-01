@@ -10,7 +10,7 @@ build_script:
 - ps: .\build.ps1
 test: off
 artifacts:
-- path: C:\projects\ffmediatoolkit\FFMediaToolkit\artifacts\*.nupkg
+- path: .\FFMediaToolkit\artifacts\*.nupkg
   name: NuGet
 deploy:
 - provider: NuGet
