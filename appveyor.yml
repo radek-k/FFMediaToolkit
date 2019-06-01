@@ -9,11 +9,13 @@ nuget:
 build_script:
 - ps: .\build.ps1
 test: off
+artifacts:
+- path: C:\projects\ffmediatoolkit\FFMediaToolkit\artifacts\*.nupkg
+  name: NuGet
 deploy:
 - provider: NuGet
   server: https://ci.appveyor.com/nuget/radek41-3uj048yghh6h
   api_key:
     secure: N4Ceb4PGYD3hKN+N2ZkaXtocmrZeUb4jBrFLr/tvSzc=
-  artifact: /.*\.nupkg/
   on:
     branch: master
