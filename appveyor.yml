@@ -17,5 +17,6 @@ deploy:
   server: https://ci.appveyor.com/nuget/radek41-3uj048yghh6h
   api_key:
     secure: N4Ceb4PGYD3hKN+N2ZkaXtocmrZeUb4jBrFLr/tvSzc=
+  skip_symbols: true
   on:
     branch: master
