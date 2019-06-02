@@ -6,26 +6,16 @@
     /// <summary>
     /// Represents a FFMpeg media packet.
     /// </summary>
-    public unsafe sealed class MediaPacket : IDisposable
+    public unsafe sealed class MediaPacket : Wrapper<AVPacket>
     {
-        private readonly IntPtr pointer;
-        private bool isDisposed;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaPacket"/> class.
         /// </summary>
         /// <param name="packet">The <see cref="AVPacket"/> object.</param>
-        private MediaPacket(AVPacket* packet) => pointer = new IntPtr(packet);
-
-        /// <summary>
-        /// Finalizes an instance of the <see cref="MediaPacket"/> class.
-        /// </summary>
-        ~MediaPacket() => Disposing(false);
-
-        /// <summary>
-        /// Gets the pointer to the underlying <see cref="AVPacket"/>.
-        /// </summary>
-        public AVPacket* Pointer => isDisposed ? null : (AVPacket*)pointer;
+        private MediaPacket(AVPacket* packet)
+            : base(packet)
+        {
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether this packet is a key packet.
@@ -72,19 +62,10 @@
         public void Wipe() => ffmpeg.av_packet_unref(Pointer);
 
         /// <inheritdoc/>
-        public void Dispose() => Disposing(true);
-
-        private void Disposing(bool dispose)
+        protected override void OnDisposing()
         {
-            if (isDisposed)
-                return;
-
             var ptr = Pointer;
             ffmpeg.av_packet_free(&ptr);
-            isDisposed = true;
-
-            if (dispose)
-                GC.SuppressFinalize(this);
         }
     }
 }
