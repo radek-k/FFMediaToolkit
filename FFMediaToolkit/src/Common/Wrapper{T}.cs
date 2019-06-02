@@ -6,10 +6,10 @@
     /// A base class for wrappers of unmanaged objects with <see cref="IDisposable"/> implementation.
     /// </summary>
     /// <typeparam name="T">The type of the unmanaged object.</typeparam>
-    internal abstract unsafe class Wrapper<T> : IDisposable
+    public abstract unsafe class Wrapper<T> : IDisposable
         where T : unmanaged
     {
-        private readonly IntPtr pointer;
+        private IntPtr pointer;
         private bool isDisposed;
 
         /// <summary>
@@ -30,6 +30,12 @@
 
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
+
+        /// <summary>
+        /// Updates the pointer to the object.
+        /// </summary>
+        /// <param name="newPointer">The new pointer.</param>
+        protected void UpdatePointer(T* newPointer) => pointer = new IntPtr(newPointer);
 
         /// <summary>
         /// Free the unmanaged resources.
