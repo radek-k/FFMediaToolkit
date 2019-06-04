@@ -143,6 +143,11 @@
             var packetAdded = false;
             while (!packetAdded)
             {
+                if (IsAtEndOfFile)
+                {
+                    return;
+                }
+
                 packetAdded = ReadPacket() == type;
             }
         }
