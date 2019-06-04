@@ -92,12 +92,6 @@
                 Video.PacketQueue.Enqueue(packet);
                 return MediaType.Video;
             }
-
-            // if (Audio != null && packet.StreamIndex == Audio.Index)
-            // {
-            //     Audio.PacketQueue.Enqueue(packet);
-            //     return MediaType.Audio;
-            // }
             return MediaType.None;
         }
 
@@ -113,17 +107,6 @@
                     AddPacket(MediaType.Video);
                 }
             }
-
-            // if (options.StreamsToLoad != MediaMode.Video)
-            // {
-            //    var index = FindBestStream(context, AVMediaType.AVMEDIA_TYPE_AUDIO);
-            //    if (index != null)
-            //    {
-            //        Audio = AudioStream.Open(this, index.Value, options);
-            //        Audio.PacketDequeued += OnPacketDequeued;
-            //        AddPacket(MediaType.Audio);
-            //    }
-            // }
         }
 
         private void OnPacketDequeued(object sender, EventArgs eventArgs)
