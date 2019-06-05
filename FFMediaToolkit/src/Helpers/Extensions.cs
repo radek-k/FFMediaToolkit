@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Helpers
 {
     using System;
+    using FFMediaToolkit.Common;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -51,5 +52,25 @@
         /// <returns>The timestamp.</returns>
         public static long ToTimestamp(this int frameNumber, AVRational timeBase)
             => timeBase.den == 0 ? 0 : timeBase.num * frameNumber / timeBase.den;
+
+        /// <summary>
+        /// Gets the type of content in the <see cref="AVFrame"/>.
+        /// </summary>
+        /// <param name="frame">The <see cref="AVFrame"/>.</param>
+        /// <returns>The type of frame content.</returns>
+        internal static MediaType GetMediaType(this AVFrame frame)
+        {
+            if (frame.width > 0 && frame.height > 0)
+            {
+                return MediaType.Video;
+            }
+
+            if (frame.channels > 0)
+            {
+                return MediaType.Audio;
+            }
+
+            return MediaType.None;
+        }
     }
 }
