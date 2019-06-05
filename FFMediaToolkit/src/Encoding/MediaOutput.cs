@@ -23,7 +23,7 @@
 
             if (mediaContainer.Video != null)
             {
-                Video = new VideoEncoderStream(mediaContainer.Video, videoSettings);
+                Video = new VideoOutputStream(mediaContainer.Video, videoSettings);
             }
         }
 
@@ -35,7 +35,7 @@
         /// <summary>
         /// Gets the video stream in the media file.
         /// </summary>
-        public VideoEncoderStream Video { get; }
+        public VideoOutputStream Video { get; }
 
         /// <summary>
         /// Gets a value indicating whether the media file contains video stream.

@@ -9,7 +9,7 @@
     /// <summary>
     /// Represents a video encoder stream.
     /// </summary>
-    public class VideoEncoderStream : IDisposable
+    public class VideoOutputStream : IDisposable
     {
         private readonly OutputStream<VideoFrame> stream;
         private readonly VideoFrame encodedFrame;
@@ -19,11 +19,11 @@
         private bool isDisposed;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VideoEncoderStream"/> class.
+        /// Initializes a new instance of the <see cref="VideoOutputStream"/> class.
         /// </summary>
         /// <param name="stream">The video stream.</param>
         /// <param name="config">The stream setting.</param>
-        internal VideoEncoderStream(OutputStream<VideoFrame> stream, VideoEncoderSettings config)
+        internal VideoOutputStream(OutputStream<VideoFrame> stream, VideoEncoderSettings config)
         {
             this.stream = stream;
             Configuration = config;
