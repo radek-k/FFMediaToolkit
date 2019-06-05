@@ -22,12 +22,12 @@
         /// <summary>
         /// Ocurrs when item is enqueued(added).
         /// </summary>
-        public event EventHandler Enqueued;
+        public event EventHandler<T> Enqueued;
 
         /// <summary>
         /// Ocurrs when item is dequeued(removed).
         /// </summary>
-        public event EventHandler Dequeued;
+        public event EventHandler<T> Dequeued;
 
         /// <summary>
         /// Gets a value indicating whether the queue is empty.
@@ -48,7 +48,7 @@
             lock (writeLock)
             {
                 queue.Enqueue(item);
-                Enqueued?.Invoke(this, EventArgs.Empty);
+                Enqueued?.Invoke(this, item);
             }
         }
 
@@ -64,7 +64,7 @@
                 if (queue.TryDequeue(out var obj))
                 {
                     item = obj;
-                    Dequeued?.Invoke(this, EventArgs.Empty);
+                    Dequeued?.Invoke(this, obj);
                     return true;
                 }
                 else

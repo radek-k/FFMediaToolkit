@@ -92,6 +92,7 @@
                 Video.PacketQueue.Enqueue(packet);
                 return MediaType.Video;
             }
+
             return MediaType.None;
         }
 
@@ -109,20 +110,24 @@
             }
         }
 
-        private void OnPacketDequeued(object sender, EventArgs eventArgs)
+        private void OnPacketDequeued(object sender, MediaPacket packet)
         {
-            var stream = (MediaStream<MediaFrame>)sender;
-
-            if (stream.PacketQueue.Count > 5)
+            var stream = packet.StreamIndex == Video?.Index ? Video : null;
+            if (stream?.PacketQueue.Count > 5)
             {
                 return;
             }
 
-            AddPacket(stream.Type);
+            AddPacket(stream?.Type ?? MediaType.None);
         }
 
         private void AddPacket(MediaType type)
         {
+            if (type == MediaType.None)
+            {
+                return;
+            }
+
             var packetAdded = false;
             while (!packetAdded)
             {
