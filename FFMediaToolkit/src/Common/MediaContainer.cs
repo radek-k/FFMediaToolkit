@@ -8,27 +8,6 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents the multimedia stream types.
-    /// </summary>
-    public enum MediaType
-    {
-        /// <summary>
-        /// Video.
-        /// </summary>
-        Video,
-
-        /// <summary>
-        /// Audio.
-        /// </summary>
-        Audio,
-
-        /// <summary>
-        /// None.
-        /// </summary>
-        None,
-    }
-
-    /// <summary>
     /// Represent a multimedia file context.
     /// </summary>
     public unsafe sealed class MediaContainer : MediaObject, IDisposable
