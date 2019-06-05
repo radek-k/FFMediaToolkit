@@ -15,7 +15,7 @@
         private readonly VideoFrame encodedFrame;
         private readonly Scaler scaler;
 
-        private readonly object syncLock;
+        private readonly object syncLock = new object();
         private bool isDisposed;
 
         /// <summary>
