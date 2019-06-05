@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit.Common
+﻿namespace FFMediaToolkit.Common.Internal
 {
     /// <summary>
     /// Represents the multimedia stream types.

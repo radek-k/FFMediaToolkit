@@ -1,7 +1,7 @@
 ﻿namespace FFMediaToolkit.Encoding
 {
     using System;
-    using FFMediaToolkit.Common;
+    using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Encoding.Internal;
     using FFMediaToolkit.Graphics;
     using FFMediaToolkit.Helpers;

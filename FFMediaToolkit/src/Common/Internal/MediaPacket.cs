@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit.Common
+﻿namespace FFMediaToolkit.Common.Internal
 {
     using System;
     using FFmpeg.AutoGen;
@@ -6,7 +6,7 @@
     /// <summary>
     /// Represents a FFMpeg media packet.
     /// </summary>
-    public unsafe sealed class MediaPacket : Wrapper<AVPacket>
+    internal unsafe sealed class MediaPacket : Wrapper<AVPacket>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaPacket"/> class.

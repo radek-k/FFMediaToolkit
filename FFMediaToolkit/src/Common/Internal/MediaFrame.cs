@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit.Common
+﻿namespace FFMediaToolkit.Common.Internal
 {
     using System;
     using System.Collections.Generic;
@@ -8,7 +8,7 @@
     /// <summary>
     /// Represents a base class of audio and video frames.
     /// </summary>
-    public abstract unsafe class MediaFrame : Wrapper<AVFrame>
+    internal abstract unsafe class MediaFrame : Wrapper<AVFrame>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaFrame"/> class.

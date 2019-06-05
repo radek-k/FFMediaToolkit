@@ -1,7 +1,7 @@
 ﻿namespace FFMediaToolkit.Encoding.Internal
 {
     using System;
-    using FFMediaToolkit.Common;
+    using FFMediaToolkit.Common.Internal;
     using FFmpeg.AutoGen;
 
     /// <summary>

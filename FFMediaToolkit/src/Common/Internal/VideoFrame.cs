@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit.Common
+﻿namespace FFMediaToolkit.Common.Internal
 {
     using System;
     using FFMediaToolkit.Graphics;
@@ -8,7 +8,7 @@
     /// <summary>
     /// Represent a video frame.
     /// </summary>
-    public unsafe class VideoFrame : MediaFrame
+    internal unsafe class VideoFrame : MediaFrame
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoFrame"/> class using existing <see cref="AVFrame"/>.

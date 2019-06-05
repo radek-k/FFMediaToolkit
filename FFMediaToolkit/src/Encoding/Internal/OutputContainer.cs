@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using FFMediaToolkit.Common;
+    using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
