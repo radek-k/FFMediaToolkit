@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit
+﻿namespace FFMediaToolkit.Common
 {
     using System;
     using System.Collections.Concurrent;

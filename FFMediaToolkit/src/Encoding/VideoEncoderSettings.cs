@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Encoding
 {
+    using FFMediaToolkit.Common;
     using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
 

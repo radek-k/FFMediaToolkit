@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
+    using FFMediaToolkit.Common;
     using FFmpeg.AutoGen;
 
     /// <summary>
