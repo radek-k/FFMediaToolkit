@@ -8,15 +8,13 @@
     /// <summary>
     /// Represents a wrapper of <see cref="AVDictionary"/>. Used for applying codec and container settings.
     /// </summary>
-    public unsafe class FFDictionary : IDisposable
+    public unsafe class FFDictionary : Wrapper<AVDictionary>
     {
-        private bool isDisposed;
-        private AVDictionary* dict = null;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="FFDictionary"/> class.
         /// </summary>
         public FFDictionary()
+            : base(null)
         {
         }
 
@@ -24,28 +22,23 @@
         /// Initializes a new instance of the <see cref="FFDictionary"/> class.
         /// </summary>
         /// <param name="dictionary">The dictionary to copy.</param>
-        public FFDictionary(Dictionary<string, string> dictionary) => Copy(dictionary);
+        public FFDictionary(Dictionary<string, string> dictionary)
+            : base(null)
+            => Copy(dictionary);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FFDictionary"/> class from given <see cref="AVDictionary"/>.
         /// </summary>
         /// <param name="dictionary">The <see cref="AVDictionary"/>.</param>
-        internal FFDictionary(AVDictionary* dictionary) => dict = dictionary;
-
-        /// <summary>
-        /// Finalizes an instance of the <see cref="FFDictionary"/> class.
-        /// </summary>
-        ~FFDictionary() => Disposing(false);
+        internal FFDictionary(AVDictionary* dictionary)
+            : base(dictionary)
+        {
+        }
 
         /// <summary>
         /// Gets the number of elements in the dictionary.
         /// </summary>
-        public int Count => dict == null ? 0 : ffmpeg.av_dict_count(dict);
-
-        /// <summary>
-        /// Gets a pointer to the underlying <see cref="AVDictionary"/>.
-        /// </summary>
-        internal AVDictionary* Pointer => isDisposed ? null : dict;
+        public int Count => Pointer == null ? 0 : ffmpeg.av_dict_count(Pointer);
 
         /// <summary>
         /// Gets or sets the value with the specified key.
@@ -66,7 +59,7 @@
         /// <returns>The value with specified key. If the key not exist, returns <see langword="null"/>.</returns>
         public string Get(string key, bool matchCase = true)
         {
-            var ptr = ffmpeg.av_dict_get(dict, key, null, matchCase ? ffmpeg.AV_DICT_MATCH_CASE : 0);
+            var ptr = ffmpeg.av_dict_get(Pointer, key, null, matchCase ? ffmpeg.AV_DICT_MATCH_CASE : 0);
             return ptr != null ? StringConverter.StringFromUtf8(new IntPtr(ptr)) : null;
         }
 
@@ -77,9 +70,9 @@
         /// <param name="value">The value.</param>
         public void Set(string key, string value)
         {
-            var ptr = dict;
+            var ptr = Pointer;
             ffmpeg.av_dict_set(&ptr, key, value, 0);
-            dict = ptr;
+            UpdatePointer(ptr);
         }
 
         /// <summary>
@@ -94,32 +87,20 @@
             }
         }
 
-        /// <inheritdoc/>
-        public void Dispose() => Disposing(true);
-
         /// <summary>
         /// Updates the pointer to the dictionary.
         /// </summary>
         /// <param name="pointer">The pointer to the <see cref="AVDictionary"/>.</param>
-        internal void Update(AVDictionary* pointer) => dict = pointer;
+        internal void Update(AVDictionary* pointer) => UpdatePointer(pointer);
 
-        private void Disposing(bool dispose)
+        /// <inheritdoc/>
+        protected override void OnDisposing()
         {
-            if (isDisposed)
-                return;
-
             if (Pointer != null)
             {
-                fixed (AVDictionary** ptr = &dict)
-                {
-                    ffmpeg.av_dict_free(ptr);
-                }
+                var ptr = Pointer;
+                ffmpeg.av_dict_free(&ptr);
             }
-
-            isDisposed = true;
-
-            if (dispose)
-                GC.SuppressFinalize(this);
         }
     }
 }
