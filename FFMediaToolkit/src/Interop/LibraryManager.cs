@@ -1,6 +1,5 @@
 ﻿namespace FFMediaToolkit.Interop
 {
-    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -31,7 +30,7 @@
         public Library AVCodec { get; } = new Library(Names.AVCodec, Versions.AVCodec);
 
         /// <summary>
-        /// Gets the <code>avformat</code> library.
+        /// Gets the <c>avformat</c> library.
         /// </summary>
         public Library AVFormat { get; } = new Library(Names.AVFormat, Versions.AVFormat);
 

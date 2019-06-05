@@ -16,7 +16,7 @@
         /// <param name="container">The media container.</param>
         /// <param name="index">The video stream index.</param>
         /// <param name="options">The media options.</param>
-        /// <returns>The opened <see cref="VideoStream"/>.</returns>
+        /// <returns>The opened <see cref="InputStream{TFrame}"/>.</returns>
         internal static InputStream<VideoFrame> OpenVideo(InputContainer container, int index, MediaOptions options)
         {
             var format = container.Pointer;

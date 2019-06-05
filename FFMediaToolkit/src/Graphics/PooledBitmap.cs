@@ -25,17 +25,17 @@
         public override Memory<byte> Data => isDisposed ? null : PooledMemory.Memory;
 
         /// <summary>
-        /// Gets the pooled memory
+        /// Gets the pooled memory.
         /// </summary>
         public IMemoryOwner<byte> PooledMemory { get; }
 
         /// <summary>
         /// Rents a memory buffer from pool and creates a new instance of <see cref="PooledBitmap"/> class from it.
         /// </summary>
-        /// <param name="width">The bitmap width</param>
-        /// <param name="height">The bitmap heigth</param>
-        /// <param name="pixelFormat">The bitmap pixel format</param>
-        /// <returns>The new <see cref="PooledBitmap"/> instance</returns>
+        /// <param name="width">The bitmap width.</param>
+        /// <param name="height">The bitmap heigth.</param>
+        /// <param name="pixelFormat">The bitmap pixel format.</param>
+        /// <returns>The new <see cref="PooledBitmap"/> instance.</returns>
         public static PooledBitmap Create(int width, int height, ImagePixelFormat pixelFormat)
         {
             var size = Scaler.EstimateStride(width, pixelFormat) * height;

@@ -17,7 +17,7 @@
         public VideoFrame(AVFrame* frame)
             : base(frame)
         {
-            if (frame->GetMediaType() != MediaType.Audio)
+            if (frame->GetMediaType() == MediaType.Audio)
                 throw new ArgumentException("Cannot create a VideoFrame instance from the AVFrame containing audio.");
         }
 

@@ -5,9 +5,9 @@
     using System.Runtime.InteropServices;
 
     /// <summary>
-    /// A <see cref="MemoryManager{T}"/> for creating <see cref="Memory{T}"/> objects from pointers to the unmanaged memory
+    /// A <see cref="MemoryManager{T}"/> for creating <see cref="Memory{T}"/> objects from pointers to the unmanaged memory.
     /// </summary>
-    /// <typeparam name="T">The data type</typeparam>
+    /// <typeparam name="T">The data type.</typeparam>
     public sealed unsafe class UnmanagedMemoryManager<T> : MemoryManager<T>
         where T : unmanaged
     {
@@ -15,9 +15,9 @@
         private readonly int length;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnmanagedMemoryManager{T}"/> class using the given <see cref="Span{T}"/>
+        /// Initializes a new instance of the <see cref="UnmanagedMemoryManager{T}"/> class using the given <see cref="Span{T}"/>.
         /// </summary>
-        /// <param name="span">A <see cref="Span{T}"/> object</param>
+        /// <param name="span">A <see cref="Span{T}"/> object.</param>
         public UnmanagedMemoryManager(Span<T> span)
         {
             fixed (T* ptr = &MemoryMarshal.GetReference(span))
@@ -30,8 +30,8 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="UnmanagedMemoryManager{T}"/> class using the specified pointer and length.
         /// </summary>
-        /// <param name="pointer">A pointer to the unmanaged memory</param>
-        /// <param name="length">THe length of the memory</param>
+        /// <param name="pointer">A pointer to the unmanaged memory.</param>
+        /// <param name="length">THe length of the memory.</param>
         public UnmanagedMemoryManager(T* pointer, int length)
         {
             if (length < 0)

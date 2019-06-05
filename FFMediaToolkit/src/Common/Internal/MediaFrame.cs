@@ -1,8 +1,5 @@
 ﻿namespace FFMediaToolkit.Common.Internal
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
     using FFmpeg.AutoGen;
 
     /// <summary>

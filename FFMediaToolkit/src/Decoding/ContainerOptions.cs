@@ -5,7 +5,7 @@
 
     /// <summary>
     /// Represents a set of demuxer options and flags.
-    /// See https://ffmpeg.org/ffmpeg-formats.html#Format-Options
+    /// See https://ffmpeg.org/ffmpeg-formats.html#Format-Options.
     /// </summary>
     public class ContainerOptions
     {
@@ -78,7 +78,7 @@
         /// <summary>
         /// Applies flag settings specified in this class to an instance of <see cref="AVFormatContext"/>.
         /// </summary>
-        /// <param name="formatContext">An empty instance of <see cref="AVFormatContext"/> before opening the stream</param>
+        /// <param name="formatContext">An empty instance of <see cref="AVFormatContext"/> before opening the stream.</param>
         internal unsafe void ApplyFlags(AVFormatContext* formatContext)
         {
             ref var formatFlags = ref formatContext->flags;

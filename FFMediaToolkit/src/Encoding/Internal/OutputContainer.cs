@@ -31,7 +31,7 @@
         /// Creates an empty FFmpeg format container for encoding.
         /// </summary>
         /// <param name="path">A output file path. It is used only to guess the container format.</param>
-        /// <returns>A new instance of the <see cref="MediaContainer"/>.</returns>
+        /// <returns>A new instance of the <see cref="OutputContainer"/>.</returns>
         /// <remarks>Before you write frames to the container, you must call the <see cref="CreateFile(string)"/> method to create an ouput file.</remarks>
         public static OutputContainer Create(string path)
         {

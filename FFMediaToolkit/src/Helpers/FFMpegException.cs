@@ -3,7 +3,7 @@
     using System;
 
     /// <summary>
-    /// Represents an exception thrown when FFMpeg method call returns an error code
+    /// Represents an exception thrown when FFMpeg method call returns an error code.
     /// </summary>
     [Serializable]
     public class FFmpegException : Exception
