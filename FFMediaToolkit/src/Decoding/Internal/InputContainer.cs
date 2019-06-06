@@ -37,7 +37,8 @@
             options.DemuxerOptions.ApplyFlags(context);
             var dict = options.DemuxerOptions.PrivateOptions.Pointer;
 
-            ffmpeg.avformat_open_input(&context, path, null, &dict);
+            ffmpeg.avformat_open_input(&context, path, null, &dict)
+                .CatchAll("An error ocurred while opening the file");
 
             options.DemuxerOptions.PrivateOptions.Update(dict);
 
