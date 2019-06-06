@@ -1,20 +1,20 @@
 ﻿namespace FFMediaToolkit.Graphics
 {
     using System;
+    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
-    using Helpers;
 
     /// <summary>
-    /// Represents a bitmap configuration
+    /// Represents a bitmap configuration.
     /// </summary>
     public struct Layout : IEquatable<Layout>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Layout"/> struct.
         /// </summary>
-        /// <param name="pixelFormat">The pixel format</param>
-        /// <param name="width">The width</param>
-        /// <param name="height">The height</param>
+        /// <param name="pixelFormat">The pixel format.</param>
+        /// <param name="width">The width.</param>
+        /// <param name="height">The height.</param>
         public Layout(AVPixelFormat pixelFormat, int width, int height)
         {
             PixelFormat = pixelFormat;
@@ -23,27 +23,39 @@
         }
 
         /// <summary>
-        /// Gets the image pixel format
+        /// Gets the image pixel format.
         /// </summary>
         public AVPixelFormat PixelFormat { get; }
 
         /// <summary>
-        /// Gets the image width
+        /// Gets the image width.
         /// </summary>
         public int Width { get; }
 
         /// <summary>
-        /// Gets the image height
+        /// Gets the image height.
         /// </summary>
         public int Height { get; }
 
         /// <summary>
-        /// Gets the image line size
+        /// Gets the image line size.
         /// </summary>
         public int Stride => Scaler.EstimateStride(Width, (ImagePixelFormat)PixelFormat);
 
+        /// <summary>
+        /// Checks if the <paramref name="left"/> value equals the <paramref name="right"/> value.
+        /// </summary>
+        /// <param name="left">The left value.</param>
+        /// <param name="right">The right value.</param>
+        /// <returns><see langword="true"/>, if equals.</returns>
         public static bool operator ==(Layout left, Layout right) => left.Equals(right);
 
+        /// <summary>
+        /// Checks if the <paramref name="left"/> value not equals the <paramref name="right"/> value.
+        /// </summary>
+        /// <param name="left">The left value.</param>
+        /// <param name="right">The right value.</param>
+        /// <returns><see langword="true"/>, if not equals.</returns>
         public static bool operator !=(Layout left, Layout right) => !(left == right);
 
         /// <summary>

@@ -2,14 +2,14 @@
 {
     using System;
     using System.IO;
-    using FFMediaToolkit.Common;
+    using FFMediaToolkit.Encoding.Internal;
 
     /// <summary>
     /// Represents a multimedia file.
     /// </summary>
     public class MediaBuilder
     {
-        private readonly MediaContainer container;
+        private readonly OutputContainer container;
         private readonly string outputPath;
         private VideoEncoderSettings videoSettings;
 
@@ -22,7 +22,7 @@
             if (!Path.IsPathRooted(path))
                 throw new ArgumentException($"The path \"{path}\" is not valid");
 
-            container = MediaContainer.CreateOutput(path);
+            container = OutputContainer.Create(path);
             outputPath = path;
         }
 
@@ -43,10 +43,10 @@
         /// <summary>
         /// Creates a multimedia file for specified video streams.
         /// </summary>
-        /// <returns>A new <see cref="MediaOutput"/></returns>
+        /// <returns>A new <see cref="MediaOutput"/>.</returns>
         public MediaOutput Create()
         {
-            container.LockFile(outputPath);
+            container.CreateFile(outputPath);
 
             return new MediaOutput(container, videoSettings);
         }

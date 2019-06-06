@@ -3,7 +3,7 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents the most used image pixel formats. Partially compatible with <see cref="AVPixelFormat"/>
+    /// Represents the most used image pixel formats. Partially compatible with <see cref="AVPixelFormat"/>.
     /// </summary>
     public enum ImagePixelFormat
     {

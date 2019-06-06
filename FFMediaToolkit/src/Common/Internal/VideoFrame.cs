@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit.Common
+﻿namespace FFMediaToolkit.Common.Internal
 {
     using System;
     using FFMediaToolkit.Graphics;
@@ -8,17 +8,17 @@
     /// <summary>
     /// Represent a video frame.
     /// </summary>
-    public unsafe class VideoFrame : MediaFrame
+    internal unsafe class VideoFrame : MediaFrame
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="VideoFrame"/> class using existing <see cref="AVFrame"/> and <see cref="VideoStream"/>
+        /// Initializes a new instance of the <see cref="VideoFrame"/> class using existing <see cref="AVFrame"/>.
         /// </summary>
         /// <param name="frame">The video <see cref="AVFrame"/>.</param>
         public VideoFrame(AVFrame* frame)
             : base(frame)
         {
-            if (frame->channels > 0) // Checks frame content type
-                throw new ArgumentException("Cannot create VideoFrame instance from AVFrame containing audio");
+            if (frame->GetMediaType() == MediaType.Audio)
+                throw new ArgumentException("Cannot create a VideoFrame instance from the AVFrame containing audio.");
         }
 
         /// <summary>
@@ -54,7 +54,7 @@
         /// Overrides this video frame data with the converted <paramref name="bitmap"/> using specified <see cref="Scaler"/> object.
         /// </summary>
         /// <param name="bitmap">The bitmap to convert.</param>
-        /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video</param>
+        /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video.</param>
         public void UpdateFromBitmap(BitmapData bitmap, Scaler scaler)
         {
             fixed (byte* ptr = bitmap.Data.Span)
@@ -66,9 +66,9 @@
         /// <summary>
         /// Converts this video frame to the <see cref="BitmapData"/> with the specified pixel format.
         /// </summary>
-        /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video</param>
-        /// <param name="targetFormat">The output bitmap pixel format</param>
-        /// <returns>A <see cref="BitmapData"/> instance containg converted bitmap data</returns>
+        /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video.</param>
+        /// <param name="targetFormat">The output bitmap pixel format.</param>
+        /// <returns>A <see cref="BitmapData"/> instance containg converted bitmap data.</returns>
         public BitmapData ToBitmap(Scaler scaler, ImagePixelFormat targetFormat)
         {
             var bitmap = PooledBitmap.Create(Layout.Width, Layout.Height, targetFormat);
@@ -80,6 +80,17 @@
             }
 
             return bitmap;
+        }
+
+        /// <inheritdoc/>
+        internal override unsafe void Update(AVFrame* newFrame)
+        {
+            if (newFrame->GetMediaType() != MediaType.Video)
+            {
+                throw new ArgumentException("The new frame doesn't contain video data.");
+            }
+
+            base.Update(newFrame);
         }
     }
 }
