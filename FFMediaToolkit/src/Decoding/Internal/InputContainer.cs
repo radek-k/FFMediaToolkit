@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
+    using System;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
@@ -68,6 +69,27 @@
 
             IsAtEndOfFile = false;
             return EnqueuePacket(packet);
+        }
+
+        /// <summary>
+        /// Seeks stream to the specified target time.
+        /// </summary>
+        /// <param name="target">The absolute target time.</param>
+        public void SeekFile(TimeSpan target)
+        {
+            var targetTs = target.ToTimestamp(Video.TimeBase);
+            ffmpeg.av_seek_frame(Pointer, Video.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {target} failed.");
+            Video.PacketQueue.Clear();
+
+            long packetTs;
+            do
+            {
+                Video.PacketQueue.TryDequeue(out var packet);
+                packetTs = packet.Pointer->pts;
+            }
+            while (packetTs < targetTs);
+
+            IsAtEndOfFile = false;
         }
 
         /// <inheritdoc/>
