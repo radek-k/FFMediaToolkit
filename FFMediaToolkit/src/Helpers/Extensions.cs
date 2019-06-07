@@ -55,6 +55,15 @@
             => timeBase.den == 0 ? 0 : timeBase.num * frameNumber / timeBase.den;
 
         /// <summary>
+        /// Converts the <see cref="TimeSpan"/> to a timestamp in the <paramref name="timeBase"/> units.
+        /// </summary>
+        /// <param name="time">The time.</param>
+        /// <param name="timeBase">The stream time base.</param>
+        /// <returns>The timestamp.</returns>
+        public static long ToTimestamp(this TimeSpan time, AVRational timeBase)
+            => timeBase.num == 0 ? 0 : Convert.ToInt64(time.TotalSeconds * timeBase.den / timeBase.num);
+
+        /// <summary>
         /// Gets the type of content in the <see cref="AVFrame"/>.
         /// </summary>
         /// <param name="frame">The <see cref="AVFrame"/>.</param>
