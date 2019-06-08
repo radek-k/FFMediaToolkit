@@ -60,7 +60,7 @@
         public string Get(string key, bool matchCase = true)
         {
             var ptr = ffmpeg.av_dict_get(Pointer, key, null, matchCase ? ffmpeg.AV_DICT_MATCH_CASE : 0);
-            return ptr != null ? StringConverter.StringFromUtf8(new IntPtr(ptr)) : null;
+            return ptr != null ? new IntPtr(ptr).Utf8ToString() : null;
         }
 
         /// <summary>
