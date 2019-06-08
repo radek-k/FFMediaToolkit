@@ -22,6 +22,7 @@
             Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(stream->metadata));
             CodecName = ffmpeg.avcodec_get_name(codec->codec_id);
             CodecId = FormatCodecId(codec->codec_id);
+            Index = stream->index;
             IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE && codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
             Dimensions = new Layout(codec->pix_fmt, codec->width, codec->height);
             TimeBase = stream->time_base;
@@ -30,6 +31,11 @@
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
         }
+
+        /// <summary>
+        /// Gets the stream index.
+        /// </summary>
+        public int Index { get; }
 
         /// <summary>
         /// Gets the codec name.
