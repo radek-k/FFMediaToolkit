@@ -13,7 +13,7 @@
         private readonly InputContainer container;
         private bool isDisposed;
 
-        private MediaFile(InputContainer container, MediaOptions options)
+        private unsafe MediaFile(InputContainer container, MediaOptions options)
         {
             this.container = container;
 
@@ -21,6 +21,8 @@
             {
                 Video = new VideoStream(container.Video, options);
             }
+
+            Info = new MediaInfo(container.Pointer);
         }
 
         /// <summary>
@@ -32,6 +34,11 @@
         /// Gets a value indicating whether the file contains video stream and the stream is loaded.
         /// </summary>
         public bool HasVideo => Video != null;
+
+        /// <summary>
+        /// Gets informations about the media container.
+        /// </summary>
+        public MediaInfo Info { get; }
 
         /// <summary>
         /// Opens a media file from the specified path.
