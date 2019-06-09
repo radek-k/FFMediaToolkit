@@ -3,8 +3,6 @@
     using System;
     using System.IO;
     using System.Threading.Tasks;
-    using FFMediaToolkit.Common;
-    using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
 
     /// <summary>
@@ -15,7 +13,25 @@
         private readonly InputContainer container;
         private bool isDisposed;
 
-        private MediaFile(InputContainer container) => this.container = container;
+        private MediaFile(InputContainer container, MediaOptions options)
+        {
+            this.container = container;
+
+            if (container.Video != null)
+            {
+                Video = new VideoStream(container.Video, options);
+            }
+        }
+
+        /// <summary>
+        /// Gets the video stream.
+        /// </summary>
+        public VideoStream Video { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the file contains video stream and the stream is loaded.
+        /// </summary>
+        public bool HasVideo => Video != null;
 
         /// <summary>
         /// Opens a media file from the specified path.
@@ -28,7 +44,7 @@
             try
             {
                 var container = InputContainer.LoadFile(path, options);
-                return new MediaFile(container);
+                return new MediaFile(container, options);
             }
             catch (FileNotFoundException)
             {
@@ -59,6 +75,12 @@
             if (isDisposed)
             {
                 return;
+            }
+
+            if (HasVideo)
+            {
+                ((IDisposable)Video).Dispose();
+                Video = null;
             }
 
             container.Dispose();
