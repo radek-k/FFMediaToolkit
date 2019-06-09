@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
+    using System.Drawing;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Graphics;
 
@@ -56,6 +57,11 @@
         /// Gets or sets the target pixel format for decoded video frames conversion. The default value is <c>BGR24</c>.
         /// </summary>
         public ImagePixelFormat VideoPixelFormat { get; set; } = ImagePixelFormat.BGR24;
+
+        /// <summary>
+        /// Gets or sets the target video size for decoded video frames conversion. <see langword="null"/>, if no rescale.
+        /// </summary>
+        public Size? TargetVideoSize { get; set; }
 
         /// <summary>
         /// Gets or sets the number of decoder threads (by the 'threads' flag). The default value is <see langword="null"/> - 'auto'.
