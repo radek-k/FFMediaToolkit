@@ -26,6 +26,7 @@
             PacketQueue = new ObservableQueue<MediaPacket>();
 
             Type = typeof(TFrame) == typeof(VideoFrame) ? MediaType.Video : MediaType.None;
+            Info = new StreamInfo(stream);
         }
 
         /// <summary>
@@ -44,14 +45,9 @@
         public MediaType Type { get; }
 
         /// <summary>
-        /// Gets the stream index.
+        /// Gets informations about the stream.
         /// </summary>
-        public int Index => Pointer->index;
-
-        /// <summary>
-        /// Gets the stream time base.
-        /// </summary>
-        public AVRational TimeBase => Pointer->time_base;
+        public StreamInfo Info { get; }
 
         /// <summary>
         /// Gets the packet queue.

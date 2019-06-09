@@ -77,8 +77,8 @@
         /// <param name="target">The absolute target time.</param>
         public void SeekFile(TimeSpan target)
         {
-            var targetTs = target.ToTimestamp(Video.TimeBase);
-            ffmpeg.av_seek_frame(Pointer, Video.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {target} failed.");
+            var targetTs = target.ToTimestamp(Video.Info.TimeBase);
+            ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {target} failed.");
             Video.PacketQueue.Clear();
 
             long packetTs;
@@ -110,7 +110,7 @@
 
         private MediaType EnqueuePacket(MediaPacket packet)
         {
-            if (Video != null && packet.StreamIndex == Video.Index)
+            if (Video != null && packet.StreamIndex == Video.Info.Index)
             {
                 Video.PacketQueue.Enqueue(packet);
                 return MediaType.Video;
@@ -135,7 +135,7 @@
 
         private void OnPacketDequeued(object sender, MediaPacket packet)
         {
-            var stream = packet.StreamIndex == Video?.Index ? Video : null;
+            var stream = packet.StreamIndex == Video?.Info.Index ? Video : null;
             if (stream?.PacketQueue.Count > 5)
             {
                 return;
