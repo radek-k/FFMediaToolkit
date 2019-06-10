@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Threading.Tasks;
     using FFMediaToolkit.Decoding.Internal;
 
     /// <summary>
@@ -66,15 +65,6 @@
                 throw new Exception("Failed to open the media file", ex);
             }
         }
-
-        /// <summary>
-        /// Opens a media file from the specified path asynchronously.
-        /// </summary>
-        /// <param name="path">A path to the media file.</param>
-        /// <param name="options">The decoder settings.</param>
-        /// <returns>The opened <see cref="MediaFile"/>.</returns>
-        public static async Task<MediaFile> OpenAsync(string path, MediaOptions options)
-            => await Task.Run(() => Open(path, options));
 
         /// <inheritdoc/>
         public void Dispose()
