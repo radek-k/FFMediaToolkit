@@ -79,15 +79,10 @@
         {
             var targetTs = target.ToTimestamp(Video.Info.TimeBase);
             ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {target} failed.");
-            Video.PacketQueue.Clear();
 
-            long packetTs;
-            do
-            {
-                Video.PacketQueue.TryDequeue(out var packet);
-                packetTs = packet.Pointer->pts;
-            }
-            while (packetTs < targetTs);
+            Video.PacketQueue.Clear();
+            AddPacket(MediaType.Video);
+            AdjustSeekPackets(Video.PacketQueue, targetTs);
 
             IsAtEndOfFile = false;
         }
@@ -106,6 +101,17 @@
             AVCodec* codec = null;
             var id = ffmpeg.av_find_best_stream(container, type, -1, relStream, &codec, 0);
             return id >= 0 ? (int?)id : null;
+        }
+
+        private void AdjustSeekPackets(ObservableQueue<MediaPacket> packetQueue, long targetTs)
+        {
+            Video.PacketQueue.TryPeek(out var packet);
+
+            while (packet?.Timestamp < targetTs)
+            {
+                packetQueue.TryDequeue(out var _);
+                packetQueue.TryPeek(out packet);
+            }
         }
 
         private MediaType EnqueuePacket(MediaPacket packet)
