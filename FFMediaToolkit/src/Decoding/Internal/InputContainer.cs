@@ -79,12 +79,11 @@
         {
             var targetTs = target.ToTimestamp(Video.Info.TimeBase);
             ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {target} failed.");
+            IsAtEndOfFile = false;
 
             Video.PacketQueue.Clear();
             AddPacket(MediaType.Video);
             AdjustSeekPackets(Video.PacketQueue, targetTs);
-
-            IsAtEndOfFile = false;
         }
 
         /// <inheritdoc/>
