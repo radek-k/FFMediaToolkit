@@ -86,6 +86,16 @@
             AdjustSeekPackets(Video.PacketQueue, targetTs);
         }
 
+        /// <summary>
+        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
+        /// </summary>
+        /// <param name="target">The absolute target time.</param>
+        public void SeekForward(TimeSpan target)
+        {
+            var targetTs = target.ToTimestamp(Video.Info.TimeBase);
+            AdjustSeekPackets(Video.PacketQueue, targetTs);
+        }
+
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
