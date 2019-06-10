@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
+    using System;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
@@ -33,11 +34,14 @@
         /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
         public static InputContainer LoadFile(string path, MediaOptions options)
         {
+            MediaCore.LoadFFmpeg();
+
             var context = ffmpeg.avformat_alloc_context();
             options.DemuxerOptions.ApplyFlags(context);
             var dict = options.DemuxerOptions.PrivateOptions.Pointer;
 
-            ffmpeg.avformat_open_input(&context, path, null, &dict);
+            ffmpeg.avformat_open_input(&context, path, null, &dict)
+                .CatchAll("An error ocurred while opening the file");
 
             options.DemuxerOptions.PrivateOptions.Update(dict);
 
@@ -69,6 +73,50 @@
             return EnqueuePacket(packet);
         }
 
+        /// <summary>
+        /// Seeks stream to the specified video frame.
+        /// </summary>
+        /// <param name="frameNumber">The target video frame number.</param>
+        public void SeekFile(int frameNumber) => SeekFile(frameNumber.ToTimestamp(Video.Info.TimeBase));
+
+        /// <summary>
+        /// Seeks stream to the specified target time.
+        /// </summary>
+        /// <param name="targetTime">The absolute target time.</param>
+        public void SeekFile(TimeSpan targetTime) => SeekFile(targetTime.ToTimestamp(Video.Info.TimeBase));
+
+        /// <summary>
+        /// Seeks stream to the specified target timestamp.
+        /// </summary>
+        /// <param name="targetTs">The target timestamp in the default stream time base.</param>
+        public void SeekFile(long targetTs)
+        {
+            ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {targetTs} failed.");
+            IsAtEndOfFile = false;
+
+            Video.PacketQueue.Clear();
+            AddPacket(MediaType.Video);
+            AdjustSeekPackets(Video.PacketQueue, targetTs);
+        }
+
+        /// <summary>
+        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
+        /// </summary>
+        /// <param name="frameNumber">The target video frame number.</param>
+        public void SeekForward(int frameNumber) => SeekForward(frameNumber.ToTimestamp(Video.Info.TimeBase));
+
+        /// <summary>
+        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
+        /// </summary>
+        /// <param name="targetTime">The absolute target time.</param>
+        public void SeekForward(TimeSpan targetTime) => SeekForward(targetTime.ToTimestamp(Video.Info.TimeBase));
+
+        /// <summary>
+        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
+        /// </summary>
+        /// <param name="targetTs">The target timestamp in the default stream time base.</param>
+        public void SeekForward(long targetTs) => AdjustSeekPackets(Video.PacketQueue, targetTs);
+
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
@@ -85,9 +133,20 @@
             return id >= 0 ? (int?)id : null;
         }
 
+        private void AdjustSeekPackets(ObservableQueue<MediaPacket> packetQueue, long targetTs)
+        {
+            Video.PacketQueue.TryPeek(out var packet);
+
+            while (packet?.Timestamp < targetTs)
+            {
+                packetQueue.TryDequeue(out var _);
+                packetQueue.TryPeek(out packet);
+            }
+        }
+
         private MediaType EnqueuePacket(MediaPacket packet)
         {
-            if (Video != null && packet.StreamIndex == Video.Index)
+            if (Video != null && packet.StreamIndex == Video.Info.Index)
             {
                 Video.PacketQueue.Enqueue(packet);
                 return MediaType.Video;
@@ -112,7 +171,7 @@
 
         private void OnPacketDequeued(object sender, MediaPacket packet)
         {
-            var stream = packet.StreamIndex == Video?.Index ? Video : null;
+            var stream = packet.StreamIndex == Video?.Info.Index ? Video : null;
             if (stream?.PacketQueue.Count > 5)
             {
                 return;

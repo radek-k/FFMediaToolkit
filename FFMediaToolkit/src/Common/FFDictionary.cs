@@ -52,6 +52,26 @@
         }
 
         /// <summary>
+        /// Converts a <see cref="AVDictionary"/> to the managed string dictionary.
+        /// </summary>
+        /// <param name="dictionary">The <see cref="AVDictionary"/> to converter.</param>
+        /// <returns>The converted <see cref="Dictionary{TKey, TValue}"/>.</returns>
+        public static Dictionary<string, string> ToDictionary(AVDictionary* dictionary)
+        {
+            var result = new Dictionary<string, string>();
+
+            var item = ffmpeg.av_dict_get(dictionary, string.Empty, null, 0);
+
+            while (item != null)
+            {
+                result[new IntPtr(item->key).Utf8ToString()] = new IntPtr(item->value).Utf8ToString();
+                item = ffmpeg.av_dict_get(dictionary, string.Empty, item, 0);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets the value with specified key.
         /// </summary>
         /// <param name="key">The dictionary key.</param>
@@ -60,7 +80,7 @@
         public string Get(string key, bool matchCase = true)
         {
             var ptr = ffmpeg.av_dict_get(Pointer, key, null, matchCase ? ffmpeg.AV_DICT_MATCH_CASE : 0);
-            return ptr != null ? StringConverter.StringFromUtf8(new IntPtr(ptr)) : null;
+            return ptr != null ? new IntPtr(ptr).Utf8ToString() : null;
         }
 
         /// <summary>

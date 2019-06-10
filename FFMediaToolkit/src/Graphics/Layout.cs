@@ -1,11 +1,12 @@
 ﻿namespace FFMediaToolkit.Graphics
 {
     using System;
+    using System.Drawing;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents a bitmap configuration.
+    /// Represents bitmap size and pixel format.
     /// </summary>
     public struct Layout : IEquatable<Layout>
     {
@@ -18,8 +19,18 @@
         public Layout(AVPixelFormat pixelFormat, int width, int height)
         {
             PixelFormat = pixelFormat;
-            Width = width;
-            Height = height;
+            Size = new Size(width, height);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Layout"/> struct.
+        /// </summary>
+        /// <param name="pixelFormat">The pixel format.</param>
+        /// <param name="size">The size.</param>
+        public Layout(AVPixelFormat pixelFormat, Size size)
+        {
+            PixelFormat = pixelFormat;
+            Size = size;
         }
 
         /// <summary>
@@ -30,12 +41,17 @@
         /// <summary>
         /// Gets the image width.
         /// </summary>
-        public int Width { get; }
+        public int Width => Size.Width;
 
         /// <summary>
         /// Gets the image height.
         /// </summary>
-        public int Height { get; }
+        public int Height => Size.Height;
+
+        /// <summary>
+        /// Gets the image size.
+        /// </summary>
+        public Size Size { get; }
 
         /// <summary>
         /// Gets the image line size.
@@ -63,13 +79,13 @@
         /// </summary>
         /// <param name="other">The other <see cref="Layout"/> object to compare.</param>
         /// <returns><see langword="true"/> if equal, otherwise <see langword="false"/>.</returns>
-        public bool SizeEquals(Layout other) => Width == other.Width && Height == other.Height;
+        public bool SizeEquals(Layout other) => Size == other.Size;
 
         /// <inheritdoc/>
         public override bool Equals(object obj) => obj is Layout layout && Equals(layout);
 
         /// <inheritdoc/>
-        public bool Equals(Layout other) => PixelFormat == other.PixelFormat && Width == other.Width && Height == other.Height;
+        public bool Equals(Layout other) => PixelFormat == other.PixelFormat && Size == other.Size;
 
         /// <inheritdoc/>
         public override int GetHashCode()

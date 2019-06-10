@@ -26,6 +26,7 @@
             PacketQueue = new ObservableQueue<MediaPacket>();
 
             Type = typeof(TFrame) == typeof(VideoFrame) ? MediaType.Video : MediaType.None;
+            Info = new StreamInfo(stream);
         }
 
         /// <summary>
@@ -44,14 +45,9 @@
         public MediaType Type { get; }
 
         /// <summary>
-        /// Gets the stream index.
+        /// Gets informations about the stream.
         /// </summary>
-        public int Index => Pointer->index;
-
-        /// <summary>
-        /// Gets the stream time base.
-        /// </summary>
-        public AVRational TimeBase => Pointer->time_base;
+        public StreamInfo Info { get; }
 
         /// <summary>
         /// Gets the packet queue.
@@ -59,34 +55,21 @@
         public ObservableQueue<MediaPacket> PacketQueue { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the internal decoder buffer was filled.
-        /// </summary>
-        public bool IsDecoderBufferFull { get; private set; }
-
-        /// <summary>
         /// Reads the next frame from the stream and writes its data to the specified <see cref="MediaFrame"/> object.
         /// </summary>
         /// <param name="frame">A media frame to override with the new decoded frame.</param>
         public void Read(TFrame frame)
         {
-            while (true)
+            int error;
+
+            do
             {
                 SendPacket();
-                var result = ffmpeg.avcodec_receive_frame(CodecPointer, frame.Pointer);
-
-                if (result >= 0)
-                {
-                    return;
-                }
-                else if (result == -ffmpeg.EAGAIN && IsDecoderBufferFull)
-                {
-                    IsDecoderBufferFull = false;
-                }
-                else
-                {
-                    result.CatchAll("An error ocurred while decoding the frame.");
-                }
+                error = ffmpeg.avcodec_receive_frame(CodecPointer, frame.Pointer);
             }
+            while (error == -ffmpeg.EAGAIN);
+
+            error.CatchAll("An error ocurred while decoding the frame.");
         }
 
         /// <summary>
@@ -106,9 +89,6 @@
 
         private void SendPacket()
         {
-            if (IsDecoderBufferFull)
-                return;
-
             if (!PacketQueue.TryPeek(out var pkt))
             {
                 if (OwnerFile.IsAtEndOfFile)
@@ -125,15 +105,11 @@
 
             if (result == -ffmpeg.EAGAIN)
             {
-                IsDecoderBufferFull = true;
+                return;
             }
             else
             {
                 result.CatchAll("Cannot send a packet to the decoder.");
-            }
-
-            if (!IsDecoderBufferFull)
-            {
                 PacketQueue.TryDequeue(out var _);
             }
         }

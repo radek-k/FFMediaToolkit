@@ -15,7 +15,7 @@
         /// </summary>
         /// <param name="pointer">A pointer to the umanaged string.</param>
         /// <returns>The converted string.</returns>
-        public static string StringFromUtf8(IntPtr pointer)
+        public static string Utf8ToString(this IntPtr pointer)
         {
             var lenght = 0;
 
@@ -41,7 +41,7 @@
             var buffer = stackalloc byte[bufferSize];
             ffmpeg.av_strerror(errorCode, buffer, bufferSize);
 
-            var message = StringFromUtf8((IntPtr)buffer);
+            var message = new IntPtr(buffer).Utf8ToString();
             return message;
         }
     }
