@@ -1,9 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
     using System;
-    using System.IO;
-    using System.Threading.Tasks;
-    using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Graphics;
