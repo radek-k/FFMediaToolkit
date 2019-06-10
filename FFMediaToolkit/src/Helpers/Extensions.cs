@@ -45,13 +45,13 @@
         public static TimeSpan ToTimeSpan(this int frameNumber, double fps) => TimeSpan.FromMilliseconds(frameNumber * (1000 / fps));
 
         /// <summary>
-        /// Converts this <see cref="TimeSpan"/> to a frame number based on the specified <paramref name="timeBase"/>.
+        /// Converts this <see cref="TimeSpan"/> to a frame number based on the specified frame rate/>.
         /// </summary>
         /// <param name="time">The time.</param>
-        /// <param name="timeBase">The stream time base.</param>
+        /// <param name="framerate">The stream frame rate.</param>
         /// <returns>The frame number.</returns>
-        public static int ToFrameNumber(this TimeSpan time, AVRational timeBase)
-            => (int)(time.Milliseconds / timeBase.ToDouble());
+        public static int ToFrameNumber(this TimeSpan time, double framerate)
+            => (int)(time.Milliseconds / framerate);
 
         /// <summary>
         /// Converts this frame number to a timestamp in the <paramref name="timeBase"/> units.
