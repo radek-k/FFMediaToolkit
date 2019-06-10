@@ -34,6 +34,8 @@
         /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
         public static InputContainer LoadFile(string path, MediaOptions options)
         {
+            MediaCore.LoadFFmpeg();
+
             var context = ffmpeg.avformat_alloc_context();
             options.DemuxerOptions.ApplyFlags(context);
             var dict = options.DemuxerOptions.PrivateOptions.Pointer;
