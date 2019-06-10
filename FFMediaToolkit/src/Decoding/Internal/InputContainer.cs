@@ -72,13 +72,24 @@
         }
 
         /// <summary>
+        /// Seeks stream to the specified video frame.
+        /// </summary>
+        /// <param name="frameNumber">The target video frame number.</param>
+        public void SeekFile(int frameNumber) => SeekFile(frameNumber.ToTimestamp(Video.Info.TimeBase));
+
+        /// <summary>
         /// Seeks stream to the specified target time.
         /// </summary>
-        /// <param name="target">The absolute target time.</param>
-        public void SeekFile(TimeSpan target)
+        /// <param name="targetTime">The absolute target time.</param>
+        public void SeekFile(TimeSpan targetTime) => SeekFile(targetTime.ToTimestamp(Video.Info.TimeBase));
+
+        /// <summary>
+        /// Seeks stream to the specified target timestamp.
+        /// </summary>
+        /// <param name="targetTs">The target timestamp in the default stream time base.</param>
+        public void SeekFile(long targetTs)
         {
-            var targetTs = target.ToTimestamp(Video.Info.TimeBase);
-            ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {target} failed.");
+            ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {targetTs} failed.");
             IsAtEndOfFile = false;
 
             Video.PacketQueue.Clear();
@@ -89,12 +100,20 @@
         /// <summary>
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
         /// </summary>
-        /// <param name="target">The absolute target time.</param>
-        public void SeekForward(TimeSpan target)
-        {
-            var targetTs = target.ToTimestamp(Video.Info.TimeBase);
-            AdjustSeekPackets(Video.PacketQueue, targetTs);
-        }
+        /// <param name="frameNumber">The target video frame number.</param>
+        public void SeekForward(int frameNumber) => SeekForward(frameNumber.ToTimestamp(Video.Info.TimeBase));
+
+        /// <summary>
+        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
+        /// </summary>
+        /// <param name="targetTime">The absolute target time.</param>
+        public void SeekForward(TimeSpan targetTime) => SeekForward(targetTime.ToTimestamp(Video.Info.TimeBase));
+
+        /// <summary>
+        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
+        /// </summary>
+        /// <param name="targetTs">The target timestamp in the default stream time base.</param>
+        public void SeekForward(long targetTs) => AdjustSeekPackets(Video.PacketQueue, targetTs);
 
         /// <inheritdoc/>
         protected override void OnDisposing()
