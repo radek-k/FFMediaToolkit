@@ -30,6 +30,7 @@
             Duration = stream->duration.ToTimeSpan(stream->time_base);
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
+            FrameCount = Duration.ToFrameNumber(TimeBase);
         }
 
         /// <summary>
@@ -66,6 +67,11 @@
         /// Gets the video frame dimensions and pixel format.
         /// </summary>
         public Layout Dimensions { get; }
+
+        /// <summary>
+        /// Gets the estimated number of frames in the stream.
+        /// </summary>
+        public int FrameCount { get; }
 
         /// <summary>
         /// Gets the stream duration.
