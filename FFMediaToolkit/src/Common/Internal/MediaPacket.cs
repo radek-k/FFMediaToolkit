@@ -31,6 +31,11 @@
         public int StreamIndex => Pointer->stream_index;
 
         /// <summary>
+        /// Gets the presentation time stamp of the packet. <see langword="null"/> if is <c>AV_NOPTS_VALUE</c>.
+        /// </summary>
+        public long? Timestamp => Pointer->pts != ffmpeg.AV_NOPTS_VALUE ? Pointer->pts : (long?)null;
+
+        /// <summary>
         /// Converts an instance of <see cref="MediaPacket"/> to the unmanaged pointer.
         /// </summary>
         /// <param name="packet">A <see cref="MediaPacket"/> instance.</param>
