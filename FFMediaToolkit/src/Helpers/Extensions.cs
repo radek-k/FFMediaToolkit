@@ -37,6 +37,14 @@
         }
 
         /// <summary>
+        /// Converts the frame number to a <see cref="TimeSpan"/>.
+        /// </summary>
+        /// <param name="frameNumber">The frame number.</param>
+        /// <param name="fps">The stream frame rate.</param>
+        /// <returns>The converted <see cref="TimeSpan"/>.</returns>
+        public static TimeSpan ToTimeSpan(this int frameNumber, double fps) => TimeSpan.FromMilliseconds(frameNumber * (1000 / fps));
+
+        /// <summary>
         /// Converts this <see cref="TimeSpan"/> to a frame number based on the specified <paramref name="timeBase"/>.
         /// </summary>
         /// <param name="time">The time.</param>
