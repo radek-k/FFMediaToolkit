@@ -13,18 +13,19 @@ function Exec
 
 if(Test-Path .\artifacts) { Remove-Item .\artifacts -Force -Recurse }
 
-$branch = @{ $true = $env:APPVEYOR_REPO_BRANCH; $false = $(git symbolic-ref --short -q HEAD) }[$env:APPVEYOR_REPO_BRANCH -ne $NULL];
-$revision = @{ $true = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10); $false = "local" }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
-$suffix = @{ $true = ""; $false = "$($branch.Substring(0, [math]::Min(10,$branch.Length)))-$revision"}[$branch -eq "master" -and $revision -ne "local"]
-$commitHash = $(git rev-parse --short HEAD)
-$buildSuffix = @{ $true = "$($suffix)-$($commitHash)"; $false = "$($branch)-$($commitHash)" }[$suffix -ne ""]
-$versionSuffix = @{ $true = "--version-suffix=$($suffix)"; $false = ""}[$suffix -ne ""]
-
-echo "build: Package version suffix is $suffix"
-echo "build: Build version suffix is $buildSuffix" 
-
 exec { & dotnet restore  }
 
-exec { & dotnet build  -c Release --version-suffix=$buildSuffix }
+if($env.APPVEYOR_REPO_TAG -eq $NULL)
+{
+    $revision = @{ $true = $env:APPVEYOR_BUILD_NUMBER; $false = 1 }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL]
+    $suffix = "{0:D4}" -f [convert]::ToInt32($revision, 10)
+    echo "build: No commit tag. Package version suffix is $suffix"
+    
+    exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Release -o .\artifacts --include-symbols --version-suffix=$suffix }
+}
+else
+{
+    echo "build: Tagged commit detected. No version suffix"
 
-exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Release -o .\artifacts --include-symbols --no-build $versionSuffix }
+    exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Release -o .\artifacts --include-symbols }
+}
