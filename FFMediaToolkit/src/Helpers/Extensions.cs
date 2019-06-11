@@ -28,10 +28,10 @@
         {
             var ts = Convert.ToDouble(timestamp);
 
-            if (Math.Abs(ts - ffmpeg.AV_NOPTS_VALUE) <= 0)
-            {
-                return TimeSpan.MinValue;
-            }
+            // if (Math.Abs(ts - ffmpeg.AV_NOPTS_VALUE) == 0)
+            // {
+            //    return TimeSpan.MinValue;
+            // }
 
             return TimeSpan.FromTicks(Convert.ToInt64(TimeSpan.TicksPerMillisecond * 1000 * ts / timeBase.ToDouble()));
         }
