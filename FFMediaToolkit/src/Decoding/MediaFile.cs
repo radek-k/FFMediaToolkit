@@ -60,10 +60,11 @@
             {
                 throw;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to open the media file", ex);
-            }
+
+            // catch (Exception ex)
+            // {
+            //    throw new Exception("Failed to open the media file", ex);
+            // }
         }
 
         /// <inheritdoc/>
