@@ -5,13 +5,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Radosław Kmiotek</Authors>
-    <Company>radek41</Company>
+    <Company>radek-k</Company>
     <Copyright>Copyright (c) 2019 Radosław Kmiotek</Copyright>
-    <Description>FFMediaToolkit is a cross-platform multimedia library for .NET based on the native FFmpeg libraries.</Description>
-    <PackageTags>video;multimedia;encoding;decoding;mp4;ffmpeg</PackageTags>
+    <Description>FFMediaToolkit is a cross-platform video decoder/encoder library based on the FFmpeg native libraries.</Description>
+    <PackageTags>ffmpeg;video;encoder;encoding;decoder;decoding;h264;mp4</PackageTags>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <RepositoryUrl>https://github.com/radek41/FFMediaToolkit</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/radek41/FFMediaToolkit</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/radek-k/FFMediaToolkit</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/radek-k/FFMediaToolkit</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
