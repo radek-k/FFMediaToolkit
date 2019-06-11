@@ -18,7 +18,7 @@ exec { & dotnet restore  }
 if($env.APPVEYOR_REPO_TAG -eq $NULL)
 {
     $revision = @{ $true = $env:APPVEYOR_BUILD_NUMBER; $false = 1 }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL]
-    $suffix = "{0:D4}" -f [convert]::ToInt32($revision, 10)
+    $suffix = "dev{0:D4}" -f [convert]::ToInt32($revision, 10)
     echo "build: No commit tag. Package version suffix is $suffix"
     
     exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Release -o .\artifacts --include-symbols --version-suffix=$suffix }
