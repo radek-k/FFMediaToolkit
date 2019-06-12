@@ -57,7 +57,7 @@
         /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video.</param>
         public void UpdateFromBitmap(BitmapData bitmap, Scaler scaler)
         {
-            fixed (byte* ptr = bitmap.Data.Span)
+            fixed (byte* ptr = bitmap.Data)
             {
                 scaler.FillAVFrame((IntPtr)ptr, bitmap.Layout, Pointer, Layout);
             }
@@ -71,10 +71,10 @@
         /// <returns>A <see cref="BitmapData"/> instance containg converted bitmap data.</returns>
         public BitmapData ToBitmap(Scaler scaler, ImagePixelFormat targetFormat)
         {
-            var bitmap = PooledBitmap.Create(Layout.Width, Layout.Height, targetFormat);
+            var bitmap = BitmapData.CreatePooled(Layout.Width, Layout.Height, targetFormat);
             var targetLayout = new Layout((AVPixelFormat)targetFormat, Layout.Width, Layout.Height);
 
-            fixed (byte* ptr = bitmap.Data.Span)
+            fixed (byte* ptr = bitmap.Data)
             {
                 scaler.AVFrameToBitmap(Pointer, Layout, (IntPtr)ptr, targetLayout);
             }

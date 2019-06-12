@@ -99,9 +99,9 @@
             FramePosition++;
 
             var targetLayout = GetTargetLayout();
-            var bitmap = PooledBitmap.Create(targetLayout.Width, targetLayout.Height, mediaOptions.VideoPixelFormat);
+            var bitmap = BitmapData.CreatePooled(targetLayout.Width, targetLayout.Height, mediaOptions.VideoPixelFormat);
 
-            fixed (byte* ptr = bitmap.Data.Span)
+            fixed (byte* ptr = bitmap.Data)
             {
                 scaler.AVFrameToBitmap(frame.Pointer, frame.Layout, new IntPtr(ptr), targetLayout);
             }
