@@ -10,14 +10,14 @@
     public ref struct BitmapData
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="BitmapData"/> struct using a <see cref="Memory{T}"/> as the data source.
+        /// Initializes a new instance of the <see cref="BitmapData"/> struct using a <see cref="Span{T}"/> as the data source.
         /// </summary>
         /// <param name="data">The bitmap data.</param>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
         /// <param name="pixelFormat">The pixel format.</param>
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
-        public BitmapData(Memory<byte> data, int width, int height, ImagePixelFormat pixelFormat)
+        public BitmapData(Span<byte> data, int width, int height, ImagePixelFormat pixelFormat)
         {
             var size = Scaler.EstimateStride(width, pixelFormat) * height;
             if (data.Length != size)
@@ -32,9 +32,9 @@
         }
 
         /// <summary>
-        /// Gets the <see cref="Memory{T}"/> object containing the bitmap data.
+        /// Gets the <see cref="Span{T}"/> object containing the bitmap data.
         /// </summary>
-        public Memory<byte> Data { get; }
+        public Span<byte> Data { get; }
 
         /// <summary>
         /// Gets the image width.
@@ -65,7 +65,7 @@
         /// <param name="pixelFormat">The bitmap pixel format.</param>
         /// <returns>A new <see cref="BitmapData"/> instance.</returns>
         public static BitmapData FromArray(byte[] pixels, int width, int height, ImagePixelFormat pixelFormat)
-            => new BitmapData(new Memory<byte>(pixels), width, height, pixelFormat);
+            => new BitmapData(new Span<byte>(pixels), width, height, pixelFormat);
 
         /// <summary>
         /// Creates a new instance of the <see cref="BitmapData"/> class using a pointer to the unmanaged memory as the data source.
@@ -76,13 +76,12 @@
         /// <param name="pixelFormat">The bitmap pixel format.</param>
         /// <returns>A new <see cref="BitmapData"/> instance.</returns>
         public static BitmapData FromPointer(IntPtr pointer, int width, int height, ImagePixelFormat pixelFormat)
-            => new BitmapData(CreateMemory(pointer, width, height, pixelFormat), width, height, pixelFormat);
+            => new BitmapData(CreateSpan(pointer, width, height, pixelFormat), width, height, pixelFormat);
 
-        private static unsafe Memory<byte> CreateMemory(IntPtr pointer, int width, int heigth, ImagePixelFormat pixelFormat)
+        private static unsafe Span<byte> CreateSpan(IntPtr pointer, int width, int heigth, ImagePixelFormat pixelFormat)
         {
             var size = Scaler.EstimateStride(width, pixelFormat) * heigth;
-            var manager = new UnmanagedMemoryManager<byte>((byte*)pointer.ToPointer(), size);
-            return manager.Memory;
+            return new Span<byte>((void*)pointer, size);
         }
     }
 }
