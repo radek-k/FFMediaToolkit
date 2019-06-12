@@ -10,8 +10,8 @@
     /// </summary>
     public ref struct BitmapData
     {
-        private Span<byte> span;
-        private IMemoryOwner<byte> pooledMemory;
+        private readonly Span<byte> span;
+        private readonly IMemoryOwner<byte> pooledMemory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BitmapData"/> struct using a <see cref="Span{T}"/> as the data source.
@@ -23,7 +23,7 @@
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
         public BitmapData(Span<byte> data, int width, int height, ImagePixelFormat pixelFormat)
         {
-            var size = Scaler.EstimateStride(width, pixelFormat) * height;
+            var size = Layout.EstimateStride(width, pixelFormat) * height;
             if (data.Length != size)
             {
                 throw new ArgumentException("Pixel buffer size doesn't match size required by this image format.");
@@ -86,7 +86,7 @@
         /// <returns>The new <see cref="BitmapData"/> instance.</returns>
         public static BitmapData CreatePooled(int width, int height, ImagePixelFormat pixelFormat)
         {
-            var size = Scaler.EstimateStride(width, pixelFormat) * height;
+            var size = Layout.EstimateStride(width, pixelFormat) * height;
             var pool = MemoryPool<byte>.Shared;
             var memory = pool.Rent(size);
             return new BitmapData(memory, width, height, pixelFormat);
@@ -116,7 +116,7 @@
 
         private static unsafe Span<byte> CreateSpan(IntPtr pointer, int width, int heigth, ImagePixelFormat pixelFormat)
         {
-            var size = Scaler.EstimateStride(width, pixelFormat) * heigth;
+            var size = Layout.EstimateStride(width, pixelFormat) * heigth;
             return new Span<byte>((void*)pointer, size);
         }
     }
