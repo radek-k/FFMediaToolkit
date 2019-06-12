@@ -7,10 +7,10 @@
     /// <summary>
     /// Represent a wrapper of different bitmap formats.
     /// </summary>
-    public class BitmapData
+    public ref struct BitmapData
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="BitmapData"/> class using a <see cref="Memory{T}"/> as the data source.
+        /// Initializes a new instance of the <see cref="BitmapData"/> struct using a <see cref="Memory{T}"/> as the data source.
         /// </summary>
         /// <param name="data">The bitmap data.</param>
         /// <param name="width">The width.</param>
@@ -34,7 +34,7 @@
         /// <summary>
         /// Gets the <see cref="Memory{T}"/> object containing the bitmap data.
         /// </summary>
-        public virtual Memory<byte> Data { get; }
+        public Memory<byte> Data { get; }
 
         /// <summary>
         /// Gets the image width.
