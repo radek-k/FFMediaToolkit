@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Graphics
 {
     using System;
+    using System.Buffers;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
@@ -9,6 +10,9 @@
     /// </summary>
     public ref struct BitmapData
     {
+        private Span<byte> span;
+        private IMemoryOwner<byte> pooledMemory;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BitmapData"/> struct using a <see cref="Span{T}"/> as the data source.
         /// </summary>
@@ -25,7 +29,19 @@
                 throw new ArgumentException("Pixel buffer size doesn't match size required by this image format.");
             }
 
-            Data = data;
+            span = data;
+            pooledMemory = null;
+
+            Width = width;
+            Height = height;
+            PixelFormat = pixelFormat;
+        }
+
+        private BitmapData(IMemoryOwner<byte> memory, int width, int height, ImagePixelFormat pixelFormat)
+        {
+            span = null;
+            pooledMemory = memory;
+
             Width = width;
             Height = height;
             PixelFormat = pixelFormat;
@@ -34,7 +50,12 @@
         /// <summary>
         /// Gets the <see cref="Span{T}"/> object containing the bitmap data.
         /// </summary>
-        public Span<byte> Data { get; }
+        public Span<byte> Data => IsPooled ? pooledMemory.Memory.Span : span;
+
+        /// <summary>
+        /// Gets a value indicating whether this instance of <see cref="BitmapData"/> uses memory pooling.
+        /// </summary>
+        public bool IsPooled => pooledMemory != null;
 
         /// <summary>
         /// Gets the image width.
@@ -55,6 +76,21 @@
         /// Gets the image layout data.
         /// </summary>
         internal Layout Layout => new Layout((AVPixelFormat)PixelFormat, Width, Height);
+
+        /// <summary>
+        /// Rents a memory buffer from pool and creates a new instance of <see cref="BitmapData"/> class from it.
+        /// </summary>
+        /// <param name="width">The bitmap width.</param>
+        /// <param name="height">The bitmap heigth.</param>
+        /// <param name="pixelFormat">The bitmap pixel format.</param>
+        /// <returns>The new <see cref="BitmapData"/> instance.</returns>
+        public static BitmapData CreatePooled(int width, int height, ImagePixelFormat pixelFormat)
+        {
+            var size = Scaler.EstimateStride(width, pixelFormat) * height;
+            var pool = MemoryPool<byte>.Shared;
+            var memory = pool.Rent(size);
+            return new BitmapData(memory, width, height, pixelFormat);
+        }
 
         /// <summary>
         /// Creates a new instance of the <see cref="BitmapData"/> class using a byte array as the data source.
