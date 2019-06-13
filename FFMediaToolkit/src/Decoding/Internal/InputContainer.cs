@@ -45,6 +45,9 @@
 
             options.DemuxerOptions.PrivateOptions.Update(dict);
 
+            ffmpeg.avformat_find_stream_info(context, null)
+                .CatchAll("Cannot find stream info");
+
             var container = new InputContainer(context);
             container.OpenStreams(options);
             return container;
