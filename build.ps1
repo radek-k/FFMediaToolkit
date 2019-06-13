@@ -19,13 +19,13 @@ if($env.APPVEYOR_REPO_TAG -eq $NULL)
 {
     $revision = @{ $true = $env:APPVEYOR_BUILD_NUMBER; $false = 1 }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL]
     $suffix = "dev{0:D4}" -f [convert]::ToInt32($revision, 10)
-    echo "build: No commit tag. Package version suffix is $suffix"
+    echo "build: Development build - no commit tag. Package version suffix is $suffix"
     
-    exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Release -o .\artifacts --include-symbols --version-suffix=$suffix }
+    exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Debug -o .\artifacts --include-symbols --version-suffix=$suffix }
 }
 else
 {
-    echo "build: Tagged commit detected. No version suffix"
+    echo "build: Release build - tagged commit detected. No version suffix"
 
     exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Release -o .\artifacts --include-symbols }
 }
