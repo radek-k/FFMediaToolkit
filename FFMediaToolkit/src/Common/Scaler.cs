@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit.Helpers
+﻿namespace FFMediaToolkit.Common
 {
     using System;
     using FFMediaToolkit.Graphics;
@@ -7,25 +7,15 @@
     /// <summary>
     /// Represents a cache object for FFMpeg <see cref="SwsContext"/>. Useful when converting many bitmaps to the same format.
     /// </summary>
-    public unsafe class Scaler : IDisposable
+    internal unsafe class Scaler : Wrapper<SwsContext>
     {
-        private SwsContext* scaleContext;
-        private bool isDisposed;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Scaler"/> class.
         /// </summary>
         public Scaler()
+            : base(null)
         {
         }
-
-        /// <summary>
-        /// Finalizes an instance of the <see cref="Scaler"/> class.
-        /// </summary>
-        ~Scaler() => Disposing(false);
-
-        /// <inheritdoc/>
-        public void Dispose() => Disposing(true);
 
         /// <summary>
         /// Overrides the <paramref name="destinationFrame"/> image buffer with rescaled specified bitmap. Used in encoding.
@@ -59,6 +49,9 @@
             ffmpeg.sws_scale(context, videoFrame->data, videoFrame->linesize, 0, videoLayout.Height, data, linesize);
         }
 
+        /// <inheritdoc/>
+        protected override void OnDisposing() => ffmpeg.sws_freeContext(Pointer);
+
         private SwsContext* GetCachedContext(Layout source, Layout destination)
         {
             if (source == destination)
@@ -69,20 +62,8 @@
             // If don't change the dimensions of the image, there is no need to use the high quality bicubic method.
             var scaleMode = source.SizeEquals(destination) ? ffmpeg.SWS_POINT : ffmpeg.SWS_BICUBIC;
 
-            scaleContext = ffmpeg.sws_getCachedContext(scaleContext, source.Width, source.Height, source.PixelFormat, destination.Width, destination.Height, destination.PixelFormat, scaleMode, null, null, null);
-            return scaleContext;
-        }
-
-        private void Disposing(bool dispose)
-        {
-            if (isDisposed)
-                return;
-
-            ffmpeg.sws_freeContext(scaleContext);
-            isDisposed = true;
-
-            if (dispose)
-                GC.SuppressFinalize(this);
+            UpdatePointer(ffmpeg.sws_getCachedContext(Pointer, source.Width, source.Height, source.PixelFormat, destination.Width, destination.Height, destination.PixelFormat, scaleMode, null, null, null));
+            return Pointer;
         }
     }
 }
