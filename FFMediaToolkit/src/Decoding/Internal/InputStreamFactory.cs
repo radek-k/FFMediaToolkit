@@ -21,13 +21,11 @@
         {
             var format = container.Pointer;
             var stream = format->streams[index];
-
-            var codecContext = ffmpeg.avcodec_alloc_context3(null);
-            ffmpeg.avcodec_parameters_to_context(codecContext, stream->codecpar)
-                .CatchAll("Cannot create codec parameters.");
+            var codecContext = stream->codec;
 
             codecContext->pkt_timebase = stream->time_base;
-            var codec = ffmpeg.avcodec_find_decoder(stream->codec->codec_id);
+
+            var codec = ffmpeg.avcodec_find_decoder(codecContext->codec_id);
 
             if (codec == null)
                 throw new InvalidOperationException("Cannot find a codec for this stream.");
@@ -38,8 +36,6 @@
                 .CatchAll("Cannot open the video codec");
 
             options.DecoderOptions.Update(dict);
-
-            stream->codec = codecContext;
 
             return new InputStream<VideoFrame>(stream, container);
         }
