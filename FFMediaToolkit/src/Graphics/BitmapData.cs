@@ -2,7 +2,6 @@
 {
     using System;
     using System.Buffers;
-    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -23,7 +22,7 @@
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
         public BitmapData(Span<byte> data, int width, int height, ImagePixelFormat pixelFormat)
         {
-            var size = Layout.EstimateStride(width, pixelFormat) * height;
+            var size = EstimateStride(width, pixelFormat) * height;
             if (data.Length != size)
             {
                 throw new ArgumentException("Pixel buffer size doesn't match size required by this image format.");
@@ -73,9 +72,9 @@
         public ImagePixelFormat PixelFormat { get; }
 
         /// <summary>
-        /// Gets the image layout data.
+        /// Gets the estimated image linesize.
         /// </summary>
-        internal Layout Layout => new Layout((AVPixelFormat)PixelFormat, Width, Height);
+        public int Stride => EstimateStride(Width, PixelFormat);
 
         /// <summary>
         /// Rents a memory buffer from pool and creates a new instance of <see cref="BitmapData"/> class from it.
@@ -86,7 +85,7 @@
         /// <returns>The new <see cref="BitmapData"/> instance.</returns>
         public static BitmapData CreatePooled(int width, int height, ImagePixelFormat pixelFormat)
         {
-            var size = Layout.EstimateStride(width, pixelFormat) * height;
+            var size = EstimateStride(width, pixelFormat) * height;
             var pool = MemoryPool<byte>.Shared;
             var memory = pool.Rent(size);
             return new BitmapData(memory, width, height, pixelFormat);
@@ -114,10 +113,35 @@
         public static BitmapData FromPointer(IntPtr pointer, int width, int height, ImagePixelFormat pixelFormat)
             => new BitmapData(CreateSpan(pointer, width, height, pixelFormat), width, height, pixelFormat);
 
+        /// <summary>
+        /// Gets the estimated image line size based on the pixel format and width.
+        /// </summary>
+        /// <param name="width">The image width.</param>
+        /// <param name="format">The image pixel format.</param>
+        /// <returns>The size of a single line of the image measured in bytes.</returns>
+        public static int EstimateStride(int width, ImagePixelFormat format) => GetBytesPerPixel(format) * width;
+
         private static unsafe Span<byte> CreateSpan(IntPtr pointer, int width, int heigth, ImagePixelFormat pixelFormat)
         {
-            var size = Layout.EstimateStride(width, pixelFormat) * heigth;
+            var size = EstimateStride(width, pixelFormat) * heigth;
             return new Span<byte>((void*)pointer, size);
+        }
+
+        private static int GetBytesPerPixel(ImagePixelFormat format)
+        {
+            switch (format)
+            {
+                case ImagePixelFormat.BGR24:
+                    return 3;
+                case ImagePixelFormat.BGRA32:
+                    return 4;
+                case ImagePixelFormat.RGB24:
+                    return 3;
+                case ImagePixelFormat.ARGB32:
+                    return 4;
+                default:
+                    return 0;
+            }
         }
     }
 }
