@@ -1,4 +1,4 @@
-﻿namespace FFMediaToolkit.Common
+﻿namespace FFMediaToolkit.Common.Internal
 {
     using System;
     using FFMediaToolkit.Graphics;
