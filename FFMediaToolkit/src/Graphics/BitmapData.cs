@@ -2,7 +2,7 @@
 {
     using System;
     using System.Buffers;
-    using FFmpeg.AutoGen;
+    using System.Drawing;
 
     /// <summary>
     /// Represent a wrapper of different bitmap formats.
@@ -16,13 +16,12 @@
         /// Initializes a new instance of the <see cref="BitmapData"/> struct using a <see cref="Span{T}"/> as the data source.
         /// </summary>
         /// <param name="data">The bitmap data.</param>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
+        /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The pixel format.</param>
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
-        public BitmapData(Span<byte> data, int width, int height, ImagePixelFormat pixelFormat)
+        public BitmapData(Span<byte> data, Size imageSize, ImagePixelFormat pixelFormat)
         {
-            var size = EstimateStride(width, pixelFormat) * height;
+            var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
             if (data.Length != size)
             {
                 throw new ArgumentException("Pixel buffer size doesn't match size required by this image format.");
@@ -31,18 +30,16 @@
             span = data;
             pooledMemory = null;
 
-            Width = width;
-            Height = height;
+            ImageSize = imageSize;
             PixelFormat = pixelFormat;
         }
 
-        private BitmapData(IMemoryOwner<byte> memory, int width, int height, ImagePixelFormat pixelFormat)
+        private BitmapData(IMemoryOwner<byte> memory, Size size, ImagePixelFormat pixelFormat)
         {
             span = null;
             pooledMemory = memory;
 
-            Width = width;
-            Height = height;
+            ImageSize = size;
             PixelFormat = pixelFormat;
         }
 
@@ -57,14 +54,9 @@
         public bool IsPooled => pooledMemory != null;
 
         /// <summary>
-        /// Gets the image width.
+        /// Gets the image size.
         /// </summary>
-        public int Width { get; }
-
-        /// <summary>
-        /// Gets the image height.
-        /// </summary>
-        public int Height { get; }
+        public Size ImageSize { get; }
 
         /// <summary>
         /// Gets the bitmap pixel format.
@@ -74,44 +66,44 @@
         /// <summary>
         /// Gets the estimated image linesize.
         /// </summary>
-        public int Stride => EstimateStride(Width, PixelFormat);
+        public int Stride => EstimateStride(ImageSize.Width, PixelFormat);
 
         /// <summary>
         /// Rents a memory buffer from pool and creates a new instance of <see cref="BitmapData"/> class from it.
         /// </summary>
-        /// <param name="width">The bitmap width.</param>
-        /// <param name="height">The bitmap heigth.</param>
+        /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
         /// <returns>The new <see cref="BitmapData"/> instance.</returns>
-        public static BitmapData CreatePooled(int width, int height, ImagePixelFormat pixelFormat)
+        public static BitmapData CreatePooled(Size imageSize, ImagePixelFormat pixelFormat)
         {
-            var size = EstimateStride(width, pixelFormat) * height;
+            var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
             var pool = MemoryPool<byte>.Shared;
             var memory = pool.Rent(size);
-            return new BitmapData(memory, width, height, pixelFormat);
+            return new BitmapData(memory, imageSize, pixelFormat);
         }
 
         /// <summary>
         /// Creates a new instance of the <see cref="BitmapData"/> class using a byte array as the data source.
         /// </summary>
         /// <param name="pixels">The byte array containing bitmap data.</param>
-        /// <param name="width">The bitmap width.</param>
-        /// <param name="height">The bitmap height.</param>
+        /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
         /// <returns>A new <see cref="BitmapData"/> instance.</returns>
-        public static BitmapData FromArray(byte[] pixels, int width, int height, ImagePixelFormat pixelFormat)
-            => new BitmapData(new Span<byte>(pixels), width, height, pixelFormat);
+        public static BitmapData FromArray(byte[] pixels, Size imageSize, ImagePixelFormat pixelFormat)
+            => new BitmapData(new Span<byte>(pixels), imageSize, pixelFormat);
 
         /// <summary>
         /// Creates a new instance of the <see cref="BitmapData"/> class using a pointer to the unmanaged memory as the data source.
         /// </summary>
         /// <param name="pointer">The byte array containing bitmap data.</param>
-        /// <param name="width">The bitmap width.</param>
-        /// <param name="height">The bitmap height.</param>
+        /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
         /// <returns>A new <see cref="BitmapData"/> instance.</returns>
-        public static BitmapData FromPointer(IntPtr pointer, int width, int height, ImagePixelFormat pixelFormat)
-            => new BitmapData(CreateSpan(pointer, width, height, pixelFormat), width, height, pixelFormat);
+        public static BitmapData FromPointer(IntPtr pointer, Size imageSize, ImagePixelFormat pixelFormat)
+        {
+            var span = CreateSpan(pointer, imageSize, pixelFormat);
+            return new BitmapData(span, imageSize, pixelFormat);
+        }
 
         /// <summary>
         /// Gets the estimated image line size based on the pixel format and width.
@@ -121,9 +113,9 @@
         /// <returns>The size of a single line of the image measured in bytes.</returns>
         public static int EstimateStride(int width, ImagePixelFormat format) => GetBytesPerPixel(format) * width;
 
-        private static unsafe Span<byte> CreateSpan(IntPtr pointer, int width, int heigth, ImagePixelFormat pixelFormat)
+        private static unsafe Span<byte> CreateSpan(IntPtr pointer, Size imageSize, ImagePixelFormat pixelFormat)
         {
-            var size = EstimateStride(width, pixelFormat) * heigth;
+            var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
             return new Span<byte>((void*)pointer, size);
         }
 
