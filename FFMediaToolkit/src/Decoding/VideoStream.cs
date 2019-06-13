@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
     using System;
+    using System.Drawing;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Graphics;
@@ -98,14 +99,9 @@
             stream.Read(frame);
             FramePosition++;
 
-            var targetLayout = GetTargetLayout();
-            var bitmap = PooledBitmap.Create(targetLayout.Width, targetLayout.Height, mediaOptions.VideoPixelFormat);
-
-            fixed (byte* ptr = bitmap.Data.Span)
-            {
-                scaler.AVFrameToBitmap(frame.Pointer, frame.Layout, new IntPtr(ptr), targetLayout);
-            }
-
+            var targetLayout = GetTargetSize();
+            var bitmap = BitmapData.CreatePooled(targetLayout, mediaOptions.VideoPixelFormat);
+            scaler.AVFrameToBitmap(frame, bitmap);
             return bitmap;
         }
 
@@ -128,10 +124,6 @@
             FramePosition = frameNumber - 1;
         }
 
-        private Layout GetTargetLayout()
-        {
-            var target = mediaOptions.TargetVideoSize ?? stream.Info.Dimensions.Size;
-            return new Layout((AVPixelFormat)mediaOptions.VideoPixelFormat, target);
-        }
+        private Size GetTargetSize() => mediaOptions.TargetVideoSize ?? stream.Info.FrameSize;
     }
 }

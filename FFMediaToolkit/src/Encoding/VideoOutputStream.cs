@@ -1,10 +1,11 @@
 ﻿namespace FFMediaToolkit.Encoding
 {
     using System;
+    using System.Drawing;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Encoding.Internal;
     using FFMediaToolkit.Graphics;
-    using FFMediaToolkit.Helpers;
+    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents a video encoder stream.
@@ -27,8 +28,10 @@
         {
             this.stream = stream;
             Configuration = config;
-            encodedFrame = VideoFrame.Create(GetStreamLayout(stream));
             scaler = new Scaler();
+
+            var (size, format) = GetStreamLayout(stream);
+            encodedFrame = VideoFrame.Create(size, format);
         }
 
         /// <summary>
@@ -45,11 +48,6 @@
         /// Gets the current duration of this stream.
         /// </summary>
         public TimeSpan CurrentDuration => TimeSpan.FromMilliseconds(FramesCount * (1D / Configuration.Framerate));
-
-        /// <summary>
-        /// Gets the video frame layout.
-        /// </summary>
-        internal Layout Layout { get; }
 
         /// <summary>
         /// Writes the specified bitmap to the video stream as the next frame.
@@ -81,10 +79,10 @@
             }
         }
 
-        private static unsafe Layout GetStreamLayout(OutputStream<VideoFrame> videoStream)
+        private static unsafe (Size, AVPixelFormat) GetStreamLayout(OutputStream<VideoFrame> videoStream)
         {
             var codec = videoStream.Pointer->codec;
-            return new Layout(codec->pix_fmt, codec->width, codec->height);
+            return (new Size(codec->width, codec->height), codec->pix_fmt);
         }
     }
 }

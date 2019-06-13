@@ -2,8 +2,8 @@
 {
     using System;
     using System.Collections.ObjectModel;
+    using System.Drawing;
     using FFMediaToolkit.Common;
-    using FFMediaToolkit.Graphics;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
@@ -24,7 +24,8 @@
             CodecId = FormatCodecId(codec->codec_id);
             Index = stream->index;
             IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE && codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
-            Dimensions = new Layout(codec->pix_fmt, codec->width, codec->height);
+            FrameSize = new Size(codec->width, codec->height);
+            PixelFormat = codec->pix_fmt;
             TimeBase = stream->time_base;
             FrameRate = stream->r_frame_rate.ToDouble();
             Duration = stream->duration.ToTimeSpan(stream->time_base);
@@ -64,9 +65,14 @@
         public AVRational TimeBase { get; }
 
         /// <summary>
-        /// Gets the video frame dimensions and pixel format.
+        /// Gets the video frame dimensions.
         /// </summary>
-        public Layout Dimensions { get; }
+        public Size FrameSize { get; }
+
+        /// <summary>
+        /// Gets the video pixel format.
+        /// </summary>
+        public AVPixelFormat PixelFormat { get; }
 
         /// <summary>
         /// Gets the estimated number of frames in the stream.
