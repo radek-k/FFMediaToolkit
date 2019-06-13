@@ -67,11 +67,5 @@
         /// WARNING! Many codecs are deprecated or don't work with video.
         /// </summary>
         public AVCodecID? Codec { get; set; }
-
-        /// <summary>
-        /// Creates a <see cref="Layout"/> object, containg dimensions and pixel format, based on this settings.
-        /// </summary>
-        /// <returns>New <see cref="Layout"/> object.</returns>
-        public Layout ToLayout() => new Layout((AVPixelFormat)VideoPixelFormat, VideoWidth, VideoHeight);
     }
 }
