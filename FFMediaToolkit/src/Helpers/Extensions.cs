@@ -53,10 +53,11 @@
         /// Converts this frame number to a timestamp in the <paramref name="timeBase"/> units.
         /// </summary>
         /// <param name="frameNumber">The frame number.</param>
+        /// <param name="fps">The stream frame rate.</param>
         /// <param name="timeBase">The stream time base.</param>
         /// <returns>The timestamp.</returns>
-        public static long ToTimestamp(this int frameNumber, AVRational timeBase)
-            => timeBase.den == 0 ? 0 : timeBase.num * frameNumber / timeBase.den;
+        public static long ToTimestamp(this int frameNumber, AVRational fps, AVRational timeBase)
+            => timeBase.den == 0 ? 0 : ffmpeg.av_rescale_q(Convert.ToInt64(fps.num * frameNumber / (double)fps.den), fps, timeBase);
 
         /// <summary>
         /// Converts the <see cref="TimeSpan"/> to a timestamp in the <paramref name="timeBase"/> units.
