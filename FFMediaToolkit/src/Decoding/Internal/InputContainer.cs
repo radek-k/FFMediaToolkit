@@ -80,7 +80,7 @@
         /// Seeks stream to the specified video frame.
         /// </summary>
         /// <param name="frameNumber">The target video frame number.</param>
-        public void SeekFile(int frameNumber) => SeekFile(frameNumber.ToTimestamp(Video.Info.RFrameRate, Video.Info.TimeBase));
+        public void SeekFile(int frameNumber) => SeekFile(frameNumber.ToTimeSpan(Video.Info.FrameRate).ToTimestamp(Video.Info.TimeBase));
 
         /// <summary>
         /// Seeks stream to the specified target time.
@@ -106,7 +106,7 @@
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
         /// </summary>
         /// <param name="frameNumber">The target video frame number.</param>
-        public void SeekForward(int frameNumber) => SeekForward(frameNumber.ToTimestamp(Video.Info.RFrameRate, Video.Info.TimeBase));
+        public void SeekForward(int frameNumber) => SeekForward(frameNumber.ToTimeSpan(Video.Info.FrameRate).ToTimestamp(Video.Info.TimeBase));
 
         /// <summary>
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
