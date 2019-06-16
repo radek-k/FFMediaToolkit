@@ -27,7 +27,8 @@
             FrameSize = new Size(codec->width, codec->height);
             PixelFormat = codec->pix_fmt;
             TimeBase = stream->time_base;
-            FrameRate = stream->r_frame_rate.ToDouble();
+            RFrameRate = stream->r_frame_rate;
+            FrameRate = RFrameRate.ToDouble();
             Duration = stream->duration.ToTimeSpan(stream->time_base);
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
@@ -55,9 +56,14 @@
         public bool IsInterlaced { get; }
 
         /// <summary>
-        /// Gets the stream frame rate.
+        /// Gets the stream frame rate as a <see cref="double"/> value.
         /// </summary>
         public double FrameRate { get; }
+
+        /// <summary>
+        /// Gets the frame rate as a <see cref="AVRational"/> value.
+        /// </summary>
+        public AVRational RFrameRate { get; }
 
         /// <summary>
         /// Gets the stream time base.
