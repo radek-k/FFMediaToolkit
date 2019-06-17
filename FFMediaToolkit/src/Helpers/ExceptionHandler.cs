@@ -1,7 +1,5 @@
 ﻿namespace FFMediaToolkit.Helpers
 {
-    using System;
-
     /// <summary>
     /// Contains common methods for handling FFMpeg exceptions.
     /// </summary>
@@ -16,17 +14,16 @@
         /// <summary>
         /// Checks if specified integer is error code and throws an <see cref="FFmpegException"/>.
         /// </summary>
-        /// <param name="errorCode">Exit code returned by the FFMpeg method call.</param>
-        /// <param name="message">The exception message.</param>
-        [Obsolete]
-        internal static void ThrowIfError(this int errorCode, string message)
+        /// <param name="errorCode">The exit code returned by a method.</param>
+        /// <param name="exceptionMessage">The exception message.</param>
+        internal static void ThrowIfError(this int errorCode, string exceptionMessage)
         {
             if (errorCode >= 0)
             {
                 return;
             }
 
-            throw new FFmpegException(message, errorCode);
+            throw new FFmpegException(exceptionMessage, errorCode);
         }
 
         /// <summary>
@@ -37,7 +34,7 @@
         /// <param name="action">The method to execute if error handled.</param>
         /// <param name="handles">If <see langword="true"/> this method after handling exception will return 0 instead of the original code.</param>
         /// <returns>Original error code or 0 if error handled and the <paramref name="handles"/> is <see langword="true"/>.</returns>
-        internal static int Catch(this int errorCode, int handledError, ErrorHandler action, bool handles = true)
+        internal static int IfError(this int errorCode, int handledError, ErrorHandler action, bool handles = true)
         {
             if (errorCode != handledError)
             {
@@ -54,22 +51,7 @@
         /// <param name="handledError">The error code to handle.</param>
         /// <param name="exceptionMessage">The exception message.</param>
         /// <returns>The original error code.</returns>
-        internal static int Catch(this int errorCode, int handledError, string exceptionMessage)
-            => errorCode.Catch(handledError, x => throw new FFmpegException(exceptionMessage, x));
-
-        /// <summary>
-        /// Checks if specified integer is error code and throws an <see cref="FFmpegException"/>.
-        /// </summary>
-        /// <param name="errorCode">The exit code returned by a method.</param>
-        /// <param name="exceptionMessage">The exception message.</param>
-        internal static void CatchAll(this int errorCode, string exceptionMessage)
-        {
-            if (errorCode >= 0)
-            {
-                return;
-            }
-
-            throw new FFmpegException(exceptionMessage, errorCode);
-        }
+        internal static int IfError(this int errorCode, int handledError, string exceptionMessage)
+            => errorCode.IfError(handledError, x => throw new FFmpegException(exceptionMessage, x));
     }
 }

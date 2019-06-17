@@ -33,7 +33,7 @@
             var dict = options.DecoderOptions.Pointer;
 
             ffmpeg.avcodec_open2(codecContext, codec, &dict)
-                .CatchAll("Cannot open the video codec");
+                .ThrowIfError("Cannot open the video codec");
 
             options.DecoderOptions.Update(dict);
 

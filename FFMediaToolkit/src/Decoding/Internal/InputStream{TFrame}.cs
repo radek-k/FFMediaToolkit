@@ -69,7 +69,7 @@
             }
             while (error == -ffmpeg.EAGAIN);
 
-            error.CatchAll("An error ocurred while decoding the frame.");
+            error.ThrowIfError("An error ocurred while decoding the frame.");
         }
 
         /// <summary>
@@ -109,7 +109,7 @@
             }
             else
             {
-                result.CatchAll("Cannot send a packet to the decoder.");
+                result.ThrowIfError("Cannot send a packet to the decoder.");
                 PacketQueue.TryDequeue(out var _);
             }
         }

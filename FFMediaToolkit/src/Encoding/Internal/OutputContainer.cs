@@ -85,7 +85,7 @@
                 throw new InvalidOperationException("Cannot create empty media file. You have to add video stream before locking the file");
             }
 
-            ffmpeg.avio_open(&Pointer->pb, path, ffmpeg.AVIO_FLAG_WRITE).CatchAll("Cannot create the output file.");
+            ffmpeg.avio_open(&Pointer->pb, path, ffmpeg.AVIO_FLAG_WRITE).ThrowIfError("Cannot create the output file.");
             ffmpeg.avformat_write_header(Pointer, null);
 
             IsFileCreated = true;

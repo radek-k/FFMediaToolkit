@@ -41,12 +41,12 @@
             var dict = options.DemuxerOptions.PrivateOptions.Pointer;
 
             ffmpeg.avformat_open_input(&context, path, null, &dict)
-                .CatchAll("An error ocurred while opening the file");
+                .ThrowIfError("An error ocurred while opening the file");
 
             options.DemuxerOptions.PrivateOptions.Update(dict);
 
             ffmpeg.avformat_find_stream_info(context, null)
-                .CatchAll("Cannot find stream info");
+                .ThrowIfError("Cannot find stream info");
 
             var container = new InputContainer(context);
             container.OpenStreams(options);
@@ -69,7 +69,7 @@
             }
             else
             {
-                result.CatchAll("Cannot read next packet from the file");
+                result.ThrowIfError("Cannot read next packet from the file");
             }
 
             IsAtEndOfFile = false;
@@ -94,7 +94,7 @@
         /// <param name="targetTs">The target timestamp in the default stream time base.</param>
         public void SeekFile(long targetTs)
         {
-            ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).CatchAll($"Seek to {targetTs} failed.");
+            ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
             IsAtEndOfFile = false;
 
             Video.PacketQueue.Clear();

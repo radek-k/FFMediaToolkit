@@ -53,7 +53,7 @@
         public void Push(TFrame frame)
         {
             ffmpeg.avcodec_send_frame(CodecPointer, frame.Pointer)
-                .CatchAll("Cannot send a frame to the encoder.");
+                .ThrowIfError("Cannot send a frame to the encoder.");
 
             if (ffmpeg.avcodec_receive_packet(CodecPointer, packet) == 0)
             {
