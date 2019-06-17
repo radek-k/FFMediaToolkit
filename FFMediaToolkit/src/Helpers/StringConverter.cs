@@ -8,7 +8,7 @@
     /// <summary>
     /// Contains string conversion methods.
     /// </summary>
-    public static class StringConverter
+    internal static class StringConverter
     {
         /// <summary>
         /// Creates a new <see cref="string"/> from a pointer to the unmanaged UTF-8 string.
