@@ -1,6 +1,7 @@
-﻿namespace FFMediaToolkit.Helpers
+﻿namespace FFMediaToolkit
 {
     using System;
+    using FFMediaToolkit.Helpers;
 
     /// <summary>
     /// Represents an exception thrown when FFMpeg method call returns an error code.
