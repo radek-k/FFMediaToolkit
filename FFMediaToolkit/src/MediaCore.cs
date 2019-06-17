@@ -1,40 +1,47 @@
 ﻿namespace FFMediaToolkit
 {
     using System.IO;
-    using System.Runtime.InteropServices;
     using FFMediaToolkit.Interop;
+    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Contains methods for managing FFmpeg libraries.
     /// </summary>
     public static class MediaCore
     {
-        private static LibraryManager Libraries { get; } = new LibraryManager();
-
         /// <summary>
-        /// Loads FFMpeg libraries from the given path.
+        /// Gets or sets path to the directory containing FFmpeg binaries.
         /// </summary>
-        /// <param name="path">A path to the directory containing FFMpeg assembles.</param>
-        public static void LoadFFmpeg(string path)
+        public static string FFmpegPath
         {
-            if (Libraries.IsLoaded)
-                return;
-
-            var dir = path ?? NativeMethods.GetDefaultDirectory();
-            if (!Directory.Exists(dir))
+            get => ffmpeg.RootPath ?? string.Empty;
+            set
             {
-                throw new DirectoryNotFoundException("Cannot found FFmpeg directory");
+                if (!Directory.Exists(value))
+                {
+                    throw new DirectoryNotFoundException("Cannot found FFmpeg directory");
+                }
+
+                NativeMethods.SetDllLoadingDirectory(value);
+                ffmpeg.RootPath = value;
+                IsPathSetByUser = true;
             }
-
-            NativeMethods.SetDllLoadingDirectory(dir);
-
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                Libraries.LoadAll(dir);
         }
 
         /// <summary>
-        /// Loads FFmpeg libraries from the default path.
+        /// Gets a value indicating whether a path to the FFmpeg binaries was set by user.
         /// </summary>
-        internal static void LoadFFmpeg() => LoadFFmpeg(null);
+        internal static bool IsPathSetByUser { get; private set; }
+
+        /// <summary>
+        /// Loads FFmpeg libraries from the default path for current platform.
+        /// </summary>
+        internal static void LoadFFmpeg()
+        {
+            if (!IsPathSetByUser)
+            {
+                FFmpegPath = NativeMethods.GetDefaultDirectory();
+            }
+        }
     }
 }
