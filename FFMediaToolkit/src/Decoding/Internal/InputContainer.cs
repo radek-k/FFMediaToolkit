@@ -98,6 +98,7 @@
             IsAtEndOfFile = false;
 
             Video.PacketQueue.Clear();
+            Video.FlushBuffers();
             AddPacket(MediaType.Video);
             AdjustSeekPackets(Video.PacketQueue, targetTs);
         }
