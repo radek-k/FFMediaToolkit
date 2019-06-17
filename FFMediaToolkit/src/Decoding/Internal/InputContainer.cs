@@ -100,7 +100,7 @@
             Video.PacketQueue.Clear();
             Video.FlushBuffers();
             AddPacket(MediaType.Video);
-            AdjustSeekPackets(Video.PacketQueue, targetTs);
+            AdjustSeekPackets(Video, targetTs, VideoFrame.CreateEmpty());
         }
 
         /// <summary>
@@ -119,7 +119,7 @@
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
         /// </summary>
         /// <param name="targetTs">The target timestamp in the default stream time base.</param>
-        public void SeekForward(long targetTs) => AdjustSeekPackets(Video.PacketQueue, targetTs);
+        public void SeekForward(long targetTs) => AdjustSeekPackets(Video, targetTs, VideoFrame.CreateEmpty());
 
         /// <inheritdoc/>
         protected override void OnDisposing()
@@ -137,14 +137,15 @@
             return id >= 0 ? (int?)id : null;
         }
 
-        private void AdjustSeekPackets(ObservableQueue<MediaPacket> packetQueue, long targetTs)
+        private void AdjustSeekPackets<T>(InputStream<T> stream, long targetTs, T emptyFrame)
+            where T : MediaFrame
         {
-            Video.PacketQueue.TryPeek(out var packet);
+            stream.PacketQueue.TryPeek(out var packet);
 
             while (packet?.Timestamp < targetTs)
             {
-                packetQueue.TryDequeue(out var _);
-                packetQueue.TryPeek(out packet);
+                stream.Read(emptyFrame);
+                stream.PacketQueue.TryPeek(out packet);
             }
         }
 
