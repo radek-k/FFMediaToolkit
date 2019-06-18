@@ -100,6 +100,6 @@
         /// </summary>
         public ReadOnlyDictionary<string, string> Metadata { get; }
 
-        private static string FormatCodecId(AVCodecID id) => id.ToString().Remove(12).ToLower();
+        private static string FormatCodecId(AVCodecID id) => id.ToString().Substring(12).ToLower();
     }
 }
