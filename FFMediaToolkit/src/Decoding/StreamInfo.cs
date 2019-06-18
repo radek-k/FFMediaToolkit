@@ -32,7 +32,7 @@
             Duration = stream->duration.ToTimeSpan(stream->time_base);
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
-            FrameCount = Duration.ToFrameNumber(FrameRate);
+            FrameCount = Duration.ToFrameNumber(RFrameRate);
         }
 
         /// <summary>

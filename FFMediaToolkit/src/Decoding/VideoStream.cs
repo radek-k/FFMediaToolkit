@@ -69,7 +69,7 @@
         /// </summary>
         /// <param name="targetTime">The frame time.</param>
         /// <returns>The video frame.</returns>
-        public BitmapData ReadFrame(TimeSpan targetTime) => ReadFrame(targetTime.ToFrameNumber(Info.FrameRate));
+        public BitmapData ReadFrame(TimeSpan targetTime) => ReadFrame(targetTime.ToFrameNumber(Info.RFrameRate));
 
         /// <summary>
         /// Gets the next frame from the video stream.

@@ -45,8 +45,8 @@
         /// <param name="time">The time.</param>
         /// <param name="framerate">The stream frame rate.</param>
         /// <returns>The frame number.</returns>
-        public static int ToFrameNumber(this TimeSpan time, double framerate)
-            => (int)(time.Milliseconds / framerate);
+        public static int ToFrameNumber(this TimeSpan time, AVRational framerate)
+            => (int)(time.Seconds * framerate.den / (double)framerate.num);
 
         /// <summary>
         /// Converts this frame number to a timestamp in the <paramref name="timeBase"/> units.
