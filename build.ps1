@@ -15,7 +15,7 @@ if(Test-Path .\artifacts) { Remove-Item .\artifacts -Force -Recurse }
 
 exec { & dotnet restore  }
 
-if($env.APPVEYOR_REPO_TAG -eq $NULL)
+if($env:APPVEYOR_REPO_TAG_NAME -eq $NULL)
 {
     $revision = @{ $true = $env:APPVEYOR_BUILD_NUMBER; $false = 1 }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL]
     $suffix = "dev{0:D4}" -f [convert]::ToInt32($revision, 10)
