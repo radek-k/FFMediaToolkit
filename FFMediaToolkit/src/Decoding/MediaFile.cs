@@ -52,19 +52,14 @@
                 var container = InputContainer.LoadFile(path, options);
                 return new MediaFile(container, options);
             }
-            catch (FileNotFoundException)
-            {
-                throw;
-            }
             catch (DirectoryNotFoundException)
             {
                 throw;
             }
-
-            // catch (Exception ex)
-            // {
-            //    throw new Exception("Failed to open the media file", ex);
-            // }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to open the media file", ex);
+            }
         }
 
         /// <inheritdoc/>
