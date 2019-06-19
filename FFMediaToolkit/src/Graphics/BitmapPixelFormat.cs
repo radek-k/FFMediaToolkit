@@ -8,12 +8,12 @@
     public enum ImagePixelFormat
     {
         /// <summary>
-        /// Represents a BGR 24bpp bitmap pixel format.
+        /// Represents a BGR 24bpp bitmap pixel format. Used by default in GDI+ and WPF graphics.
         /// </summary>
         BGR24 = AVPixelFormat.AV_PIX_FMT_BGR24,
 
         /// <summary>
-        /// Represents a BGRA(with alpha channel) 32bpp bitmap pixel format. Used by default in WPF graphics.
+        /// Represents a BGRA(with alpha channel) 32bpp bitmap pixel format.
         /// </summary>
         BGRA32 = AVPixelFormat.AV_PIX_FMT_BGRA,
 
@@ -23,7 +23,7 @@
         RGB24 = AVPixelFormat.AV_PIX_FMT_RGB24,
 
         /// <summary>
-        /// Represents a ARGB(with alpha channel) 32bpp bitmap pixel format. Used by default in GDI+ (System.Drawing) graphics.
+        /// Represents a ARGB(with alpha channel) 32bpp bitmap pixel format.
         /// </summary>
         ARGB32 = AVPixelFormat.AV_PIX_FMT_ARGB,
 
