@@ -20,7 +20,7 @@
             KeyframeRate = 12;
             VideoWidth = width;
             VideoHeight = height;
-            VideoPixelFormat = ImagePixelFormat.YUV420;
+            VideoFormat = VideoPixelFormat.YUV420;
             Framerate = 30;
             CodecOptions = new FFDictionary();
         }
@@ -49,7 +49,7 @@
         /// Gets or sets the output video pixel format. The default value is YUV420p.
         /// Added frames will be automatically converted to this format.
         /// </summary>
-        public ImagePixelFormat VideoPixelFormat { get; set; }
+        public VideoPixelFormat VideoFormat { get; set; }
 
         /// <summary>
         /// Gets or sets video frame rate (FPS) value. The default value is 30 frames/s.
