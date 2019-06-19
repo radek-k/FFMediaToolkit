@@ -5,15 +5,15 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents a reusable video encoder configuration.
+    /// Represents a video encoder configuration.
     /// </summary>
     public class VideoEncoderSettings
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoEncoderSettings"/> class with default video settings values.
         /// </summary>
-        /// <param name="width">The video width.</param>
-        /// <param name="height">The video height.</param>
+        /// <param name="width">The video frame width.</param>
+        /// <param name="height">The video frame height.</param>
         public VideoEncoderSettings(int width, int height)
         {
             Bitrate = 30_000_000;
@@ -26,12 +26,12 @@
         }
 
         /// <summary>
-        /// Gets or sets the video stream bitrate (bytes per seconds). The default value is 30000000 B/s. If bitrate is too low, the result video will be pixelated.
+        /// Gets or sets the video stream bitrate (bytes per seconds). The default value is 30000000 B/s.
         /// </summary>
         public int Bitrate { get; set; }
 
         /// <summary>
-        /// Gets or sets the GoP value. The default value is 12. Higher value = lower file size.
+        /// Gets or sets the GoP value. The default value is 12.
         /// </summary>
         public int KeyframeRate { get; set; }
 
@@ -47,7 +47,7 @@
 
         /// <summary>
         /// Gets or sets the output video pixel format. The default value is YUV420p.
-        /// Sended frames will be automatically converted to this format.
+        /// Added frames will be automatically converted to this format.
         /// </summary>
         public ImagePixelFormat VideoPixelFormat { get; set; }
 

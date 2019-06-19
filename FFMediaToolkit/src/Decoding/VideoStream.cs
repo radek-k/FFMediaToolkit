@@ -9,7 +9,7 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents the video stream in a media file.
+    /// Represents a video stream in the <see cref="MediaFile"/>.
     /// </summary>
     public class VideoStream : IDisposable
     {

@@ -5,7 +5,7 @@
     using System.Drawing;
 
     /// <summary>
-    /// Represent a wrapper of different bitmap formats.
+    /// Represent a lightweight container for bitmap images.
     /// </summary>
     public ref struct BitmapData
     {

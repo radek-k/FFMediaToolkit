@@ -38,7 +38,7 @@
         public string ContainerFormat { get; }
 
         /// <summary>
-        /// Gets the container bitrate. 0 if unknow.
+        /// Gets the container bitrate in bytes per second. 0 if unknow.
         /// </summary>
         public long Bitrate { get; }
 
