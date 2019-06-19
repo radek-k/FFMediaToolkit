@@ -26,4 +26,15 @@ deploy:
     secure: GbbjpgH0WOltQC1EMAdCU4sNJNf8isdSHMm2L5NNdbkx9HRqr+upKcPf6C1S5wa6
   on:
     branch: master
-    appveyor_repo_tag: true
+    APPVEYOR_REPO_TAG: true
+- provider: GitHub
+  release: FFMediaToolkit-v$(appveyor_build_version)
+  description: 'Release description'
+  auth_token:
+    secure: /GA3G04CwIagRgruOePiVXyhDo2QZtJzuU6wEzBPQfV0cbN3FVoIIFilPFCpg9lE
+  artifact: /.*\.nupkg/
+  draft: true
+  prerelease: false
+  on:
+    branch: master
+    APPVEYOR_REPO_TAG: true
