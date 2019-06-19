@@ -107,6 +107,8 @@
 
         private void SeekToFrame(int frameNumber)
         {
+            frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount : int.MaxValue);
+
             if (frameNumber == FramePosition + 1)
             {
                 return;
