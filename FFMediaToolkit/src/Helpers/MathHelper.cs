@@ -66,5 +66,27 @@
         /// <returns>The timestamp.</returns>
         public static long ToTimestamp(this TimeSpan time, AVRational timeBase)
             => timeBase.num == 0 ? 0 : Convert.ToInt64(time.TotalSeconds * timeBase.den / timeBase.num);
+
+        /// <summary>
+        /// Clamps the specified number between min and max values.
+        /// </summary>
+        /// <param name="number">The value to clamp.</param>
+        /// <param name="min">The miniumum value.</param>
+        /// <param name="max">The maximumum value.</param>
+        /// <returns>The clamped value.</returns>
+        public static int Clamp(this int number, int min, int max)
+        {
+            if (number < min)
+            {
+                return min;
+            }
+
+            if (number > max)
+            {
+                return max;
+            }
+
+            return number;
+        }
     }
 }
