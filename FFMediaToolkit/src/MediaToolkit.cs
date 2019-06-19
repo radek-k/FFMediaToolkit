@@ -7,7 +7,7 @@
     /// <summary>
     /// Contains methods for managing FFmpeg libraries.
     /// </summary>
-    public static class MediaCore
+    public static class MediaToolkit
     {
         /// <summary>
         /// Gets or sets path to the directory containing FFmpeg binaries.
