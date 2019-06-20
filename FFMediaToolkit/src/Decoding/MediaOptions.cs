@@ -70,7 +70,6 @@
         /// </summary>
         public FFDictionary DecoderOptions { get; set; } = new FFDictionary();
 
-
         /// <summary>
         /// Gets or sets which streams (audio/video) will be loaded.
         /// </summary>
