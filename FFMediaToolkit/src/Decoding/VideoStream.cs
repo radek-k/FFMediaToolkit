@@ -55,7 +55,7 @@
         /// </summary>
         /// <param name="frameNumber">The frame number.</param>
         /// <returns>The video frame.</returns>
-        public BitmapData ReadFrame(int frameNumber)
+        public ImageData ReadFrame(int frameNumber)
         {
             lock (syncLock)
             {
@@ -69,13 +69,13 @@
         /// </summary>
         /// <param name="targetTime">The frame time.</param>
         /// <returns>The video frame.</returns>
-        public BitmapData ReadFrame(TimeSpan targetTime) => ReadFrame(targetTime.ToFrameNumber(Info.RFrameRate));
+        public ImageData ReadFrame(TimeSpan targetTime) => ReadFrame(targetTime.ToFrameNumber(Info.RFrameRate));
 
         /// <summary>
         /// Gets the next frame from the video stream.
         /// </summary>
         /// <returns>The video frame.</returns>
-        public unsafe BitmapData ReadNextFrame()
+        public unsafe ImageData ReadNextFrame()
         {
             lock (syncLock)
             {
@@ -94,13 +94,13 @@
             }
         }
 
-        private unsafe BitmapData Read()
+        private unsafe ImageData Read()
         {
             stream.Read(frame);
             FramePosition++;
 
             var targetLayout = GetTargetSize();
-            var bitmap = BitmapData.CreatePooled(targetLayout, mediaOptions.VideoPixelFormat);
+            var bitmap = ImageData.CreatePooled(targetLayout, mediaOptions.VideoPixelFormat);
             scaler.AVFrameToBitmap(frame, bitmap);
             return bitmap;
         }

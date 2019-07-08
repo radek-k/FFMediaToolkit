@@ -7,19 +7,19 @@
     /// <summary>
     /// Represent a lightweight container for bitmap images.
     /// </summary>
-    public ref struct BitmapData
+    public ref struct ImageData
     {
         private readonly Span<byte> span;
         private readonly IMemoryOwner<byte> pooledMemory;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BitmapData"/> struct using a <see cref="Span{T}"/> as the data source.
+        /// Initializes a new instance of the <see cref="ImageData"/> struct using a <see cref="Span{T}"/> as the data source.
         /// </summary>
         /// <param name="data">The bitmap data.</param>
         /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The pixel format.</param>
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
-        public BitmapData(Span<byte> data, Size imageSize, ImagePixelFormat pixelFormat)
+        public ImageData(Span<byte> data, Size imageSize, ImagePixelFormat pixelFormat)
         {
             var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
             if (data.Length != size)
@@ -34,7 +34,7 @@
             PixelFormat = pixelFormat;
         }
 
-        private BitmapData(IMemoryOwner<byte> memory, Size size, ImagePixelFormat pixelFormat)
+        private ImageData(IMemoryOwner<byte> memory, Size size, ImagePixelFormat pixelFormat)
         {
             span = null;
             pooledMemory = memory;
@@ -49,7 +49,7 @@
         public Span<byte> Data => IsPooled ? pooledMemory.Memory.Span : span;
 
         /// <summary>
-        /// Gets a value indicating whether this instance of <see cref="BitmapData"/> uses memory pooling.
+        /// Gets a value indicating whether this instance of <see cref="ImageData"/> uses memory pooling.
         /// </summary>
         public bool IsPooled => pooledMemory != null;
 
@@ -69,40 +69,40 @@
         public int Stride => EstimateStride(ImageSize.Width, PixelFormat);
 
         /// <summary>
-        /// Rents a memory buffer from pool and creates a new instance of <see cref="BitmapData"/> class from it.
+        /// Rents a memory buffer from pool and creates a new instance of <see cref="ImageData"/> class from it.
         /// </summary>
         /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
-        /// <returns>The new <see cref="BitmapData"/> instance.</returns>
-        public static BitmapData CreatePooled(Size imageSize, ImagePixelFormat pixelFormat)
+        /// <returns>The new <see cref="ImageData"/> instance.</returns>
+        public static ImageData CreatePooled(Size imageSize, ImagePixelFormat pixelFormat)
         {
             var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
             var pool = MemoryPool<byte>.Shared;
             var memory = pool.Rent(size);
-            return new BitmapData(memory, imageSize, pixelFormat);
+            return new ImageData(memory, imageSize, pixelFormat);
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="BitmapData"/> class using a byte array as the data source.
+        /// Creates a new instance of the <see cref="ImageData"/> class using a byte array as the data source.
         /// </summary>
         /// <param name="pixels">The byte array containing bitmap data.</param>
         /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
-        /// <returns>A new <see cref="BitmapData"/> instance.</returns>
-        public static BitmapData FromArray(byte[] pixels, Size imageSize, ImagePixelFormat pixelFormat)
-            => new BitmapData(new Span<byte>(pixels), imageSize, pixelFormat);
+        /// <returns>A new <see cref="ImageData"/> instance.</returns>
+        public static ImageData FromArray(byte[] pixels, Size imageSize, ImagePixelFormat pixelFormat)
+            => new ImageData(new Span<byte>(pixels), imageSize, pixelFormat);
 
         /// <summary>
-        /// Creates a new instance of the <see cref="BitmapData"/> class using a pointer to the unmanaged memory as the data source.
+        /// Creates a new instance of the <see cref="ImageData"/> class using a pointer to the unmanaged memory as the data source.
         /// </summary>
         /// <param name="pointer">The byte array containing bitmap data.</param>
         /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
-        /// <returns>A new <see cref="BitmapData"/> instance.</returns>
-        public static BitmapData FromPointer(IntPtr pointer, Size imageSize, ImagePixelFormat pixelFormat)
+        /// <returns>A new <see cref="ImageData"/> instance.</returns>
+        public static ImageData FromPointer(IntPtr pointer, Size imageSize, ImagePixelFormat pixelFormat)
         {
             var span = CreateSpan(pointer, imageSize, pixelFormat);
-            return new BitmapData(span, imageSize, pixelFormat);
+            return new ImageData(span, imageSize, pixelFormat);
         }
 
         /// <summary>
