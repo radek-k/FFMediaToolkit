@@ -20,7 +20,7 @@
             KeyframeRate = 12;
             VideoWidth = width;
             VideoHeight = height;
-            VideoFormat = VideoPixelFormat.YUV420;
+            VideoFormat = VideoPixelFormat.Yuv420;
             Framerate = 30;
             CodecOptions = new FFDictionary();
         }

@@ -123,13 +123,13 @@
         {
             switch (format)
             {
-                case ImagePixelFormat.BGR24:
+                case ImagePixelFormat.Bgr24:
                     return 3;
-                case ImagePixelFormat.BGRA32:
+                case ImagePixelFormat.Bgra32:
                     return 4;
-                case ImagePixelFormat.RGB24:
+                case ImagePixelFormat.Rgb24:
                     return 3;
-                case ImagePixelFormat.ARGB32:
+                case ImagePixelFormat.Argb32:
                     return 4;
                 default:
                     return 0;

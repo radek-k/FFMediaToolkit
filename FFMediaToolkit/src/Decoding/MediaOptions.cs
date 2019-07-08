@@ -47,9 +47,9 @@
         public ContainerOptions DemuxerOptions { get; set; } = new ContainerOptions();
 
         /// <summary>
-        /// Gets or sets the target pixel format for decoded video frames conversion. The default value is <c>BGR24</c>.
+        /// Gets or sets the target pixel format for decoded video frames conversion. The default value is <c>Bgr24</c>.
         /// </summary>
-        public ImagePixelFormat VideoPixelFormat { get; set; } = ImagePixelFormat.BGR24;
+        public ImagePixelFormat VideoPixelFormat { get; set; } = ImagePixelFormat.Bgr24;
 
         /// <summary>
         /// Gets or sets the target video size for decoded video frames conversion. <see langword="null"/>, if no rescale.
