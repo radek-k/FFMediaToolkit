@@ -4,6 +4,7 @@ pull_requests:
 branches:
   only:
   - master
+  - develop
 nuget:
   disable_publish_on_pr: true
 build_script:
@@ -20,6 +21,13 @@ deploy:
   skip_symbols: true
   on:
     branch: master
+- provider: NuGet
+  server: https://ci.appveyor.com/nuget/radek41-3uj048yghh6h
+  api_key:
+    secure: N4Ceb4PGYD3hKN+N2ZkaXtocmrZeUb4jBrFLr/tvSzc=
+  skip_symbols: true
+  on:
+    branch: develop
 - provider: NuGet
   name: production
   api_key:
