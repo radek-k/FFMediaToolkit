@@ -37,10 +37,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaOptions"/> class.
         /// </summary>
-        public MediaOptions()
-        {
-            DecoderThreads = null;
-        }
+        public MediaOptions() => DecoderThreads = null;
 
         /// <summary>
         /// Gets or sets the demuxer settings.
