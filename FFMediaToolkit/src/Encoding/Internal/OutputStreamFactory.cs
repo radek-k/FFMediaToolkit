@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Encoding.Internal
 {
     using System;
+    using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFmpeg.AutoGen;
 
@@ -49,7 +50,7 @@
                 codecContext->flags |= ffmpeg.AV_CODEC_FLAG_GLOBAL_HEADER;
             }
 
-            var dict = config.CodecOptions.Pointer;
+            var dict = new FFDictionary(config.CodecOptions).Pointer;
             ffmpeg.avcodec_open2(codecContext, codec, &dict);
 
             return new OutputStream<VideoFrame>(videoStream, container);

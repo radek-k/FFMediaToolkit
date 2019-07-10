@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
+    using System.Collections.Generic;
     using System.Drawing;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Graphics;
@@ -68,7 +69,7 @@
         /// <summary>
         /// Gets or sets the dictionary with global options for the multimedia decoders.
         /// </summary>
-        public FFDictionary DecoderOptions { get; set; } = new FFDictionary();
+        public Dictionary<string, string> DecoderOptions { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// Gets or sets which streams (audio/video) will be loaded.

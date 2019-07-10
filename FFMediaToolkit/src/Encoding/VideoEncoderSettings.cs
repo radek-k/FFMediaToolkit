@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Encoding
 {
+    using System.Collections.Generic;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
@@ -22,7 +23,7 @@
             VideoHeight = height;
             VideoFormat = VideoPixelFormat.Yuv420;
             Framerate = 30;
-            CodecOptions = new FFDictionary();
+            CodecOptions = new Dictionary<string, string>();
         }
 
         /// <summary>
@@ -59,7 +60,7 @@
         /// <summary>
         /// Gets or sets the dictionary with custom codec options.
         /// </summary>
-        public FFDictionary CodecOptions { get; set; }
+        public Dictionary<string, string> CodecOptions { get; set; }
 
         /// <summary>
         /// Gets or sets the codec for this stream.
