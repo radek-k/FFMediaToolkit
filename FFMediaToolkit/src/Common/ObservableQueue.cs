@@ -7,7 +7,7 @@
     /// Represents a thread-safe queue that provides notification when item added or removed.
     /// </summary>
     /// <typeparam name="T">Type of the queue items.</typeparam>
-    public class ObservableQueue<T>
+    internal class ObservableQueue<T>
     {
         private readonly ConcurrentQueue<T> queue;
 

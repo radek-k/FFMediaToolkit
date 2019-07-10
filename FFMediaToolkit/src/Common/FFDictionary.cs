@@ -8,7 +8,7 @@
     /// <summary>
     /// Represents a wrapper of <see cref="AVDictionary"/>. Used for applying codec and container settings.
     /// </summary>
-    public unsafe class FFDictionary : Wrapper<AVDictionary>
+    internal unsafe class FFDictionary : Wrapper<AVDictionary>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FFDictionary"/> class.
