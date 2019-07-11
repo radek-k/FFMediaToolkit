@@ -31,9 +31,10 @@
             if (codec == null)
                 throw new InvalidOperationException("Cannot find a codec for this stream.");
 
-            var dict = new FFDictionary(options.DecoderOptions).Pointer;
+            var dict = new FFDictionary(options.DecoderOptions);
+            var ptr = dict.Pointer;
 
-            ffmpeg.avcodec_open2(codecContext, codec, &dict)
+            ffmpeg.avcodec_open2(codecContext, codec, &ptr)
                 .ThrowIfError("Cannot open the video codec");
 
             return new InputStream<VideoFrame>(stream, container);

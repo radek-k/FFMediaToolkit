@@ -50,8 +50,9 @@
                 codecContext->flags |= ffmpeg.AV_CODEC_FLAG_GLOBAL_HEADER;
             }
 
-            var dict = new FFDictionary(config.CodecOptions).Pointer;
-            ffmpeg.avcodec_open2(codecContext, codec, &dict);
+            var dict = new FFDictionary(config.CodecOptions);
+            var ptr = dict.Pointer;
+            ffmpeg.avcodec_open2(codecContext, codec, &ptr);
 
             return new OutputStream<VideoFrame>(videoStream, container);
         }
