@@ -37,6 +37,8 @@
             ffmpeg.avcodec_open2(codecContext, codec, &ptr)
                 .ThrowIfError("Cannot open the video codec");
 
+            dict.Update(ptr);
+
             return new InputStream<VideoFrame>(stream, container);
         }
     }

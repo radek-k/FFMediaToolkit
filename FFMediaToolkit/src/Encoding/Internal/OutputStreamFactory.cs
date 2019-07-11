@@ -52,7 +52,10 @@
 
             var dict = new FFDictionary(config.CodecOptions);
             var ptr = dict.Pointer;
+
             ffmpeg.avcodec_open2(codecContext, codec, &ptr);
+
+            dict.Update(ptr);
 
             return new OutputStream<VideoFrame>(videoStream, container);
         }

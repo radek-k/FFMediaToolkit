@@ -47,6 +47,8 @@
             ffmpeg.avformat_find_stream_info(context, null)
                 .ThrowIfError("Cannot find stream info");
 
+            dict.Update(ptr);
+
             var container = new InputContainer(context);
             container.OpenStreams(options);
             return container;
