@@ -20,7 +20,7 @@
 - Extract all video frames as PNG files
 
     ````c#
-    var file = MediaFile.Open(@"C:\videos\movie.mp4", new MediaOptions());
+    var file = MediaFile.Open(@"C:\videos\movie.mp4");
     for (int i = 0; i < file.Video.Info.FrameCount; i++)
     {
         file.Video.ReadNextFrame().ToBitmap().Save($@"C:\videos\frame_{i}.png");
@@ -31,7 +31,7 @@
     ````c#
     // Opens the multimedia file.
     // You can use the MediaOptions properties to set decoder options.
-    var file = MediaFile.Open(@"C:\videos\movie.mp4", new MediaOptions());
+    var file = MediaFile.Open(@"C:\videos\movie.mp4");
     
     // Print informations about the video stream.
     Console.WriteLine("Bitrate: ", file.Info.Bitrate);
@@ -73,22 +73,22 @@
 
 - To use the library, you need the **FFmpeg v4.1.3 shared build** binaries. You can download it from the [Zeranoe FFmpeg](https://ffmpeg.zeranoe.com/builds/) site or build your own.
     - **Windows** - Place the binaries (7 DLLs) in the `.\ffmpeg\x86\` (32 bit) or `.\ffmpeg\x86_64\`(for 64bit apps) in the application output directory.
-    - **Linux** - FFmpeg is pre-installed on many desktop Linux. The default path is `/usr/lib/x86_64-linux-gnu/`
+    - **Linux** - FFmpeg is pre-installed on many desktop Linux systems. The default path is `/usr/lib/x86_64-linux-gnu/`
     - **MacOS** - You can install FFmpeg via MacPorts or download `.dylib` files from the [Zeranoe](https://ffmpeg.zeranoe.com/builds/) site. The default path is `/opt/local/lib/`.
 
     If you want to use other directory, you can specify a path to it by the  `MediaToolkit.FFmpegPath` property.
 
 ## Usage
 
-FFMediaToolkit uses the lightweight *ref struct* `BitmapData` for bitmap images. It uses the `Span<byte>` for pixels data. It is stack-only type, so it can't be stored in a class field. `BitmapData` can be converted to any other graphics object that supports creation from `Span<byte>`, byte array or memory pointer.
+FFMediaToolkit uses the lightweight *ref struct* `ImageData` for bitmap images. It uses the `Span<byte>` for pixels data. It is stack-only type, so it can't be stored in a class field. `ImageData` can be converted to any other graphics object that supports creation from `Span<byte>`, byte array or memory pointer.
 
-## Example BitmapData conversion methods
+## Example ImageData conversion methods
 
 - For GDI+ `System.Drawing.Bitmap`:
 
     ````c#
-    // BitmapData -> Bitmap (unsafe)
-    public static unsafe Bitmap ToBitmap(this BitmapData bitmap)
+    // ImageData -> Bitmap (unsafe)
+    public static unsafe Bitmap ToBitmap(this ImageData bitmap)
     {
         fixed(byte* = bitmap.Data)
         {
@@ -96,15 +96,13 @@ FFMediaToolkit uses the lightweight *ref struct* `BitmapData` for bitmap images.
         }
     }
 
-    // Bitmap -> BitmapData (safe)
-    public static BitmapData ToBitmapData(this Bitmap bitmap)
+    // Bitmap -> ImageData (safe)
+    public static ImageData ToImageData(this Bitmap bitmap)
     {
-        var bitLock = bitmap.LockBits(
-            new Rectangle(Point.Empty, bitmap.Size),
-            ImageLockMode.ReadOnly,
-            PixelFormat.Format24bppRgb);
+        var rect = new Rectangle(Point.Empty, bitmap.Size);
+        var bitLock = bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
-        var bitmapData = BitmapData.FromPointer(bitLock.Scan0, bitmap.Size, ImagePixelFormat.BGR24);
+        var bitmapData = ImageData.FromPointer(bitLock.Scan0, bitmap.Size, ImagePixelFormat.Bgr24);
         bitmap.UnlockBits(bitLock);
         return bitmapData;
     }
@@ -113,29 +111,20 @@ FFMediaToolkit uses the lightweight *ref struct* `BitmapData` for bitmap images.
 - For WPF's `System.Windows.Media.Imaging.BitmapSource`:
 
     ````c#
-    // BitmapData -> BitmapSource (unsafe)
-    public static unsafe BitmapSource ToBitmap(this BitmapData bitmapData)
+    // ImageData -> BitmapSource (unsafe)
+    public static unsafe BitmapSource ToBitmap(this ImageData bitmapData)
     {
         fixed(byte* ptr = bitmapData.Data)
         {
-            return BitmapSource.Create(
-                bitmapData.ImageSize.Width,
-                bitmapData.ImageSize.Height,
-                96, 96,
-                PixelFormats.Bgr32,
-                null,
-                new IntPtr(ptr),
-                bitmapData.Data.Length,
-                bitmapData.Stride);
+            return BitmapSource.Create(bitmapData.ImageSize.Width, bitmapData.ImageSize.Height, 96, 96, PixelFormats.Bgr32, null, new IntPtr(ptr), bitmapData.Data.Length, bitmapData.Stride);
         }
     }
 
-    // BitmapSource -> BitmapData (safe)
-    public static BitmapData ToBitmapData(this BitmapSource bitmap)
+    // BitmapSource -> ImageData (safe)
+    public static ImageData ToImageData(this BitmapSource bitmap)
     {
         var wb = new WriteableBitmap(bitmap);
-        var size = new System.Drawing.Size(wb.PixelWidth, wb.PixelHeight);
-        return BitmapData.FromPointer(wb.BackBuffer, size,ImagePixelFormat.BGRA32);
+        return ImageData.FromPointer(wb.BackBuffer, ImagePixelFormat.Bgra32, wb.PixelWidth, wb.PixelHeight);
     }
     ````
 
