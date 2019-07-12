@@ -55,6 +55,11 @@
         public Size? TargetVideoSize { get; set; }
 
         /// <summary>
+        /// Gets or sets the threshold value used to choose the best seek method. Set this to video GoP value (if know) to improve stream seek performace.
+        /// </summary>
+        public int VideoSeekThreshold { get; set; } = 12;
+
+        /// <summary>
         /// Gets or sets the number of decoder threads (by the 'threads' flag). The default value is <see langword="null"/> - 'auto'.
         /// </summary>
         public int? DecoderThreads

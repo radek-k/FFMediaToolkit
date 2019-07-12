@@ -13,8 +13,6 @@
     /// </summary>
     public class VideoStream : IDisposable
     {
-        private const int FrameSeekThreshold = 5;
-
         private readonly InputStream<VideoFrame> stream;
         private readonly VideoFrame frame;
         private readonly Scaler scaler;
@@ -114,7 +112,7 @@
                 return;
             }
 
-            if (frameNumber <= FramePosition || frameNumber > FramePosition + FrameSeekThreshold)
+            if (frameNumber <= FramePosition || frameNumber >= FramePosition + mediaOptions.VideoSeekThreshold)
             {
                 stream.OwnerFile.SeekFile(frameNumber);
             }
