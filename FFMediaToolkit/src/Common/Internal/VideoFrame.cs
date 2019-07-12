@@ -62,17 +62,17 @@
         /// </summary>
         /// <param name="bitmap">The bitmap to convert.</param>
         /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video.</param>
-        public void UpdateFromBitmap(BitmapData bitmap, Scaler scaler) => scaler.FillAVFrame(bitmap, this);
+        public void UpdateFromBitmap(ImageData bitmap, Scaler scaler) => scaler.FillAVFrame(bitmap, this);
 
         /// <summary>
-        /// Converts this video frame to the <see cref="BitmapData"/> with the specified pixel format.
+        /// Converts this video frame to the <see cref="ImageData"/> with the specified pixel format.
         /// </summary>
         /// <param name="scaler">A <see cref="Scaler"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video.</param>
         /// <param name="targetFormat">The output bitmap pixel format.</param>
-        /// <returns>A <see cref="BitmapData"/> instance containg converted bitmap data.</returns>
-        public BitmapData ToBitmap(Scaler scaler, ImagePixelFormat targetFormat)
+        /// <returns>A <see cref="ImageData"/> instance containg converted bitmap data.</returns>
+        public ImageData ToBitmap(Scaler scaler, ImagePixelFormat targetFormat)
         {
-            var bitmap = BitmapData.CreatePooled(Layout, targetFormat);
+            var bitmap = ImageData.CreatePooled(Layout, targetFormat);
             scaler.AVFrameToBitmap(this, bitmap);
             return bitmap;
         }

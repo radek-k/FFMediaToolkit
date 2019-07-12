@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netcoreapp2.2</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Radosław Kmiotek</Authors>
     <Company>radek-k</Company>
     <Copyright>Copyright (c) 2019 Radosław Kmiotek</Copyright>
-    <Description>FFMediaToolkit is a cross-platform video decoder/encoder library based on the FFmpeg native libraries.</Description>
-    <PackageTags>ffmpeg;video;encoder;encoding;decoder;decoding;h264;mp4;c#;netstandard</PackageTags>
-    <VersionPrefix>1.1.0</VersionPrefix>
+    <Description>FFMediaToolkit is a cross-platform video decoder/encoder library for .NET that uses FFmpeg native libraries. It allows video frames extraction (fast access to any frame by index or timestamp), reading file metadata and creating videos from bitmaps.</Description>
+    <PackageTags>ffmpeg;video;encoder;encoding;decoder;decoding;h264;mp4;c#;netstandard;netcore;frame-extraction</PackageTags>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <RepositoryUrl>https://github.com/radek-k/FFMediaToolkit</RepositoryUrl>
     <PackageProjectUrl>https://github.com/radek-k/FFMediaToolkit</PackageProjectUrl>
     <PackageLicenseFile></PackageLicenseFile>
@@ -33,8 +33,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Memory" Version="4.5.3" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19270-01" PrivateAssets="All" />
+
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard2.0'))" >
+      <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>
 
 </Project>

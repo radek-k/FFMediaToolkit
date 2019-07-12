@@ -40,6 +40,13 @@
         public MediaInfo Info { get; }
 
         /// <summary>
+        /// Opens a media file from the specified path with default settings.
+        /// </summary>
+        /// <param name="path">A path to the media file.</param>
+        /// <returns>The opened <see cref="MediaFile"/>.</returns>
+        public static MediaFile Open(string path) => Open(path, new MediaOptions());
+
+        /// <summary>
         /// Opens a media file from the specified path.
         /// </summary>
         /// <param name="path">A path to the media file.</param>

@@ -6,7 +6,7 @@
     /// A base class for wrappers of unmanaged objects with <see cref="IDisposable"/> implementation.
     /// </summary>
     /// <typeparam name="T">The type of the unmanaged object.</typeparam>
-    public abstract unsafe class Wrapper<T> : IDisposable
+    internal abstract unsafe class Wrapper<T> : IDisposable
         where T : unmanaged
     {
         private IntPtr pointer;

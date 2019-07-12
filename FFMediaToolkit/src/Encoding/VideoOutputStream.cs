@@ -53,7 +53,7 @@
         /// Writes the specified bitmap to the video stream as the next frame.
         /// </summary>
         /// <param name="frame">The bitmap to write.</param>
-        public void AddFrame(BitmapData frame)
+        public void AddFrame(ImageData frame)
         {
             lock (syncLock)
             {

@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
     using System;
+    using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
@@ -30,12 +31,13 @@
             if (codec == null)
                 throw new InvalidOperationException("Cannot find a codec for this stream.");
 
-            var dict = options.DecoderOptions.Pointer;
+            var dict = new FFDictionary(options.DecoderOptions);
+            var ptr = dict.Pointer;
 
-            ffmpeg.avcodec_open2(codecContext, codec, &dict)
+            ffmpeg.avcodec_open2(codecContext, codec, &ptr)
                 .ThrowIfError("Cannot open the video codec");
 
-            options.DecoderOptions.Update(dict);
+            dict.Update(ptr);
 
             return new InputStream<VideoFrame>(stream, container);
         }

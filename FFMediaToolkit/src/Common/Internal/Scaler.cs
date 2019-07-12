@@ -22,7 +22,7 @@
         /// </summary>
         /// <param name="bitmap">The input bitmap.</param>
         /// <param name="destinationFrame">The <see cref="AVFrame"/> to override.</param>
-        internal void FillAVFrame(BitmapData bitmap, VideoFrame destinationFrame)
+        internal void FillAVFrame(ImageData bitmap, VideoFrame destinationFrame)
         {
             var context = GetCachedContext(bitmap.ImageSize, (AVPixelFormat)bitmap.PixelFormat, destinationFrame.Layout, destinationFrame.PixelFormat);
             fixed (byte* ptr = bitmap.Data)
@@ -34,11 +34,11 @@
         }
 
         /// <summary>
-        /// Converts a video <see cref="AVFrame"/> to bitmap data with a specified layout and writes its to the specified <see cref="BitmapData"/>. Used in decoding.
+        /// Converts a video <see cref="AVFrame"/> to bitmap data with a specified layout and writes its to the specified <see cref="ImageData"/>. Used in decoding.
         /// </summary>
         /// <param name="videoFrame">The video frame to convert.</param>
-        /// <param name="destination">The destination <see cref="BitmapData"/>.</param>
-        internal void AVFrameToBitmap(VideoFrame videoFrame, BitmapData destination)
+        /// <param name="destination">The destination <see cref="ImageData"/>.</param>
+        internal void AVFrameToBitmap(VideoFrame videoFrame, ImageData destination)
         {
             var context = GetCachedContext(videoFrame.Layout, videoFrame.PixelFormat, destination.ImageSize, (AVPixelFormat)destination.PixelFormat);
             fixed (byte* ptr = destination.Data)
