@@ -16,10 +16,10 @@
         /// Initializes a new instance of the <see cref="ImageData"/> struct using a <see cref="Span{T}"/> as the data source.
         /// </summary>
         /// <param name="data">The bitmap data.</param>
-        /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The pixel format.</param>
+        /// <param name="imageSize">The image dimensions.</param>
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
-        public ImageData(Span<byte> data, Size imageSize, ImagePixelFormat pixelFormat)
+        public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, Size imageSize)
         {
             var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
             if (data.Length != size)
@@ -32,6 +32,19 @@
 
             ImageSize = imageSize;
             PixelFormat = pixelFormat;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImageData"/> struct using a <see cref="Span{T}"/> as the data source.
+        /// </summary>
+        /// <param name="data">The bitmap data.</param>
+        /// <param name="pixelFormat">The pixel format.</param>
+        /// <param name="width">The image width.</param>
+        /// <param name="height">The image height.</param>
+        /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
+        public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, int width, int height)
+            : this(data, pixelFormat, new Size(width, height))
+        {
         }
 
         private ImageData(IMemoryOwner<byte> memory, Size size, ImagePixelFormat pixelFormat)
@@ -86,24 +99,46 @@
         /// Creates a new instance of the <see cref="ImageData"/> class using a byte array as the data source.
         /// </summary>
         /// <param name="pixels">The byte array containing bitmap data.</param>
-        /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
+        /// <param name="imageSize">The image dimensions.</param>
         /// <returns>A new <see cref="ImageData"/> instance.</returns>
-        public static ImageData FromArray(byte[] pixels, Size imageSize, ImagePixelFormat pixelFormat)
-            => new ImageData(new Span<byte>(pixels), imageSize, pixelFormat);
+        public static ImageData FromArray(byte[] pixels, ImagePixelFormat pixelFormat, Size imageSize)
+            => new ImageData(new Span<byte>(pixels), pixelFormat, imageSize);
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="ImageData"/> class using a byte array as the data source.
+        /// </summary>
+        /// <param name="pixels">The byte array containing bitmap data.</param>
+        /// <param name="pixelFormat">The bitmap pixel format.</param>
+        /// <param name="width">The image width.</param>
+        /// <param name="height">The image height.</param>
+        /// <returns>A new <see cref="ImageData"/> instance.</returns>
+        public static ImageData FromArray(byte[] pixels, ImagePixelFormat pixelFormat, int width, int height)
+            => FromArray(pixels, pixelFormat, new Size(width, height));
 
         /// <summary>
         /// Creates a new instance of the <see cref="ImageData"/> class using a pointer to the unmanaged memory as the data source.
         /// </summary>
         /// <param name="pointer">The byte array containing bitmap data.</param>
-        /// <param name="imageSize">The image dimensions.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
+        /// <param name="imageSize">The image dimensions.</param>
         /// <returns>A new <see cref="ImageData"/> instance.</returns>
-        public static ImageData FromPointer(IntPtr pointer, Size imageSize, ImagePixelFormat pixelFormat)
+        public static ImageData FromPointer(IntPtr pointer, ImagePixelFormat pixelFormat, Size imageSize)
         {
             var span = CreateSpan(pointer, imageSize, pixelFormat);
-            return new ImageData(span, imageSize, pixelFormat);
+            return new ImageData(span, pixelFormat, imageSize);
         }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="ImageData"/> class using a pointer to the unmanaged memory as the data source.
+        /// </summary>
+        /// <param name="pointer">The byte array containing bitmap data.</param>
+        /// <param name="pixelFormat">The bitmap pixel format.</param>
+        /// <param name="width">The image width.</param>
+        /// <param name="height">The image height.</param>
+        /// <returns>A new <see cref="ImageData"/> instance.</returns>
+        public static ImageData FromPointer(IntPtr pointer, ImagePixelFormat pixelFormat, int width, int height)
+            => FromPointer(pointer, pixelFormat, new Size(width, height));
 
         /// <summary>
         /// Gets the estimated image line size based on the pixel format and width.
