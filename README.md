@@ -38,7 +38,10 @@
     Console.WriteLine("Duration: ", file.Video.Info.Duration);
     Console.WriteLine("Frames count: ", file.Video.Info.FrameCount);
     Console.WriteLine("Frame rate: ", file.Video.Info.FrameRate);
-    Console.WriteLine("Codec ":, file.Video.Info.CodecName);
+    Console.WriteLine("Frame size: ", file.Video.Info.FrameSize));
+    Console.WriteLine("Pixel format: ", file.Video.Info.PixelFormat));
+    Console.WriteLine("Codec: ", file.Video.Info.CodecName);
+    Console.WriteLine("Is interlaced: ", file.Video.Info.IsInterlaced);
 
     // Gets a frame by its number.
     var frame102 = file.Video.ReadFrame(frameNumber: 102);
@@ -71,16 +74,25 @@
     PM> Install-Package FFMediaToolkit
     ````
 
-- To use the library, you need the **FFmpeg v4.1.3 shared build** binaries. You can download it from the [Zeranoe FFmpeg](https://ffmpeg.zeranoe.com/builds/) site or build your own.
-    - **Windows** - Place the binaries (7 DLLs) in the `.\ffmpeg\x86\` (32 bit) or `.\ffmpeg\x86_64\`(for 64bit apps) in the application output directory.
-    - **Linux** - FFmpeg is pre-installed on many desktop Linux systems. The default path is `/usr/lib/x86_64-linux-gnu/`
-    - **MacOS** - You can install FFmpeg via MacPorts or download `.dylib` files from the [Zeranoe](https://ffmpeg.zeranoe.com/builds/) site. The default path is `/opt/local/lib/`.
+> **FFmpeg libraries are not included with the package.** To use FFMediaToolkit, you need the **FFmpeg v4.1.3 shared build** binaries. You can download it from the [Zeranoe FFmpeg](https://ffmpeg.zeranoe.com/builds/) site or build your own.
 
-    If you want to use other directory, you can specify a path to it by the  `MediaToolkit.FFmpegPath` property.
+> FFmpeg libraries must have the same architecture as your project. If you want to use 64-bit FFmpeg, you should disable the *Build* -> *Prefer 32-bit* option in Visual Studio project properties.
+- Required FFmpeg binaries (dll/so/dylib):
+  - **avcodec** v58
+  - **avformat** v58
+  - **avutil** v56
+  - **swresample** v3
+  - **swscale** v5
+- FFmpeg setup:
+  - **Windows** - Place the binaries in the `.\ffmpeg\x86\` (32 bit) and `.\ffmpeg\x86_64\`(64bit) in the application output directory.
+  - **Linux** - FFmpeg is pre-installed on many desktop Linux systems. The default path is `/usr/lib/x86` (`_64`) `-linux-gnu/`.
+  - **MacOS** - You can install FFmpeg via MacPorts or download `.dylib` files from the [Zeranoe](https://ffmpeg.zeranoe.com/builds/) site. The default path is `/opt/local/lib/`.
+
+  If you want to **use other directory**, you can **specify a path to it** by the  `MediaToolkit.FFmpegPath` property.
 
 ## Usage
 
-FFMediaToolkit uses the lightweight *ref struct* `ImageData` for bitmap images. It uses the `Span<byte>` for pixels data. It is stack-only type, so it can't be stored in a class field. `ImageData` can be converted to any other graphics object that supports creation from `Span<byte>`, byte array or memory pointer.
+FFMediaToolkit uses the lightweight [*ref struct*](https://docs.microsoft.com/pl-pl/dotnet/csharp/language-reference/keywords/ref#ref-struct-types) `ImageData` for bitmap images. It uses the [`Span<byte>`](https://docs.microsoft.com/pl-pl/dotnet/api/system.span-1?view=netstandard-2.1) for pixels data. It is stack-only type, so it can't be stored in a class field. `ImageData` can be converted to any other graphics object that supports creation from `Span<byte>`, byte array or memory pointer.
 
 ## Example ImageData conversion methods
 
