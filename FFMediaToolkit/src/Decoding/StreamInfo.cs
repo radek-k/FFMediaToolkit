@@ -38,22 +38,6 @@
             Chapters = ParseChapters(container);
         }
 
-        private unsafe StreamChapter[] ParseChapters(InputContainer container)
-        {
-            var streamChapters = new StreamChapter[container.Pointer->nb_chapters];
-
-            for (var i = 0; i < container.Pointer->nb_chapters; i++)
-            {
-                var chapter = container.Pointer->chapters[i];
-                var meta = chapter->metadata;
-                var startTimespan = TimeSpan.FromTicks(chapter->start / 100);
-                var endTimespan = TimeSpan.FromTicks(chapter->end / 100);
-                Chapters[i] = new StreamChapter(startTimespan, endTimespan, FFDictionary.ToDictionary(meta, true));
-            }
-
-            return streamChapters;
-        }
-
         /// <summary>
         /// Gets the stream index.
         /// </summary>
@@ -125,5 +109,21 @@
         public StreamChapter[] Chapters { get; }
 
         private static string FormatCodecId(AVCodecID id) => id.ToString().Substring(12).ToLower();
+
+        private static unsafe StreamChapter[] ParseChapters(InputContainer container)
+        {
+            var streamChapters = new StreamChapter[container.Pointer->nb_chapters];
+
+            for (var i = 0; i < container.Pointer->nb_chapters; i++)
+            {
+                var chapter = container.Pointer->chapters[i];
+                var meta = chapter->metadata;
+                var startTimespan = TimeSpan.FromTicks(chapter->start / 100);
+                var endTimespan = TimeSpan.FromTicks(chapter->end / 100);
+                streamChapters[i] = new StreamChapter(startTimespan, endTimespan, FFDictionary.ToDictionary(meta, true));
+            }
+
+            return streamChapters;
+        }
     }
 }
