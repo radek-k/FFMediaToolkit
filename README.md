@@ -96,6 +96,15 @@ FFMediaToolkit uses the lightweight [*ref struct*](https://docs.microsoft.com/pl
 
 ## Example ImageData conversion methods
 
+- For [ImageSharp](https://github.com/SixLabors/ImageSharp):
+
+````c#
+        public static Image<Bgr24> ToImage(this ImageData imageData)
+        {
+            return Image.LoadPixelData<Bgr24>(imageData.Data, imageData.ImageSize.Width, imageData.ImageSize.Height);
+        }
+````
+
 - For GDI+ `System.Drawing.Bitmap`:
 
     ````c#
