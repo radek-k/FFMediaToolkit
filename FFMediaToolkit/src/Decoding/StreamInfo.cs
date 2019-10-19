@@ -17,8 +17,13 @@
         /// Initializes a new instance of the <see cref="StreamInfo"/> class.
         /// </summary>
         /// <param name="stream">The video stram.</param>
-        internal unsafe StreamInfo(AVStream* stream)
+        /// <param name="container">The input container.</param>
+        internal unsafe StreamInfo(AVStream* stream, InputContainer container)
         {
+            Container = container;
+            var avChapter = container.Pointer->chapters[0];
+            var avDictionary = avChapter->metadata[0];
+
             var codec = stream->codec;
             Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(stream->metadata));
             CodecName = ffmpeg.avcodec_get_name(codec->codec_id);
