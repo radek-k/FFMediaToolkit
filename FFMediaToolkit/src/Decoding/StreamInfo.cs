@@ -1,4 +1,7 @@
-﻿namespace FFMediaToolkit.Decoding
+﻿using System.ComponentModel;
+using FFMediaToolkit.Decoding.Internal;
+
+namespace FFMediaToolkit.Decoding
 {
     using System;
     using System.Collections.ObjectModel;
@@ -19,10 +22,6 @@
         /// <param name="container">The input container.</param>
         internal unsafe StreamInfo(AVStream* stream, InputContainer container)
         {
-            Container = container;
-            var avChapter = container.Pointer->chapters[0];
-            var avDictionary = avChapter->metadata[0];
-
             var codec = stream->codec;
             Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(stream->metadata));
             CodecName = ffmpeg.avcodec_get_name(codec->codec_id);
@@ -34,7 +33,7 @@
             TimeBase = stream->time_base;
             RFrameRate = stream->r_frame_rate;
             FrameRate = RFrameRate.ToDouble();
-            Duration = TimeSpan.FromTicks(Container.Pointer->duration * 10);
+            Duration = TimeSpan.FromTicks(container.Pointer->duration * 10);
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
             FrameCount = Duration.ToFrameNumber(RFrameRate);
