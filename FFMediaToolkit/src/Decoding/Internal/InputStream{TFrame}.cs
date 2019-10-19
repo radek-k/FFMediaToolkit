@@ -26,7 +26,7 @@
             PacketQueue = new ObservableQueue<MediaPacket>();
 
             Type = typeof(TFrame) == typeof(VideoFrame) ? MediaType.Video : MediaType.None;
-            Info = new StreamInfo(stream);
+            Info = new StreamInfo(stream, owner);
         }
 
         /// <summary>

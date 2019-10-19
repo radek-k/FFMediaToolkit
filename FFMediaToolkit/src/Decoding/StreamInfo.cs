@@ -4,6 +4,7 @@
     using System.Collections.ObjectModel;
     using System.Drawing;
     using FFMediaToolkit.Common;
+    using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
@@ -16,20 +17,24 @@
         /// Initializes a new instance of the <see cref="StreamInfo"/> class.
         /// </summary>
         /// <param name="stream">The video stram.</param>
-        internal unsafe StreamInfo(AVStream* stream)
+        /// <param name="container">The input container.</param>
+        internal unsafe StreamInfo(AVStream* stream, InputContainer container)
         {
             var codec = stream->codec;
             Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(stream->metadata));
             CodecName = ffmpeg.avcodec_get_name(codec->codec_id);
             CodecId = FormatCodecId(codec->codec_id);
             Index = stream->index;
-            IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE && codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
+            IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE &&
+                           codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
             FrameSize = new Size(codec->width, codec->height);
             PixelFormat = codec->pix_fmt;
             TimeBase = stream->time_base;
             RFrameRate = stream->r_frame_rate;
             FrameRate = RFrameRate.ToDouble();
-            Duration = stream->duration.ToTimeSpan(stream->time_base);
+            Duration = stream->duration >= 0
+                ? stream->duration.ToTimeSpan(stream->time_base)
+                : TimeSpan.FromTicks(container.Pointer->duration * 10);
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
             FrameCount = Duration.ToFrameNumber(RFrameRate);
