@@ -1,12 +1,10 @@
-﻿using System.ComponentModel;
-using FFMediaToolkit.Decoding.Internal;
-
-namespace FFMediaToolkit.Decoding
+﻿namespace FFMediaToolkit.Decoding
 {
     using System;
     using System.Collections.ObjectModel;
     using System.Drawing;
     using FFMediaToolkit.Common;
+    using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
