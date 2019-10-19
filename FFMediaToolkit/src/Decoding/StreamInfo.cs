@@ -27,13 +27,16 @@ namespace FFMediaToolkit.Decoding
             CodecName = ffmpeg.avcodec_get_name(codec->codec_id);
             CodecId = FormatCodecId(codec->codec_id);
             Index = stream->index;
-            IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE && codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
+            IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE &&
+                           codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
             FrameSize = new Size(codec->width, codec->height);
             PixelFormat = codec->pix_fmt;
             TimeBase = stream->time_base;
             RFrameRate = stream->r_frame_rate;
             FrameRate = RFrameRate.ToDouble();
-            Duration = TimeSpan.FromTicks(container.Pointer->duration * 10);
+            Duration = stream->duration >= 0
+                ? stream->duration.ToTimeSpan(stream->time_base)
+                : TimeSpan.FromTicks(container.Pointer->duration * 10);
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
             FrameCount = Duration.ToFrameNumber(RFrameRate);
