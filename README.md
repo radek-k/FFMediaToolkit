@@ -29,19 +29,19 @@
 - Video decoding
 
     ````c#
-    // Opens the multimedia file.
+    // Opens a multimedia file.
     // You can use the MediaOptions properties to set decoder options.
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
     
     // Print informations about the video stream.
-    Console.WriteLine("Bitrate: ", file.Info.Bitrate);
-    Console.WriteLine("Duration: ", file.Video.Info.Duration);
-    Console.WriteLine("Frames count: ", file.Video.Info.FrameCount);
-    Console.WriteLine("Frame rate: ", file.Video.Info.FrameRate);
-    Console.WriteLine("Frame size: ", file.Video.Info.FrameSize));
-    Console.WriteLine("Pixel format: ", file.Video.Info.PixelFormat));
-    Console.WriteLine("Codec: ", file.Video.Info.CodecName);
-    Console.WriteLine("Is interlaced: ", file.Video.Info.IsInterlaced);
+    Console.WriteLine("Bitrate: " + file.Info.Bitrate);
+    Console.WriteLine("Duration: " + file.Video.Info.Duration);
+    Console.WriteLine("Frames count: " + file.Video.Info.FrameCount);
+    Console.WriteLine("Frame rate: " + file.Video.Info.FrameRate);
+    Console.WriteLine("Frame size: " + file.Video.Info.FrameSize);
+    Console.WriteLine("Pixel format: " + file.Video.Info.PixelFormat);
+    Console.WriteLine("Codec: " + file.Video.Info.CodecName);
+    Console.WriteLine("Is interlaced: " + file.Video.Info.IsInterlaced);
 
     // Gets a frame by its number.
     var frame102 = file.Video.ReadFrame(frameNumber: 102);
