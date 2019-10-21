@@ -120,7 +120,7 @@
                 var chapter = container.Pointer->chapters[i];
                 var meta = chapter->metadata;
                 var startTimespan = chapter->start.ToTimeSpan(chapter->time_base);
-                var endTimespan = TimeSpan.FromTicks(chapter->end / 100);
+                var endTimespan = chapter->end.ToTimeSpan(chapter->time_base);
                 streamChapters[i] = new StreamChapter(startTimespan, endTimespan, FFDictionary.ToDictionary(meta, true));
             }
 
