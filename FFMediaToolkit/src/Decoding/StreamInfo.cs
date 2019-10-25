@@ -36,7 +36,6 @@
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
             FrameCount = Duration.ToFrameNumber(RFrameRate);
-            Chapters = ParseChapters(container);
         }
 
         /// <summary>
