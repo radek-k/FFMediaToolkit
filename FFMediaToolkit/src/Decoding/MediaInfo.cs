@@ -22,7 +22,7 @@
             Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(container->metadata));
             Bitrate = container->bit_rate > 0 ? container->bit_rate : 0;
 
-            var timeBase = new AVRational {num = 1, den = ffmpeg.AV_TIME_BASE};
+            var timeBase = new AVRational { num = 1, den = ffmpeg.AV_TIME_BASE };
             Duration = container->duration != ffmpeg.AV_NOPTS_VALUE ?
                     container->duration.ToTimeSpan(timeBase) :
                     TimeSpan.Zero;
