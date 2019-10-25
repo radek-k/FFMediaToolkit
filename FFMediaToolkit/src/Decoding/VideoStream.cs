@@ -15,7 +15,7 @@
     {
         private readonly InputStream<VideoFrame> stream;
         private readonly VideoFrame frame;
-        private readonly Scaler scaler;
+        private readonly ImageConverter scaler;
         private readonly MediaOptions mediaOptions;
 
         private readonly object syncLock = new object();
@@ -30,7 +30,7 @@
             stream = video;
             mediaOptions = options;
             frame = VideoFrame.CreateEmpty();
-            scaler = new Scaler();
+            scaler = new ImageConverter();
         }
 
         /// <summary>

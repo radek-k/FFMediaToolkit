@@ -5,20 +5,20 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents a cache object for FFMpeg <see cref="SwsContext"/>. Useful when converting many bitmaps to the same format.
+    /// A class used to convert ffmpeg <see cref="AVFrame"/>s to <see cref="ImageData"/> objects with specified image size and color format.
     /// </summary>
-    internal unsafe class Scaler : Wrapper<SwsContext>
+    internal unsafe class ImageConverter : Wrapper<SwsContext>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Scaler"/> class.
+        /// Initializes a new instance of the <see cref="ImageConverter"/> class.
         /// </summary>
-        public Scaler()
+        public ImageConverter()
             : base(null)
         {
         }
 
         /// <summary>
-        /// Overrides the <paramref name="destinationFrame"/> image buffer with rescaled specified bitmap. Used in encoding.
+        /// Overrides the <paramref name="destinationFrame"/> image buffer with the converted <see cref="ImageData"/> bitmap. Used in encoding.
         /// </summary>
         /// <param name="bitmap">The input bitmap.</param>
         /// <param name="destinationFrame">The <see cref="AVFrame"/> to override.</param>
@@ -34,7 +34,7 @@
         }
 
         /// <summary>
-        /// Converts a video <see cref="AVFrame"/> to bitmap data with a specified layout and writes its to the specified <see cref="ImageData"/>. Used in decoding.
+        /// Converts a video <see cref="AVFrame"/> to the specified <see cref="ImageData"/> bitmap. Used in decoding.
         /// </summary>
         /// <param name="videoFrame">The video frame to convert.</param>
         /// <param name="destination">The destination <see cref="ImageData"/>.</param>

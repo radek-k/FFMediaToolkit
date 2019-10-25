@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.ObjectModel;
+    using System.IO;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
@@ -11,6 +12,8 @@
     /// </summary>
     public class MediaInfo
     {
+        private Lazy<FileInfo> fileInfo;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaInfo"/> class.
         /// </summary>
@@ -36,6 +39,12 @@
         /// Gets the file path used to open the container.
         /// </summary>
         public string FilePath { get; }
+
+        /// <summary>
+        /// Gets the <see cref="System.IO.FileInfo"/> object for the media file.
+        /// It contains file size, directory, last acces, creation and write timestamps.
+        /// </summary>
+        public FileInfo FileInfo => fileInfo.Value;
 
         /// <summary>
         /// Gets the container format name.
