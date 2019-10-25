@@ -55,17 +55,18 @@
         /// Converts a <see cref="AVDictionary"/> to the managed string dictionary.
         /// </summary>
         /// <param name="dictionary">The <see cref="AVDictionary"/> to converter.</param>
+        /// <param name="ignoreSuffix">If set the flag <see cref="ffmpeg.AV_DICT_IGNORE_SUFFIX"/> will be used.</param>
         /// <returns>The converted <see cref="Dictionary{TKey, TValue}"/>.</returns>
-        public static Dictionary<string, string> ToDictionary(AVDictionary* dictionary)
+        public static Dictionary<string, string> ToDictionary(AVDictionary* dictionary, bool ignoreSuffix = false)
         {
             var result = new Dictionary<string, string>();
 
-            var item = ffmpeg.av_dict_get(dictionary, string.Empty, null, 0);
+            var item = ffmpeg.av_dict_get(dictionary, string.Empty, null, ignoreSuffix ? ffmpeg.AV_DICT_IGNORE_SUFFIX : 0);
 
             while (item != null)
             {
                 result[new IntPtr(item->key).Utf8ToString()] = new IntPtr(item->value).Utf8ToString();
-                item = ffmpeg.av_dict_get(dictionary, string.Empty, item, 0);
+                item = ffmpeg.av_dict_get(dictionary, string.Empty, item, ignoreSuffix ? ffmpeg.AV_DICT_IGNORE_SUFFIX : 0);
             }
 
             return result;

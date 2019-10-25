@@ -26,10 +26,13 @@
             Bitrate = container->bit_rate > 0 ? container->bit_rate : 0;
 
             var timeBase = new AVRational { num = 1, den = ffmpeg.AV_TIME_BASE };
-            Duration = container->duration != ffmpeg.AV_NOPTS_VALUE ? container->duration.ToTimeSpan(timeBase) : TimeSpan.Zero;
-            StartTime = container->start_time != ffmpeg.AV_NOPTS_VALUE ? container->start_time.ToTimeSpan(timeBase) : TimeSpan.Zero;
-
-            fileInfo = new Lazy<FileInfo>(() => new FileInfo(FilePath));
+            Duration = container->duration != ffmpeg.AV_NOPTS_VALUE ?
+                    container->duration.ToTimeSpan(timeBase) :
+                    TimeSpan.Zero;
+            StartTime = container->start_time != ffmpeg.AV_NOPTS_VALUE ?
+                    container->start_time.ToTimeSpan(timeBase) :
+                    TimeSpan.Zero;
+            Chapters = ParseChapters(container);
         }
 
         /// <summary>
@@ -67,5 +70,27 @@
         /// Gets the container file metadata. Streams may contain additional metadata.
         /// </summary>
         public ReadOnlyDictionary<string, string> Metadata { get; }
+
+        /// <summary>
+        /// Gets the stream chapters.
+        /// </summary>
+        public StreamChapter[] Chapters { get; }
+
+        private static unsafe StreamChapter[] ParseChapters(AVFormatContext* container)
+        {
+            var streamChapters = new StreamChapter[container->nb_chapters];
+
+            for (var i = 0; i < container->nb_chapters; i++)
+            {
+                var chapter = container->chapters[i];
+                var meta = chapter->metadata;
+                var startTimespan = chapter->start.ToTimeSpan(chapter->time_base);
+                var endTimespan = chapter->end.ToTimeSpan(chapter->time_base);
+                streamChapters[i] =
+                        new StreamChapter(startTimespan, endTimespan, FFDictionary.ToDictionary(meta, true));
+            }
+
+            return streamChapters;
+        }
     }
 }
