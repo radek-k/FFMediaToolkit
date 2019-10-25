@@ -104,27 +104,6 @@
         /// </summary>
         public ReadOnlyDictionary<string, string> Metadata { get; }
 
-        /// <summary>
-        /// Gets the stream chapters.
-        /// </summary>
-        public StreamChapter[] Chapters { get; }
-
         private static string FormatCodecId(AVCodecID id) => id.ToString().Substring(12).ToLower();
-
-        private static unsafe StreamChapter[] ParseChapters(InputContainer container)
-        {
-            var streamChapters = new StreamChapter[container.Pointer->nb_chapters];
-
-            for (var i = 0; i < container.Pointer->nb_chapters; i++)
-            {
-                var chapter = container.Pointer->chapters[i];
-                var meta = chapter->metadata;
-                var startTimespan = chapter->start.ToTimeSpan(chapter->time_base);
-                var endTimespan = chapter->end.ToTimeSpan(chapter->time_base);
-                streamChapters[i] = new StreamChapter(startTimespan, endTimespan, FFDictionary.ToDictionary(meta, true));
-            }
-
-            return streamChapters;
-        }
     }
 }
