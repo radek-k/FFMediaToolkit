@@ -15,7 +15,7 @@
     {
         private readonly InputStream<VideoFrame> stream;
         private readonly VideoFrame frame;
-        private readonly ImageConverter scaler;
+        private readonly ImageConverter converter;
         private readonly MediaOptions mediaOptions;
 
         private readonly object syncLock = new object();
@@ -30,7 +30,7 @@
             stream = video;
             mediaOptions = options;
             frame = VideoFrame.CreateEmpty();
-            scaler = new ImageConverter();
+            converter = new ImageConverter();
         }
 
         /// <summary>
@@ -88,7 +88,7 @@
             {
                 stream.Dispose();
                 frame.Dispose();
-                scaler.Dispose();
+                converter.Dispose();
             }
         }
 
@@ -99,7 +99,7 @@
 
             var targetLayout = GetTargetSize();
             var bitmap = ImageData.CreatePooled(targetLayout, mediaOptions.VideoPixelFormat);
-            scaler.AVFrameToBitmap(frame, bitmap);
+            converter.AVFrameToBitmap(frame, bitmap);
             return bitmap;
         }
 

@@ -14,7 +14,7 @@
     {
         private readonly OutputStream<VideoFrame> stream;
         private readonly VideoFrame encodedFrame;
-        private readonly ImageConverter scaler;
+        private readonly ImageConverter converter;
 
         private readonly object syncLock = new object();
         private bool isDisposed;
@@ -28,7 +28,7 @@
         {
             this.stream = stream;
             Configuration = config;
-            scaler = new ImageConverter();
+            converter = new ImageConverter();
 
             var (size, format) = GetStreamLayout(stream);
             encodedFrame = VideoFrame.Create(size, format);
@@ -57,7 +57,7 @@
         {
             lock (syncLock)
             {
-                encodedFrame.UpdateFromBitmap(frame, scaler);
+                encodedFrame.UpdateFromBitmap(frame, converter);
                 stream.Push(encodedFrame);
                 FramesCount++;
             }
