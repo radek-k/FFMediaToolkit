@@ -12,7 +12,7 @@
     /// </summary>
     public class MediaInfo
     {
-        private Lazy<FileInfo> fileInfo;
+        private readonly Lazy<FileInfo> fileInfo;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaInfo"/> class.
