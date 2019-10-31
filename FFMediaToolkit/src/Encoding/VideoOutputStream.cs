@@ -74,6 +74,8 @@
                 }
 
                 stream.Dispose();
+                encodedFrame.Dispose();
+                converter.Dispose();
 
                 isDisposed = true;
             }
