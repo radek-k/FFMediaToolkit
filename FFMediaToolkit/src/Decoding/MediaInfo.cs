@@ -32,7 +32,7 @@
             StartTime = container->start_time != ffmpeg.AV_NOPTS_VALUE ?
                     container->start_time.ToTimeSpan(timeBase) :
                     TimeSpan.Zero;
-            Chapters = new ReadOnlyCollection<StreamChapter>(ParseChapters(container));
+            Chapters = new ReadOnlyCollection<MediaChapter>(ParseChapters(container));
         }
 
         /// <summary>
@@ -74,11 +74,11 @@
         /// <summary>
         /// Gets a collection of chapters existing in the media file.
         /// </summary>
-        public ReadOnlyCollection<StreamChapter> Chapters { get; }
+        public ReadOnlyCollection<MediaChapter> Chapters { get; }
 
-        private static unsafe StreamChapter[] ParseChapters(AVFormatContext* container)
+        private static unsafe MediaChapter[] ParseChapters(AVFormatContext* container)
         {
-            var streamChapters = new StreamChapter[container->nb_chapters];
+            var streamChapters = new MediaChapter[container->nb_chapters];
 
             for (var i = 0; i < container->nb_chapters; i++)
             {
@@ -87,7 +87,7 @@
                 var startTimespan = chapter->start.ToTimeSpan(chapter->time_base);
                 var endTimespan = chapter->end.ToTimeSpan(chapter->time_base);
                 streamChapters[i] =
-                        new StreamChapter(startTimespan, endTimespan, FFDictionary.ToDictionary(meta, true));
+                        new MediaChapter(startTimespan, endTimespan, FFDictionary.ToDictionary(meta, true));
             }
 
             return streamChapters;
