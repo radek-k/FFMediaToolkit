@@ -8,7 +8,7 @@
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents informations about the media container.
+    /// Contains informations about the media container.
     /// </summary>
     public class MediaInfo
     {
@@ -43,7 +43,7 @@
         public string FilePath { get; }
 
         /// <summary>
-        /// Gets the <see cref="System.IO.FileInfo"/> object for the media file.
+        /// Gets a <see cref="System.IO.FileInfo"/> object for the media file.
         /// It contains file size, directory, last acces, creation and write timestamps.
         /// </summary>
         public FileInfo FileInfo => fileInfo.Value;
@@ -54,7 +54,7 @@
         public string ContainerFormat { get; }
 
         /// <summary>
-        /// Gets the container bitrate in bytes per second. 0 if unknow.
+        /// Gets the container bitrate in bytes per second (B/s) units. 0 if unknow.
         /// </summary>
         public long Bitrate { get; }
 
@@ -64,7 +64,7 @@
         public TimeSpan Duration { get; }
 
         /// <summary>
-        /// Gets the media container start time.
+        /// Gets the start time of the media container.
         /// </summary>
         public TimeSpan StartTime { get; }
 
