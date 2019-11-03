@@ -33,6 +33,8 @@
                     container->start_time.ToTimeSpan(timeBase) :
                     TimeSpan.Zero;
             Chapters = new ReadOnlyCollection<MediaChapter>(ParseChapters(container));
+
+            fileInfo = new Lazy<FileInfo>(() => new FileInfo(FilePath));
         }
 
         /// <summary>
