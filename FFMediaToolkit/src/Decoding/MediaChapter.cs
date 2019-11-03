@@ -32,6 +32,11 @@
         public TimeSpan EndTime { get; }
 
         /// <summary>
+        /// Gets the duration of this chapter.
+        /// </summary>
+        public TimeSpan Duration => EndTime - StartTime;
+
+        /// <summary>
         /// Gets the metadata for this chapter (such as name).
         /// </summary>
         public Dictionary<string, string> Metadata { get; }
