@@ -16,20 +16,20 @@
         /// <param name="metadata">This chapter's metadata.</param>
         internal MediaChapter(TimeSpan start, TimeSpan end, Dictionary<string, string> metadata)
         {
-            Start = start;
-            End = end;
+            StartTime = start;
+            EndTime = end;
             Metadata = metadata;
         }
 
         /// <summary>
         /// Gets the start time of this chapter.
         /// </summary>
-        public TimeSpan Start { get; }
+        public TimeSpan StartTime { get; }
 
         /// <summary>
         /// Gets the end time of this chapter.
         /// </summary>
-        public TimeSpan End { get; }
+        public TimeSpan EndTime { get; }
 
         /// <summary>
         /// Gets the metadata for this chapter (such as name).
