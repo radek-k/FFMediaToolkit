@@ -12,6 +12,14 @@
     internal unsafe class VideoFrame : MediaFrame
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="VideoFrame"/> class with empty frame data.
+        /// </summary>
+        public VideoFrame()
+            : base(ffmpeg.av_frame_alloc())
+        {
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="VideoFrame"/> class using existing <see cref="AVFrame"/>.
         /// </summary>
         /// <param name="frame">The video <see cref="AVFrame"/>.</param>
@@ -55,7 +63,7 @@
         /// Creates an empty frame for decoding.
         /// </summary>
         /// <returns>The empty <see cref="VideoFrame"/>.</returns>
-        public static VideoFrame CreateEmpty() => new VideoFrame(ffmpeg.av_frame_alloc());
+        public static VideoFrame CreateEmpty() => new VideoFrame();
 
         /// <summary>
         /// Overrides this video frame data with the converted <paramref name="bitmap"/> using specified <see cref="ImageConverter"/> object.
