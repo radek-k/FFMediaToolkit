@@ -6,7 +6,6 @@
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Graphics;
     using FFMediaToolkit.Helpers;
-    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents a video stream in the <see cref="MediaFile"/>.
@@ -57,8 +56,17 @@
         {
             lock (syncLock)
             {
-                SeekToFrame(frameNumber);
-                return Read();
+                frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount : int.MaxValue);
+
+                if (frameNumber == FramePosition + 1)
+                {
+                    return Read(nextFrame: true);
+                }
+                else
+                {
+                    SeekToFrame(frameNumber);
+                    return Read(nextFrame: false);
+                }
             }
         }
 
@@ -77,7 +85,7 @@
         {
             lock (syncLock)
             {
-                return Read();
+                return Read(nextFrame: true);
             }
         }
 
@@ -92,9 +100,9 @@
             }
         }
 
-        private unsafe ImageData Read()
+        private unsafe ImageData Read(bool nextFrame)
         {
-            stream.Read(frame); // Reads the next video frame from the stream (usually in YUV pixel format).
+            var frame = nextFrame ? stream.GetNextFrame() : stream.DecodedFrame; // Reads the next video frame from the stream (usually in YUV pixel format).
             FramePosition++; // Increments stream position;
 
             var targetLayout = GetTargetSize(); // Gets the target size of the frame (it may be set by the MediaOptions.TargetVideoSize).
@@ -105,13 +113,6 @@
 
         private void SeekToFrame(int frameNumber)
         {
-            frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount : int.MaxValue);
-
-            if (frameNumber == FramePosition + 1)
-            {
-                return;
-            }
-
             if (frameNumber <= FramePosition || frameNumber >= FramePosition + mediaOptions.VideoSeekThreshold)
             {
                 stream.OwnerFile.SeekFile(frameNumber);

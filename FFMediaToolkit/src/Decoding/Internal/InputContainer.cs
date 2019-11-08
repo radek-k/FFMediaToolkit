@@ -81,7 +81,7 @@
         /// Seeks stream to the specified video frame.
         /// </summary>
         /// <param name="frameNumber">The target video frame number.</param>
-        public void SeekFile(int frameNumber) => SeekFile(frameNumber.ToTimeSpan(Video.Info.FrameRate).ToTimestamp(Video.Info.TimeBase));
+        public void SeekFile(int frameNumber) => SeekFile(frameNumber.ToTimestamp(Video.Info.RFrameRate, Video.Info.TimeBase));
 
         /// <summary>
         /// Seeks stream to the specified target time.
@@ -98,17 +98,17 @@
             ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
             IsAtEndOfFile = false;
 
-            Video.PacketQueue.Clear();
+            Video.ClearQueue();
             Video.FlushBuffers();
             AddPacket(MediaType.Video);
-            AdjustSeekPackets(Video, targetTs, VideoFrame.CreateEmpty());
+            Video.AdjustPackets(targetTs);
         }
 
         /// <summary>
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
         /// </summary>
         /// <param name="frameNumber">The target video frame number.</param>
-        public void SeekForward(int frameNumber) => SeekForward(frameNumber.ToTimeSpan(Video.Info.FrameRate).ToTimestamp(Video.Info.TimeBase));
+        public void SeekForward(int frameNumber) => SeekForward(frameNumber.ToTimestamp(Video.Info.RFrameRate, Video.Info.TimeBase));
 
         /// <summary>
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
@@ -120,7 +120,7 @@
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
         /// </summary>
         /// <param name="targetTs">The target timestamp in the default stream time base.</param>
-        public void SeekForward(long targetTs) => AdjustSeekPackets(Video, targetTs, VideoFrame.CreateEmpty());
+        public void SeekForward(long targetTs) => Video.AdjustPackets(targetTs);
 
         /// <inheritdoc/>
         protected override void OnDisposing()
@@ -138,23 +138,11 @@
             return id >= 0 ? (int?)id : null;
         }
 
-        private void AdjustSeekPackets<T>(InputStream<T> stream, long targetTs, T emptyFrame)
-            where T : MediaFrame
-        {
-            stream.PacketQueue.TryPeek(out var packet);
-
-            while (packet?.Timestamp < targetTs)
-            {
-                stream.Read(emptyFrame);
-                stream.PacketQueue.TryPeek(out packet);
-            }
-        }
-
         private MediaType EnqueuePacket(MediaPacket packet)
         {
             if (Video != null && packet.StreamIndex == Video.Info.Index)
             {
-                Video.PacketQueue.Enqueue(packet);
+                Video.FetchPacket(packet);
                 return MediaType.Video;
             }
 
@@ -169,21 +157,10 @@
                 if (index != null)
                 {
                     Video = InputStreamFactory.OpenVideo(this, index.Value, options);
-                    Video.PacketQueue.Dequeued += OnPacketDequeued;
+                    Video.PacketsNeeded += () => AddPacket(MediaType.Video);
                     AddPacket(MediaType.Video);
                 }
             }
-        }
-
-        private void OnPacketDequeued(object sender, MediaPacket packet)
-        {
-            var stream = packet.StreamIndex == Video?.Info.Index ? Video : null;
-            if (stream?.PacketQueue.Count > 5)
-            {
-                return;
-            }
-
-            AddPacket(stream?.Type ?? MediaType.None);
         }
 
         private void AddPacket(MediaType type)
