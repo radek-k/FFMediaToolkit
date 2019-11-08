@@ -1,7 +1,6 @@
 ﻿namespace FFMediaToolkit.Helpers
 {
     using System;
-    using FFMediaToolkit.Common.Internal;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -49,14 +48,23 @@
             => (int)(time.TotalSeconds * framerate.num / framerate.den);
 
         /// <summary>
-        /// Converts this frame number to a timestamp in the <paramref name="timeBase"/> units.
+        /// Converts a frame index to a timestamp in the <paramref name="timeBase"/> units.
         /// </summary>
         /// <param name="frameNumber">The frame number.</param>
         /// <param name="fps">The stream frame rate.</param>
         /// <param name="timeBase">The stream time base.</param>
         /// <returns>The timestamp.</returns>
         public static long ToTimestamp(this int frameNumber, AVRational fps, AVRational timeBase)
-            => timeBase.den == 0 ? 0 : ffmpeg.av_rescale_q(Convert.ToInt64(fps.num * frameNumber / (double)fps.den), fps, timeBase);
+        {
+            if (timeBase.den == 0 || fps.den == 0)
+            {
+                return 0;
+            }
+
+            var time = new AVRational { num = frameNumber * fps.den, den = fps.num };
+            var ts = new AVRational { num = time.num * timeBase.den, den = time.den * timeBase.num };
+            return Convert.ToInt64(ts.num / (double)ts.den);
+        }
 
         /// <summary>
         /// Converts the <see cref="TimeSpan"/> to a timestamp in the <paramref name="timeBase"/> units.
