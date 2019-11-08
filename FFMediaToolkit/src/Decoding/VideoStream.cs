@@ -56,7 +56,7 @@
         {
             lock (syncLock)
             {
-                frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount : int.MaxValue);
+                frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
 
                 if (frameNumber == FramePosition + 1)
                 {
