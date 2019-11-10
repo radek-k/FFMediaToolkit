@@ -9,8 +9,10 @@
 ## Features
 
 - **Decoding/encoding videos** in any format supported by FFmpeg.
-- **Fast, accurate acces to any video frame** - by frame index or time.
-- **Create videos from images** - with any .NET graphics library.
+- **Fast, frame accurate, random acces to any video frame** by frame index or timestamp.
+- **Creating videos from images**.
+- **Compatible with most of .NET graphics libraries**.
+- Supports reading multimedia chapters and metadata.
 - **Configurable** - supports pixel format, bitrate, FPS, GoP, dimensions and custom codec flags settings.
 - **Simple, object-oriented, easy-to-use API** with inline documentation.
 - **Cross-platform** - works on **Linux**, **Windows** and **MacOS** - with **.NET Core** or **.NET Framework** projects.
@@ -23,7 +25,7 @@
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
     for (int i = 0; i < file.Video.Info.FrameCount; i++)
     {
-        file.Video.ReadNextFrame().ToBitmap().Save($@"C:\videos\frame_{i}.png");
+        file.Video.ReadFrame(i).ToBitmap().Save($@"C:\frames\frame_{i}.png");
     }
     ````
 - Video decoding
@@ -74,7 +76,7 @@
     PM> Install-Package FFMediaToolkit
     ````
 
-> **FFmpeg libraries are not included with the package.** To use FFMediaToolkit, you need the **FFmpeg v4.1.3 shared build** binaries. You can download it from the [Zeranoe FFmpeg](https://ffmpeg.zeranoe.com/builds/) site or build your own.
+> **FFmpeg libraries are not included with the package.** To use FFMediaToolkit, you need the **lastest FFmpeg (>= v4.2) shared build** binaries. You can download it from the [Zeranoe FFmpeg](https://ffmpeg.zeranoe.com/builds/) site or build your own.
 
 > FFmpeg libraries must have the same architecture as your project. If you want to use 64-bit FFmpeg, you should disable the *Build* -> *Prefer 32-bit* option in Visual Studio project properties.
 - Required FFmpeg binaries (dll/so/dylib):
