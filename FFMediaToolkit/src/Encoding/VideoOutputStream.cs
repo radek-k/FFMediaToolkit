@@ -5,6 +5,7 @@
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Encoding.Internal;
     using FFMediaToolkit.Graphics;
+    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -14,7 +15,7 @@
     {
         private readonly OutputStream<VideoFrame> stream;
         private readonly VideoFrame encodedFrame;
-        private readonly Scaler scaler;
+        private readonly ImageConverter converter;
 
         private readonly object syncLock = new object();
         private bool isDisposed;
@@ -28,7 +29,7 @@
         {
             this.stream = stream;
             Configuration = config;
-            scaler = new Scaler();
+            converter = new ImageConverter();
 
             var (size, format) = GetStreamLayout(stream);
             encodedFrame = VideoFrame.Create(size, format);
@@ -47,7 +48,7 @@
         /// <summary>
         /// Gets the current duration of this stream.
         /// </summary>
-        public TimeSpan CurrentDuration => TimeSpan.FromMilliseconds(FramesCount * (1D / Configuration.Framerate));
+        public TimeSpan CurrentDuration => FramesCount.ToTimeSpan(Configuration.Framerate);
 
         /// <summary>
         /// Writes the specified bitmap to the video stream as the next frame.
@@ -57,7 +58,7 @@
         {
             lock (syncLock)
             {
-                encodedFrame.UpdateFromBitmap(frame, scaler);
+                encodedFrame.UpdateFromBitmap(frame, converter);
                 stream.Push(encodedFrame);
                 FramesCount++;
             }
@@ -74,6 +75,8 @@
                 }
 
                 stream.Dispose();
+                encodedFrame.Dispose();
+                converter.Dispose();
 
                 isDisposed = true;
             }

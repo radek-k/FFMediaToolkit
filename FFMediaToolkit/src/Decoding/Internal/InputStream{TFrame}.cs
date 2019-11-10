@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
     using System;
+    using System.Collections.Concurrent;
     using System.IO;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
@@ -12,8 +13,11 @@
     /// </summary>
     /// <typeparam name="TFrame">The type of frames in the stream.</typeparam>
     internal unsafe class InputStream<TFrame> : Wrapper<AVStream>
-        where TFrame : MediaFrame
+        where TFrame : MediaFrame, new()
     {
+        private readonly ConcurrentQueue<MediaPacket> packetQueue;
+        private readonly TFrame decodedFrame;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="InputStream{TFrame}"/> class.
         /// </summary>
@@ -23,11 +27,17 @@
             : base(stream)
         {
             OwnerFile = owner;
-            PacketQueue = new ObservableQueue<MediaPacket>();
+            packetQueue = new ConcurrentQueue<MediaPacket>();
 
             Type = typeof(TFrame) == typeof(VideoFrame) ? MediaType.Video : MediaType.None;
-            Info = new StreamInfo(stream);
+            Info = new StreamInfo(stream, owner);
+            decodedFrame = new TFrame();
         }
+
+        /// <summary>
+        /// Ocurrs when sending next packet from the file is required.
+        /// </summary>
+        public event Action PacketsNeeded;
 
         /// <summary>
         /// Gets the media container that owns this stream.
@@ -50,32 +60,60 @@
         public StreamInfo Info { get; }
 
         /// <summary>
-        /// Gets the packet queue.
+        /// Gets the recently decoded frame.
         /// </summary>
-        public ObservableQueue<MediaPacket> PacketQueue { get; }
+        public TFrame DecodedFrame => decodedFrame;
 
         /// <summary>
-        /// Reads the next frame from the stream and writes its data to the specified <see cref="MediaFrame"/> object.
+        /// Adds a packet readed from the file to the internal decoder queue.
         /// </summary>
-        /// <param name="frame">A media frame to override with the new decoded frame.</param>
-        public void Read(TFrame frame)
+        /// <param name="packet">A media packet.</param>
+        public void FetchPacket(MediaPacket packet)
         {
-            int error;
+            if (packet.StreamIndex == Info.Index)
+            {
+                packetQueue.Enqueue(packet);
+            }
+        }
 
+        /// <summary>
+        /// Reads the next frame from the stream.
+        /// </summary>
+        /// <returns>The decoded frame.</returns>
+        public TFrame GetNextFrame()
+        {
+            ReadNextFrame();
+            return decodedFrame;
+        }
+
+        /// <summary>
+        /// Deletes the packet with the timestamp smaller than the specified.
+        /// </summary>
+        /// <param name="targetTs">The timestamp.</param>
+        public void AdjustPackets(long targetTs)
+        {
             do
             {
-                SendPacket();
-                error = ffmpeg.avcodec_receive_frame(CodecPointer, frame.Pointer);
+                ReadNextFrame();
             }
-            while (error == -ffmpeg.EAGAIN);
-
-            error.ThrowIfError("An error ocurred while decoding the frame.");
+            while (decodedFrame.PresentationTime < targetTs);
         }
 
         /// <summary>
         /// Flushes the codec buffers.
         /// </summary>
         public void FlushBuffers() => ffmpeg.avcodec_flush_buffers(CodecPointer);
+
+        /// <summary>
+        /// Clears the packet queue.
+        /// </summary>
+        public void ClearQueue()
+        {
+            while (packetQueue.Count > 0)
+            {
+                packetQueue.TryDequeue(out var _);
+            }
+        }
 
         /// <inheritdoc/>
         protected override void OnDisposing()
@@ -87,9 +125,23 @@
             ffmpeg.avcodec_free_context(&ptr);
         }
 
-        private void SendPacket()
+        private void ReadNextFrame()
         {
-            if (!PacketQueue.TryPeek(out var pkt))
+            int error;
+
+            do
+            {
+                DecodePacket(); // Gets the next packet and sends it to the decoder.
+                error = ffmpeg.avcodec_receive_frame(CodecPointer, decodedFrame.Pointer); // Tries to decode frame from the packets.
+            }
+            while (error == -ffmpeg.EAGAIN); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
+
+            error.ThrowIfError("An error ocurred while decoding the frame.");
+        }
+
+        private void DecodePacket()
+        {
+            if (!packetQueue.TryPeek(out var pkt))
             {
                 if (OwnerFile.IsAtEndOfFile)
                 {
@@ -101,6 +153,7 @@
                 }
             }
 
+            // Sends the packet to the decoder.
             var result = ffmpeg.avcodec_send_packet(CodecPointer, pkt);
 
             if (result == -ffmpeg.EAGAIN)
@@ -110,7 +163,16 @@
             else
             {
                 result.ThrowIfError("Cannot send a packet to the decoder.");
-                PacketQueue.TryDequeue(out var _);
+                packetQueue.TryDequeue(out var _); // Remove the decoded packet from the queue.
+                RequestForNextPacket();
+            }
+        }
+
+        private void RequestForNextPacket()
+        {
+            if (packetQueue.Count < 5)
+            {
+                PacketsNeeded();
             }
         }
     }

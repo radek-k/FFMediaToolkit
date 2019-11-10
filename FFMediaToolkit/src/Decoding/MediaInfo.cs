@@ -2,15 +2,18 @@
 {
     using System;
     using System.Collections.ObjectModel;
+    using System.IO;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents informations about the media container.
+    /// Contains informations about the media container.
     /// </summary>
     public class MediaInfo
     {
+        private readonly Lazy<FileInfo> fileInfo;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaInfo"/> class.
         /// </summary>
@@ -23,8 +26,15 @@
             Bitrate = container->bit_rate > 0 ? container->bit_rate : 0;
 
             var timeBase = new AVRational { num = 1, den = ffmpeg.AV_TIME_BASE };
-            Duration = container->duration != ffmpeg.AV_NOPTS_VALUE ? container->duration.ToTimeSpan(timeBase) : TimeSpan.Zero;
-            StartTime = container->start_time != ffmpeg.AV_NOPTS_VALUE ? container->start_time.ToTimeSpan(timeBase) : TimeSpan.Zero;
+            Duration = container->duration != ffmpeg.AV_NOPTS_VALUE ?
+                    container->duration.ToTimeSpan(timeBase) :
+                    TimeSpan.Zero;
+            StartTime = container->start_time != ffmpeg.AV_NOPTS_VALUE ?
+                    container->start_time.ToTimeSpan(timeBase) :
+                    TimeSpan.Zero;
+            Chapters = new ReadOnlyCollection<MediaChapter>(ParseChapters(container));
+
+            fileInfo = new Lazy<FileInfo>(() => new FileInfo(FilePath));
         }
 
         /// <summary>
@@ -33,12 +43,18 @@
         public string FilePath { get; }
 
         /// <summary>
+        /// Gets a <see cref="System.IO.FileInfo"/> object for the media file.
+        /// It contains file size, directory, last acces, creation and write timestamps.
+        /// </summary>
+        public FileInfo FileInfo => fileInfo.Value;
+
+        /// <summary>
         /// Gets the container format name.
         /// </summary>
         public string ContainerFormat { get; }
 
         /// <summary>
-        /// Gets the container bitrate in bytes per second. 0 if unknow.
+        /// Gets the container bitrate in bytes per second (B/s) units. 0 if unknow.
         /// </summary>
         public long Bitrate { get; }
 
@@ -48,7 +64,7 @@
         public TimeSpan Duration { get; }
 
         /// <summary>
-        /// Gets the media container start time.
+        /// Gets the start time of the media container.
         /// </summary>
         public TimeSpan StartTime { get; }
 
@@ -56,5 +72,27 @@
         /// Gets the container file metadata. Streams may contain additional metadata.
         /// </summary>
         public ReadOnlyDictionary<string, string> Metadata { get; }
+
+        /// <summary>
+        /// Gets a collection of chapters existing in the media file.
+        /// </summary>
+        public ReadOnlyCollection<MediaChapter> Chapters { get; }
+
+        private static unsafe MediaChapter[] ParseChapters(AVFormatContext* container)
+        {
+            var streamChapters = new MediaChapter[container->nb_chapters];
+
+            for (var i = 0; i < container->nb_chapters; i++)
+            {
+                var chapter = container->chapters[i];
+                var meta = chapter->metadata;
+                var startTimespan = chapter->start.ToTimeSpan(chapter->time_base);
+                var endTimespan = chapter->end.ToTimeSpan(chapter->time_base);
+                streamChapters[i] =
+                        new MediaChapter(startTimespan, endTimespan, FFDictionary.ToDictionary(meta, true));
+            }
+
+            return streamChapters;
+        }
     }
 }

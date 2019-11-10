@@ -6,7 +6,6 @@
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Graphics;
     using FFMediaToolkit.Helpers;
-    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents a video stream in the <see cref="MediaFile"/>.
@@ -15,7 +14,7 @@
     {
         private readonly InputStream<VideoFrame> stream;
         private readonly VideoFrame frame;
-        private readonly Scaler scaler;
+        private readonly ImageConverter converter;
         private readonly MediaOptions mediaOptions;
 
         private readonly object syncLock = new object();
@@ -30,54 +29,63 @@
             stream = video;
             mediaOptions = options;
             frame = VideoFrame.CreateEmpty();
-            scaler = new Scaler();
+            converter = new ImageConverter();
         }
 
         /// <summary>
-        /// Gets the stream informations.
+        /// Gets informations about this stream.
         /// </summary>
         public StreamInfo Info => stream.Info;
 
         /// <summary>
-        /// Gets the current stream position in frames.
+        /// Gets the index of the next frame in the video stream.
         /// </summary>
         public int FramePosition { get; private set; }
 
         /// <summary>
-        /// Gets the current stream time position.
+        /// Gets the timestamp of the next frame in the video stream.
         /// </summary>
         public TimeSpan Position => FramePosition.ToTimeSpan(Info.FrameRate);
 
         /// <summary>
-        /// Reads the specified frame from the video stream.
+        /// Reads the specified video frame.
         /// </summary>
-        /// <param name="frameNumber">The frame number.</param>
-        /// <returns>The video frame.</returns>
+        /// <param name="frameNumber">The frame index (zero-based number).</param>
+        /// <returns>The decoded video frame.</returns>
         public ImageData ReadFrame(int frameNumber)
         {
             lock (syncLock)
             {
-                SeekToFrame(frameNumber);
-                return Read();
+                frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
+
+                if (frameNumber == FramePosition + 1)
+                {
+                    return Read(nextFrame: true);
+                }
+                else
+                {
+                    SeekToFrame(frameNumber);
+                    return Read(nextFrame: false);
+                }
             }
         }
 
         /// <summary>
-        /// Reads the frame at the specified time from the video stream.
+        /// Reads the video frame found at the specified timestamp.
         /// </summary>
-        /// <param name="targetTime">The frame time.</param>
-        /// <returns>The video frame.</returns>
+        /// <param name="targetTime">The frame timestamp.</param>
+        /// <returns>The decoded video frame.</returns>
         public ImageData ReadFrame(TimeSpan targetTime) => ReadFrame(targetTime.ToFrameNumber(Info.RFrameRate));
 
         /// <summary>
-        /// Gets the next frame from the video stream.
+        /// Reads the next frame from this stream.
         /// </summary>
-        /// <returns>The video frame.</returns>
+        /// <returns>The decoded video frame.</returns>
         public unsafe ImageData ReadNextFrame()
         {
             lock (syncLock)
             {
-                return Read();
+                return Read(nextFrame: true);
             }
         }
 
@@ -88,30 +96,23 @@
             {
                 stream.Dispose();
                 frame.Dispose();
-                scaler.Dispose();
+                converter.Dispose();
             }
         }
 
-        private unsafe ImageData Read()
+        private unsafe ImageData Read(bool nextFrame)
         {
-            stream.Read(frame);
-            FramePosition++;
+            var frame = nextFrame ? stream.GetNextFrame() : stream.DecodedFrame; // Reads the next video frame from the stream (usually in YUV pixel format).
+            FramePosition++; // Increments stream position;
 
-            var targetLayout = GetTargetSize();
-            var bitmap = ImageData.CreatePooled(targetLayout, mediaOptions.VideoPixelFormat);
-            scaler.AVFrameToBitmap(frame, bitmap);
+            var targetLayout = GetTargetSize(); // Gets the target size of the frame (it may be set by the MediaOptions.TargetVideoSize).
+            var bitmap = ImageData.CreatePooled(targetLayout, mediaOptions.VideoPixelFormat); // Rents memory for the output bitmap.
+            converter.AVFrameToBitmap(frame, bitmap); // Converts the raw video frame using the given size and pixel format and writes it to the ImageData bitmap.
             return bitmap;
         }
 
         private void SeekToFrame(int frameNumber)
         {
-            frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount : int.MaxValue);
-
-            if (frameNumber == FramePosition + 1)
-            {
-                return;
-            }
-
             if (frameNumber <= FramePosition || frameNumber >= FramePosition + mediaOptions.VideoSeekThreshold)
             {
                 stream.OwnerFile.SeekFile(frameNumber);
