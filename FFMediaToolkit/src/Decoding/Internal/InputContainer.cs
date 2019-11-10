@@ -61,8 +61,9 @@
         public MediaType ReadPacket()
         {
             var packet = MediaPacket.AllocateEmpty(0);
-            var result = ffmpeg.av_read_frame(Pointer, packet.Pointer);
+            var result = ffmpeg.av_read_frame(Pointer, packet.Pointer); // Gets the next packet from the file.
 
+            // Check if the end of file error ocurred
             if (result == ffmpeg.AVERROR_EOF)
             {
                 IsAtEndOfFile = true;
@@ -74,7 +75,7 @@
             }
 
             IsAtEndOfFile = false;
-            return EnqueuePacket(packet);
+            return EnqueuePacket(packet); // Sends packet to the internal decoder queue.
         }
 
         /// <summary>
@@ -131,6 +132,13 @@
             ffmpeg.avformat_close_input(&ptr);
         }
 
+        /// <summary>
+        /// Finds the best stream of the specified type in the file.
+        /// </summary>
+        /// <param name="container">The media container.</param>
+        /// <param name="type">Type of the stream to find.</param>
+        /// <param name="relStream">Optional. Index of the related stream.</param>
+        /// <returns>Index of the found stream, otherwise <see langword="null"/>.</returns>
         private static int? FindBestStream(AVFormatContext* container, AVMediaType type, int relStream = -1)
         {
             AVCodec* codec = null;
@@ -138,6 +146,11 @@
             return id >= 0 ? (int?)id : null;
         }
 
+        /// <summary>
+        /// Sends a packet to the appropriate queue.
+        /// </summary>
+        /// <param name="packet">The packet to send.</param>
+        /// <returns>The detected type of the packet.</returns>
         private MediaType EnqueuePacket(MediaPacket packet)
         {
             if (Video != null && packet.StreamIndex == Video.Info.Index)
@@ -149,6 +162,10 @@
             return MediaType.None;
         }
 
+        /// <summary>
+        /// Opens the streams in the file using the specified <see cref="MediaOptions"/>.
+        /// </summary>
+        /// <param name="options">The <see cref="MediaOptions"/> object.</param>
         private void OpenStreams(MediaOptions options)
         {
             if (options.StreamsToLoad != MediaMode.Audio)
@@ -157,12 +174,16 @@
                 if (index != null)
                 {
                     Video = InputStreamFactory.OpenVideo(this, index.Value, options);
-                    Video.PacketsNeeded += () => AddPacket(MediaType.Video);
-                    AddPacket(MediaType.Video);
+                    Video.PacketsNeeded += () => AddPacket(MediaType.Video); // Adds the event handler.
+                    AddPacket(MediaType.Video); // Requests for the first packet.
                 }
             }
         }
 
+        /// <summary>
+        /// Handles the request to send one (or more) packet of the specified type to the decoder queue.
+        /// </summary>
+        /// <param name="type">The type of media packet.</param>
         private void AddPacket(MediaType type)
         {
             if (type == MediaType.None)
