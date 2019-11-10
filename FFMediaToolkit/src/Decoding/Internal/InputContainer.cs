@@ -85,12 +85,6 @@
         public void SeekFile(int frameNumber) => SeekFile(frameNumber.ToTimestamp(Video.Info.RFrameRate, Video.Info.TimeBase));
 
         /// <summary>
-        /// Seeks stream to the specified target time.
-        /// </summary>
-        /// <param name="targetTime">The absolute target time.</param>
-        public void SeekFile(TimeSpan targetTime) => SeekFile(targetTime.ToTimestamp(Video.Info.TimeBase));
-
-        /// <summary>
         /// Seeks stream to the specified target timestamp.
         /// </summary>
         /// <param name="targetTs">The target timestamp in the default stream time base.</param>
@@ -110,12 +104,6 @@
         /// </summary>
         /// <param name="frameNumber">The target video frame number.</param>
         public void SeekForward(int frameNumber) => SeekForward(frameNumber.ToTimestamp(Video.Info.RFrameRate, Video.Info.TimeBase));
-
-        /// <summary>
-        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
-        /// </summary>
-        /// <param name="targetTime">The absolute target time.</param>
-        public void SeekForward(TimeSpan targetTime) => SeekForward(targetTime.ToTimestamp(Video.Info.TimeBase));
 
         /// <summary>
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
