@@ -5,6 +5,7 @@
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Encoding.Internal;
     using FFMediaToolkit.Graphics;
+    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -47,7 +48,7 @@
         /// <summary>
         /// Gets the current duration of this stream.
         /// </summary>
-        public TimeSpan CurrentDuration => TimeSpan.FromMilliseconds(FramesCount * (1D / Configuration.Framerate));
+        public TimeSpan CurrentDuration => FramesCount.ToTimeSpan(Configuration.Framerate);
 
         /// <summary>
         /// Writes the specified bitmap to the video stream as the next frame.
