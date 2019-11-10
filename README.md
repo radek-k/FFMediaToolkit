@@ -25,7 +25,7 @@
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
     for (int i = 0; i < file.Video.Info.FrameCount; i++)
     {
-        file.Video.ReadFrame(i).ToBitmap().Save($@"C:\frames\frame_{i}.png");
+        file.Video.ReadFrame(i).ToBitmap().Save($@"C:\images\frame_{i}.png");
     }
     ````
 - Video decoding
