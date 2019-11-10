@@ -7,7 +7,7 @@
     <Authors>Radosław Kmiotek</Authors>
     <Company>radek-k</Company>
     <Copyright>Copyright (c) 2019 Radosław Kmiotek</Copyright>
-    <Description>FFMediaToolkit is a cross-platform video decoder/encoder library for .NET that uses FFmpeg native libraries. It allows video frames extraction (fast access to any frame by index or timestamp), reading file metadata and creating videos from bitmaps.</Description>
+    <Description>FFMediaToolkit is a cross-platform video decoder/encoder library for .NET that uses FFmpeg native libraries. It supports video frames extraction (fast random access to any frame by index or timestamp), reading file metadata and creating videos from bitmaps.</Description>
     <PackageTags>ffmpeg;video;encoder;encoding;decoder;decoding;h264;mp4;c#;netstandard;netcore;frame-extraction</PackageTags>
     <VersionPrefix>2.0.0</VersionPrefix>
     <RepositoryUrl>https://github.com/radek-k/FFMediaToolkit</RepositoryUrl>
@@ -17,6 +17,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>2.1.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
