@@ -119,10 +119,7 @@
         protected override void OnDisposing()
         {
             FlushBuffers();
-
-            var ptr = CodecPointer;
-            ffmpeg.avcodec_close(ptr);
-            ffmpeg.avcodec_free_context(&ptr);
+            ffmpeg.avcodec_close(CodecPointer);
         }
 
         private void ReadNextFrame()
