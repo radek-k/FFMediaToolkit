@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Common.Internal
 {
+    using System;
     using System.Drawing;
     using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
@@ -50,7 +51,14 @@
         }
 
         /// <inheritdoc/>
-        protected override void OnDisposing() => ffmpeg.sws_freeContext(Pointer);
+        protected override void OnDisposing()
+        {
+            if (Pointer != null)
+            {
+                ffmpeg.sws_freeContext(Pointer);
+                pointer = IntPtr.Zero;
+            }
+        }
 
         private SwsContext* GetCachedContext(Size sourceSize, AVPixelFormat sourceFormat, Size destinationSize, AVPixelFormat destinationFormat)
         {

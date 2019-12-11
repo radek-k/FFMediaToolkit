@@ -121,6 +121,7 @@
             {
                 var ptr = Pointer;
                 ffmpeg.av_dict_free(&ptr);
+                pointer = IntPtr.Zero;
             }
         }
     }

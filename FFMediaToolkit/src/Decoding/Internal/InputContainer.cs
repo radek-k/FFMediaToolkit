@@ -116,8 +116,12 @@
         {
             Video?.Dispose();
 
-            var ptr = Pointer;
-            ffmpeg.avformat_close_input(&ptr);
+            if (Pointer != null)
+            {
+                var ptr = Pointer;
+                ffmpeg.avformat_close_input(&ptr);
+                pointer = IntPtr.Zero;
+            }
         }
 
         /// <summary>

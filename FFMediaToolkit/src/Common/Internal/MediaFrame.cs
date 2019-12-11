@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Common.Internal
 {
+    using System;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -34,8 +35,12 @@
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
-            var ptr = Pointer;
-            ffmpeg.av_frame_free(&ptr);
+            if (Pointer != null)
+            {
+                var ptr = Pointer;
+                ffmpeg.av_frame_free(&ptr);
+                pointer = IntPtr.Zero;
+            }
         }
     }
 }

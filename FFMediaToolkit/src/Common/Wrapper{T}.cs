@@ -9,7 +9,7 @@
     internal abstract unsafe class Wrapper<T> : IDisposable
         where T : unmanaged
     {
-        private IntPtr pointer;
+        protected IntPtr pointer;
         private bool isDisposed;
 
         /// <summary>
@@ -26,7 +26,7 @@
         /// <summary>
         /// Gets a pointer to the underlying object.
         /// </summary>
-        public T* Pointer => isDisposed ? null : (T*)pointer;
+        public T* Pointer => (isDisposed || pointer == IntPtr.Zero) ? null : (T*)pointer;
 
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
@@ -47,9 +47,9 @@
             if (isDisposed)
                 return;
 
-            OnDisposing();
-
             isDisposed = true;
+
+            OnDisposing();
 
             if (dispose)
                 GC.SuppressFinalize(this);

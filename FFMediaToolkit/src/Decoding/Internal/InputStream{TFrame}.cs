@@ -47,7 +47,7 @@
         /// <summary>
         /// Gets a pointer to <see cref="AVCodecContext"/> for this stream.
         /// </summary>
-        public AVCodecContext* CodecPointer => Pointer->codec;
+        public AVCodecContext* CodecPointer => (Pointer == null || pointer == IntPtr.Zero) ? null : Pointer->codec;
 
         /// <summary>
         /// Gets the type of this stream.
@@ -118,11 +118,14 @@
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
-            FlushBuffers();
-
             var ptr = CodecPointer;
-            ffmpeg.avcodec_close(ptr);
-            ffmpeg.avcodec_free_context(&ptr);
+            if (ptr != null)
+            {
+                FlushBuffers();
+                ffmpeg.avcodec_close(ptr);
+                ffmpeg.avcodec_free_context(&ptr);
+                pointer = IntPtr.Zero;
+            }
         }
 
         private void ReadNextFrame()

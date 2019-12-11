@@ -110,13 +110,20 @@
         {
             Video?.Dispose();
 
-            if (IsFileCreated)
+            if (Pointer != null)
             {
-                ffmpeg.av_write_trailer(Pointer);
-                ffmpeg.avio_close(Pointer->pb);
-            }
+                if (IsFileCreated)
+                {
+                    ffmpeg.av_write_trailer(Pointer);
+                    if (Pointer->pb != null)
+                    {
+                        ffmpeg.avio_close(Pointer->pb);
+                    }
+                }
 
-            ffmpeg.avformat_free_context(Pointer);
+                ffmpeg.avformat_free_context(Pointer);
+                pointer = IntPtr.Zero;
+            }
         }
     }
 }

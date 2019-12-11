@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Encoding.Internal
 {
+    using System;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
@@ -73,12 +74,15 @@
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
-            FlushEncoder();
-            packet.Dispose();
-
             var ptr = CodecPointer;
-            ffmpeg.avcodec_close(ptr);
-            ffmpeg.avcodec_free_context(&ptr);
+            if (ptr != null)
+            {
+                FlushEncoder();
+                packet?.Dispose();
+                ffmpeg.avcodec_close(ptr);
+                ffmpeg.avcodec_free_context(&ptr);
+                pointer = IntPtr.Zero;
+            }
         }
 
         private void FlushEncoder()
