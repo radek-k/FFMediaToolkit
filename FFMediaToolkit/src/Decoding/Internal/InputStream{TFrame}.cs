@@ -119,10 +119,7 @@
         protected override void OnDisposing()
         {
             FlushBuffers();
-
-            var ptr = CodecPointer;
-            ffmpeg.avcodec_close(ptr);
-            ffmpeg.avcodec_free_context(&ptr);
+            ffmpeg.avcodec_close(CodecPointer);
         }
 
         private void ReadNextFrame()
@@ -134,7 +131,7 @@
                 DecodePacket(); // Gets the next packet and sends it to the decoder.
                 error = ffmpeg.avcodec_receive_frame(CodecPointer, decodedFrame.Pointer); // Tries to decode frame from the packets.
             }
-            while (error == -ffmpeg.EAGAIN); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
+            while (error == -ffmpeg.EAGAIN || error == -35); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
 
             error.ThrowIfError("An error ocurred while decoding the frame.");
         }
