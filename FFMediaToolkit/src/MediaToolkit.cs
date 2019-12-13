@@ -9,6 +9,21 @@
     /// </summary>
     public static class MediaToolkit
     {
+        private static LogLevel logLevel;
+
+        /// <summary>
+        /// Gets or sets the verbosity level of FFMpeg logs printed to standard error/output. Default value is <see cref="LogLevel.Error"/>.
+        /// </summary>
+        public static LogLevel LogVerbosity
+        {
+            get => logLevel;
+            set
+            {
+                ffmpeg.av_log_set_level((int)value);
+                logLevel = value;
+            }
+        }
+
         /// <summary>
         /// Gets or sets path to the directory containing FFmpeg binaries.
         /// </summary>
@@ -42,6 +57,8 @@
             {
                 FFmpegPath = NativeMethods.GetDefaultDirectory();
             }
+
+            LogVerbosity = LogLevel.Error;
         }
     }
 }
