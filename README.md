@@ -26,6 +26,7 @@
     for (int i = 0; i < file.Video.Info.FrameCount; i++)
     {
         file.Video.ReadFrame(i).ToBitmap().Save($@"C:\images\frame_{i}.png");
+        // See the #Usage details for example .ToBitmap() implementation
     }
     ````
 - Video decoding
@@ -60,7 +61,7 @@
     var file = new MediaBuiler(@"C:\videos\example.mp4").WithVideo(settings).Create();
     while(file.Video.FramesCount < 300)
     {
-        file.Video.AddFrame(RandomFrame());
+        file.Video.AddFrame(/*Your code*/);
     }
     ````
 
@@ -92,22 +93,26 @@
 
   If you want to **use other directory**, you can **specify a path to it** by the  `MediaToolkit.FFmpegPath` property.
 
-## Usage
+## Usage details
 
-FFMediaToolkit uses the lightweight [*ref struct*](https://docs.microsoft.com/pl-pl/dotnet/csharp/language-reference/keywords/ref#ref-struct-types) `ImageData` for bitmap images. It uses the [`Span<byte>`](https://docs.microsoft.com/pl-pl/dotnet/api/system.span-1?view=netstandard-2.1) for pixels data. It is stack-only type, so it can't be stored in a class field. `ImageData` can be converted to any other graphics object that supports creation from `Span<byte>`, byte array or memory pointer.
+FFMediaToolkit uses the [*ref struct*](https://docs.microsoft.com/pl-pl/dotnet/csharp/language-reference/keywords/ref#ref-struct-types) `ImageData` for bitmap images. The `.Data` property contains pixels data in a [`Span<byte>`](https://docs.microsoft.com/pl-pl/dotnet/api/system.span-1?view=netstandard-2.1). 
+> **If you want to process or save the `ImageData`, you should convert it to another graphics object using the following methods.**
 
-## Example ImageData conversion methods
+> **These methods are not included in the program to avoid additional dependencies and provide compatibility with many graphic libraries.**
 
-- For [ImageSharp](https://github.com/SixLabors/ImageSharp):
+- **For [ImageSharp](https://github.com/SixLabors/ImageSharp) library (.NET Standard/Core - cross-platform):**
 
-````c#
-        public static Image<Bgr24> ToImage(this ImageData imageData)
-        {
-            return Image.LoadPixelData<Bgr24>(imageData.Data, imageData.ImageSize.Width, imageData.ImageSize.Height);
-        }
-````
+    ````c#
+    using SixLabors.ImageSharp;
+    using SixLabors.ImageSharp.PixelFormats;
+    ...
+    public static Image<Bgr24> ToBitmap(this ImageData imageData)
+    {
+        return Image.LoadPixelData<Bgr24>(imageData.Data, imageData.ImageSize.Width, imageData.ImageSize.Height);
+    }
+    ````
 
-- For GDI+ `System.Drawing.Bitmap`:
+- **For .NET Framework `System.Drawing.Bitmap` (Windows only):**
 
     ````c#
     // ImageData -> Bitmap (unsafe)
@@ -131,9 +136,11 @@ FFMediaToolkit uses the lightweight [*ref struct*](https://docs.microsoft.com/pl
     }
     ````
 
-- For WPF's `System.Windows.Media.Imaging.BitmapSource`:
+- **For .NET Framework/Core desktop apps with WPF UI. (Windows only):**
 
     ````c#
+    using System.Windows.Media.Imaging;
+    ...
     // ImageData -> BitmapSource (unsafe)
     public static unsafe BitmapSource ToBitmap(this ImageData bitmapData)
     {
@@ -150,6 +157,7 @@ FFMediaToolkit uses the lightweight [*ref struct*](https://docs.microsoft.com/pl
         return ImageData.FromPointer(wb.BackBuffer, ImagePixelFormat.Bgra32, wb.PixelWidth, wb.PixelHeight);
     }
     ````
+- **FFMediaToolkit will also work with any other graphics library that supports creating images from `Span<byte>`, byte array or memory pointer**
 
 ## Licensing
 
