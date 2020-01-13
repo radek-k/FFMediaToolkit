@@ -27,6 +27,7 @@
     {
         file.Video.ReadFrame(i).ToBitmap().Save($@"C:\images\frame_{i}.png");
         // See the #Usage details for example .ToBitmap() implementation
+        // The .Save() method may be different depending on your graphics library
     }
     ````
 - Video decoding
