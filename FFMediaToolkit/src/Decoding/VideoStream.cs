@@ -58,14 +58,18 @@
             {
                 frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
 
-                if (frameNumber == FramePosition + 1)
+                if (frameNumber == FramePosition)
                 {
-                    return Read(nextFrame: true);
+                    return GetNextFrameAsBitmap();
+                }
+                else if (frameNumber == FramePosition - 1)
+                {
+                    return ConvertVideoFrameToBitmap(stream.DecodedFrame);
                 }
                 else
                 {
-                    SeekToFrame(frameNumber);
-                    return Read(nextFrame: false);
+                    var frame = SeekToFrame(frameNumber);
+                    return ConvertVideoFrameToBitmap(frame);
                 }
             }
         }
@@ -85,7 +89,7 @@
         {
             lock (syncLock)
             {
-                return Read(nextFrame: true);
+                return GetNextFrameAsBitmap();
             }
         }
 
@@ -100,20 +104,24 @@
             }
         }
 
-        private unsafe ImageData Read(bool nextFrame)
+        private ImageData GetNextFrameAsBitmap()
         {
-            var frame = nextFrame ? stream.GetNextFrame() : stream.DecodedFrame; // Reads the next video frame from the stream (usually in YUV pixel format).
-            FramePosition++; // Increments stream position;
+            var bmp = ConvertVideoFrameToBitmap(stream.GetNextFrame());
+            FramePosition++;
+            return bmp;
+        }
 
+        private unsafe ImageData ConvertVideoFrameToBitmap(VideoFrame frame)
+        {
             var targetLayout = GetTargetSize(); // Gets the target size of the frame (it may be set by the MediaOptions.TargetVideoSize).
             var bitmap = ImageData.CreatePooled(targetLayout, mediaOptions.VideoPixelFormat); // Rents memory for the output bitmap.
             converter.AVFrameToBitmap(frame, bitmap); // Converts the raw video frame using the given size and pixel format and writes it to the ImageData bitmap.
             return bitmap;
         }
 
-        private void SeekToFrame(int frameNumber)
+        private VideoFrame SeekToFrame(int frameNumber)
         {
-            if (frameNumber <= FramePosition || frameNumber >= FramePosition + mediaOptions.VideoSeekThreshold)
+            if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.VideoSeekThreshold)
             {
                 stream.OwnerFile.SeekFile(frameNumber);
             }
@@ -122,7 +130,8 @@
                 stream.OwnerFile.SeekForward(frameNumber);
             }
 
-            FramePosition = frameNumber - 1;
+            FramePosition = frameNumber + 1;
+            return stream.DecodedFrame;
         }
 
         private Size GetTargetSize() => mediaOptions.TargetVideoSize ?? stream.Info.FrameSize;
