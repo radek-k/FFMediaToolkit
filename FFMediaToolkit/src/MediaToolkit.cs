@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit
 {
+    using System;
     using System.IO;
     using FFMediaToolkit.Interop;
     using FFmpeg.AutoGen;
@@ -19,7 +20,7 @@
             get => logLevel;
             set
             {
-                if (IsPathSetByUser)
+                if (IsPathSet)
                 {
                     ffmpeg.av_log_set_level((int)value);
                 }
@@ -38,31 +39,45 @@
             {
                 if (!Directory.Exists(value))
                 {
-                    throw new DirectoryNotFoundException("Cannot found FFmpeg directory");
+                    throw new DirectoryNotFoundException("Cannot found the FFmpeg directory");
                 }
 
-                NativeMethods.SetDllLoadingDirectory(value);
                 ffmpeg.RootPath = value;
-                IsPathSetByUser = true;
             }
         }
 
         /// <summary>
-        /// Gets a value indicating whether a path to the FFmpeg binaries was set by user.
+        /// Gets a value indicating whether a path to the FFmpeg binaries was set.
         /// </summary>
-        internal static bool IsPathSetByUser { get; private set; }
+        internal static bool IsPathSet => !string.IsNullOrEmpty(FFmpegPath);
 
         /// <summary>
         /// Loads FFmpeg libraries from the default path for current platform.
         /// </summary>
         internal static void LoadFFmpeg()
         {
-            if (!IsPathSetByUser)
+            if (!IsPathSet)
             {
-                FFmpegPath = NativeMethods.GetDefaultDirectory();
+                FFmpegPath = NativeMethods.GetFFMpegDirectory();
             }
 
-            LogVerbosity = logLevel;
+            try
+            {
+                LogVerbosity = logLevel;
+            }
+            catch (DllNotFoundException ex)
+            {
+                HandleLibraryLoadError(ex);
+            }
+        }
+
+        /// <summary>
+        /// Throws a FFmpeg library loading exception.
+        /// </summary>
+        /// <param name="exception">The original exception.</param>
+        internal static void HandleLibraryLoadError(Exception exception)
+        {
+            throw new DllNotFoundException($"Cannot load required FFmpeg libraries from {FFmpegPath} directory.\nFor more informations please see https://github.com/radek-k/FFMediaToolkit#setup", exception);
         }
     }
 }

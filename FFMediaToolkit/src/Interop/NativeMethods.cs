@@ -10,47 +10,37 @@
     /// </summary>
     internal static class NativeMethods
     {
+        private static string MacOSDefautDirectory => "/opt/local/lib/";
+
+        private static string LinuxDefaultDirectory => $"/usr/lib/{(Environment.Is64BitOperatingSystem ? "x86_64" : "x86")}-linux-gnu";
+
+        private static string WindowsDefaultDirectory => $@"\runtimes\{(Environment.Is64BitProcess ? "win-x64" : "win-x86")}\native";
+
         /// <summary>
         /// Gets the default FFmpeg directory for current platform.
         /// </summary>
         /// <returns>A path to the default directory for FFmpeg libraries.</returns>
-        internal static string GetDefaultDirectory()
-        {
-            switch (Environment.OSVersion.Platform)
-            {
-                case PlatformID.MacOSX:
-                    return "/opt/local/lib/";
-                case PlatformID.Unix:
-                    return Environment.Is64BitOperatingSystem ? "/usr/lib/x86_64-linux-gnu" : "/usr/lib/x86-linux-gnu";
-                case PlatformID.Win32NT:
-                    var root = GetAssemblyDirectory();
-                    var dir = Environment.Is64BitProcess ? @"ffmpeg\x86_64" : @"ffmpeg\x86";
-                    var path = Path.Combine(root, dir);
-                    return path;
-                default:
-                    throw new NotSupportedException($"The {Environment.OSVersion.Platform.ToString()} platform are not supported");
-            }
-        }
-
-        /// <summary>
-        /// Sets DLL loading directory if current OS is Windows.
-        /// </summary>
-        /// <param name="dir">The directory path.</param>
-        internal static void SetDllLoadingDirectory(string dir)
+        internal static string GetFFMpegDirectory()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                SetDllDirectory(dir);
+                return Path.Combine(Environment.CurrentDirectory, WindowsDefaultDirectory);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return LinuxDefaultDirectory;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return MacOSDefautDirectory;
+            }
+            else
+            {
+                throw new PlatformNotSupportedException("This OS is not supported by the FFMediaToolkit");
             }
         }
 
-        private static string GetAssemblyDirectory()
-        {
-            var path = Assembly.GetExecutingAssembly().Location;
-            return Directory.GetParent(path).FullName;
-        }
-
-        [DllImport("kernel32", SetLastError = true)]
-        private static extern bool SetDllDirectory(string lpPathName);
+        // [DllImport("kernel32", SetLastError = true)]
+        // private static extern bool SetDllDirectory(string lpPathName);
     }
 }
