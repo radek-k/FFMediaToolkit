@@ -39,7 +39,7 @@
             {
                 if (!Directory.Exists(value))
                 {
-                    throw new DirectoryNotFoundException("Cannot found the FFmpeg directory");
+                    throw new DirectoryNotFoundException("The specified FFmpeg directory does not exist!");
                 }
 
                 ffmpeg.RootPath = value;
@@ -58,7 +58,16 @@
         {
             if (!IsPathSet)
             {
-                FFmpegPath = NativeMethods.GetFFMpegDirectory();
+                try
+                {
+                    FFmpegPath = NativeMethods.GetFFMpegDirectory();
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    throw new DirectoryNotFoundException("Cannot found the default FFmpeg directory.\n" +
+                        "On Windows make sure the \".\\runtimes\\\" directory exists in the application output directory.\n" +
+                        "For more informations please see https://github.com/radek-k/FFMediaToolkit#setup");
+                }
             }
 
             try
