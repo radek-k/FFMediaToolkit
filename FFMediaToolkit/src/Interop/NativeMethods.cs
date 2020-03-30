@@ -24,7 +24,7 @@
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return Path.Combine(Environment.CurrentDirectory, WindowsDefaultDirectory);
+                return Environment.CurrentDirectory + WindowsDefaultDirectory;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
