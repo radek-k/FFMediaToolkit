@@ -1,8 +1,6 @@
 ﻿namespace FFMediaToolkit.Interop
 {
     using System;
-    using System.IO;
-    using System.Reflection;
     using System.Runtime.InteropServices;
 
     /// <summary>
@@ -39,8 +37,5 @@
                 throw new PlatformNotSupportedException("This OS is not supported by the FFMediaToolkit");
             }
         }
-
-        // [DllImport("kernel32", SetLastError = true)]
-        // private static extern bool SetDllDirectory(string lpPathName);
     }
 }
