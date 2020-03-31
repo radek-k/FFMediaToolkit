@@ -78,7 +78,6 @@
 
             var ptr = CodecPointer;
             ffmpeg.avcodec_close(ptr);
-            ffmpeg.avcodec_free_context(&ptr);
         }
 
         private void FlushEncoder()
