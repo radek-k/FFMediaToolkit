@@ -96,7 +96,7 @@
             {
                 ReadNextFrame();
             }
-            while (decodedFrame.PresentationTime < targetTs);
+            while (decodedFrame.PresentationTimestamp < targetTs);
         }
 
         /// <summary>

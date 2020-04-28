@@ -19,10 +19,19 @@
         /// <summary>
         /// Gets or sets the frame PTS value in the stream time base units.
         /// </summary>
-        public long PresentationTime
+        public long PresentationTimestamp
         {
             get => Pointer->pts;
             set => Pointer->pts = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the frame PTS value in the stream time base units.
+        /// </summary>
+        public long DecodingTimestamp
+        {
+            get => Pointer->pkt_dts;
+            set => Pointer->pkt_dts = value;
         }
 
         /// <summary>
