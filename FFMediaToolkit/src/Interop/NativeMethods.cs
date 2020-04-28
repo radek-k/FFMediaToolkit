@@ -18,7 +18,7 @@
         /// Gets the default FFmpeg directory for current platform.
         /// </summary>
         /// <returns>A path to the default directory for FFmpeg libraries.</returns>
-        internal static string GetFFMpegDirectory()
+        internal static string GetFFmpegDirectory()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
