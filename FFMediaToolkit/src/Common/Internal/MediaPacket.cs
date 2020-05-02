@@ -26,9 +26,13 @@
         }
 
         /// <summary>
-        /// Gets the stream index.
+        /// Gets or sets the stream index.
         /// </summary>
-        public int StreamIndex => Pointer->stream_index;
+        public int StreamIndex
+        {
+            get => Pointer->stream_index;
+            set => Pointer->stream_index = value;
+        }
 
         /// <summary>
         /// Gets the presentation time stamp of the packet. <see langword="null"/> if is <c>AV_NOPTS_VALUE</c>.
