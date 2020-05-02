@@ -58,6 +58,7 @@
             if (ffmpeg.avcodec_receive_packet(CodecPointer, packet) == 0)
             {
                 packet.RescaleTimestamp(CodecPointer->time_base, TimeBase);
+                packet.StreamIndex = Index;
 
                 if (CodecPointer->coded_frame->key_frame == 1)
                 {
@@ -88,6 +89,8 @@
 
                 if (ffmpeg.avcodec_receive_packet(CodecPointer, packet) == 0)
                 {
+                    packet.RescaleTimestamp(CodecPointer->time_base, TimeBase);
+                    packet.StreamIndex = Index;
                     OwnerFile.WritePacket(packet);
                 }
                 else
