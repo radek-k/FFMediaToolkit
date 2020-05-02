@@ -19,6 +19,7 @@
 
         private readonly object syncLock = new object();
         private bool isDisposed;
+        private int nextFrameIndex = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoOutputStream"/> class.
@@ -43,7 +44,7 @@
         /// <summary>
         /// Gets the total number of video frames encoded to this stream.
         /// </summary>
-        public int FramesCount { get; private set; }
+        public int FramesCount => nextFrameIndex;
 
         /// <summary>
         /// Gets the current duration of this stream.
@@ -54,15 +55,23 @@
         /// Writes the specified bitmap to the video stream as the next frame.
         /// </summary>
         /// <param name="frame">The bitmap to write.</param>
-        public void AddFrame(ImageData frame)
+        /// <param name="customFramePts">(optional) custom PTS value for the frame.</param>
+        public void AddFrame(ImageData frame, long customFramePts)
         {
             lock (syncLock)
             {
                 encodedFrame.UpdateFromBitmap(frame, converter);
+                encodedFrame.PresentationTimestamp = customFramePts;
                 stream.Push(encodedFrame);
-                FramesCount++;
+                nextFrameIndex++;
             }
         }
+
+        /// <summary>
+        /// Writes the specified bitmap to the video stream as the next frame.
+        /// </summary>
+        /// <param name="frame">The bitmap to write.</param>
+        public void AddFrame(ImageData frame) => AddFrame(frame, nextFrameIndex);
 
         /// <inheritdoc/>
         public void Dispose()
