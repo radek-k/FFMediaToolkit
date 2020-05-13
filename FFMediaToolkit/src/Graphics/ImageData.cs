@@ -166,6 +166,8 @@
                     return 3;
                 case ImagePixelFormat.Argb32:
                     return 4;
+                case ImagePixelFormat.Uyvy422:
+                    return 2;
                 default:
                     return 0;
             }
