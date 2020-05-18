@@ -1,7 +1,9 @@
 ﻿namespace FFMediaToolkit.Encoding
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using FFMediaToolkit.Common;
     using FFMediaToolkit.Encoding.Internal;
 
     /// <summary>
@@ -13,17 +15,53 @@
         private readonly string outputPath;
         private VideoEncoderSettings videoSettings;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MediaBuilder"/> class.
-        /// </summary>
-        /// <param name="path">The output media file path.</param>
-        public MediaBuilder(string path)
+        private MediaBuilder(string path, ContainerFormat? format)
         {
             if (!Path.IsPathRooted(path))
                 throw new ArgumentException($"The path \"{path}\" is not valid");
 
+            // TODO: Implement container format setting.
             container = OutputContainer.Create(path);
             outputPath = path;
+        }
+
+        /// <summary>
+        /// Sets up a multimedia container with the specified <paramref name="format"/>.
+        /// </summary>
+        /// <param name="path">A path to create the output file.</param>
+        /// <param name="format">A container format.</param>
+        /// <returns>The <see cref="MediaBuilder"/> instance.</returns>
+        public static MediaBuilder CreateContainer(string path, ContainerFormat format) => new MediaBuilder(path, format);
+
+        /// <summary>
+        /// Sets up a multimedia container with the format guessed from the file extension.
+        /// </summary>
+        /// <param name="path">A path to create the output file.</param>
+        /// <returns>The <see cref="MediaBuilder"/> instance.</returns>
+        public static MediaBuilder CreateContainer(string path) => new MediaBuilder(path, null);
+
+        /// <summary>
+        /// Applies a custom container option.
+        /// </summary>
+        /// <param name="key">The option key.</param>
+        /// <param name="value">The value to set.</param>
+        /// <returns>The <see cref="MediaBuilder"/> instance.</returns>
+        public MediaBuilder UseFormatOption(string key, string value)
+        {
+            // TODO: Implement this
+            // container.ContainerOptions[key] = value;
+            return this;
+        }
+
+        /// <summary>
+        /// Applies a set of metadata fields to the output file.
+        /// </summary>
+        /// <param name="metadata">The metadata object to set.</param>
+        /// <returns>The <see cref="MediaBuilder"/> instance.</returns>
+        public MediaBuilder UseMetadata(ContainerMetadata metadata)
+        {
+            // TODO: Implement this
+            return this;
         }
 
         /// <summary>
@@ -38,7 +76,7 @@
             return this;
         }
 
-        // TODO: Audio encoding
+        // TODO: Audio encoding (in v4.0 or v5.0 release)
 
         /// <summary>
         /// Creates a multimedia file for specified video stream.
