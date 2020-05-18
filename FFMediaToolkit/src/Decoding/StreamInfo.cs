@@ -16,7 +16,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamInfo"/> class.
         /// </summary>
-        /// <param name="stream">The video stram.</param>
+        /// <param name="stream">The video stream.</param>
         /// <param name="container">The input container.</param>
         internal unsafe StreamInfo(AVStream* stream, InputContainer container)
         {

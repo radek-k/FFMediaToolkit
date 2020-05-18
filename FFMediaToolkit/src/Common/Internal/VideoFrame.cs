@@ -77,7 +77,7 @@
         /// </summary>
         /// <param name="converter">A <see cref="ImageConverter"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video.</param>
         /// <param name="targetFormat">The output bitmap pixel format.</param>
-        /// <returns>A <see cref="ImageData"/> instance containg converted bitmap data.</returns>
+        /// <returns>A <see cref="ImageData"/> instance containing converted bitmap data.</returns>
         public ImageData ToBitmap(ImageConverter converter, ImagePixelFormat targetFormat)
         {
             var bitmap = ImageData.CreatePooled(Layout, targetFormat);

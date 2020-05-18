@@ -13,7 +13,7 @@
         /// <summary>
         /// Creates a new <see cref="string"/> from a pointer to the unmanaged UTF-8 string.
         /// </summary>
-        /// <param name="pointer">A pointer to the umanaged string.</param>
+        /// <param name="pointer">A pointer to the unmanaged string.</param>
         /// <returns>The converted string.</returns>
         public static string Utf8ToString(this IntPtr pointer)
         {

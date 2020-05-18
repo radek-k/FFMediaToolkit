@@ -79,8 +79,8 @@
         /// Clamps the specified number between min and max values.
         /// </summary>
         /// <param name="number">The value to clamp.</param>
-        /// <param name="min">The miniumum value.</param>
-        /// <param name="max">The maximumum value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
         /// <returns>The clamped value.</returns>
         public static int Clamp(this int number, int min, int max)
         {

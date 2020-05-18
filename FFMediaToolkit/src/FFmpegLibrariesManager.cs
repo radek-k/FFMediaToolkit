@@ -69,7 +69,7 @@
         public static bool? IsFFmpegGplLicensed { get; private set; }
 
         /// <summary>
-        /// Gets a value indicating whether the FFmpeg binary files were succesfully loaded.
+        /// Gets a value indicating whether the FFmpeg binary files were successfully loaded.
         /// </summary>
         internal static bool IsFFmpegLoaded { get; private set; }
 

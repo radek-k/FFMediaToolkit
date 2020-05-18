@@ -27,7 +27,7 @@
         }
 
         /// <summary>
-        /// Checks if the integer is equal to the specified and excecutes the <see cref="ErrorHandler"/> method.
+        /// Checks if the integer is equal to the specified and executes the <see cref="ErrorHandler"/> method.
         /// </summary>
         /// <param name="errorCode">The exit code returned by a method.</param>
         /// <param name="handledError">The error code to handle.</param>

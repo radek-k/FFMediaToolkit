@@ -22,7 +22,7 @@
         ASF,
 
         /// <summary>
-        /// The Audio Video Interleave containter (.avi)
+        /// The Audio Video Interleave container (.avi)
         /// </summary>
         AVI,
 

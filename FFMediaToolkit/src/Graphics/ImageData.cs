@@ -77,7 +77,7 @@
         public ImagePixelFormat PixelFormat { get; }
 
         /// <summary>
-        /// Gets the estimated image linesize.
+        /// Gets the estimated number of bytes in one row of image pixels.
         /// </summary>
         public int Stride => EstimateStride(ImageSize.Width, PixelFormat);
 

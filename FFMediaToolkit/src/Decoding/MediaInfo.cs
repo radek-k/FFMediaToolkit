@@ -44,7 +44,7 @@
 
         /// <summary>
         /// Gets a <see cref="System.IO.FileInfo"/> object for the media file.
-        /// It contains file size, directory, last acces, creation and write timestamps.
+        /// It contains file size, directory, last access, creation and write timestamps.
         /// </summary>
         public FileInfo FileInfo => fileInfo.Value;
 
@@ -54,7 +54,7 @@
         public string ContainerFormat { get; }
 
         /// <summary>
-        /// Gets the container bitrate in bytes per second (B/s) units. 0 if unknow.
+        /// Gets the container bitrate in bytes per second (B/s) units. 0 if unknown.
         /// </summary>
         public long Bitrate { get; }
 

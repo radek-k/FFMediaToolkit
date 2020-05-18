@@ -42,7 +42,7 @@
             var ptr = dict.Pointer;
 
             ffmpeg.avformat_open_input(&context, path, null, &ptr)
-                .ThrowIfError("An error ocurred while opening the file");
+                .ThrowIfError("An error occurred while opening the file");
 
             ffmpeg.avformat_find_stream_info(context, null)
                 .ThrowIfError("Cannot find stream info");
@@ -57,13 +57,13 @@
         /// <summary>
         /// Reads the next packet from this file and sends it to the packet queue.
         /// </summary>
-        /// <returns>Type of the readed packet.</returns>
+        /// <returns>Type of the read packet.</returns>
         public MediaType ReadPacket()
         {
             var packet = MediaPacket.AllocateEmpty(0);
             var result = ffmpeg.av_read_frame(Pointer, packet.Pointer); // Gets the next packet from the file.
 
-            // Check if the end of file error ocurred
+            // Check if the end of file error occurred
             if (result == ffmpeg.AVERROR_EOF)
             {
                 IsAtEndOfFile = true;

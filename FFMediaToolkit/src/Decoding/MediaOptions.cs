@@ -55,7 +55,7 @@
         public Size? TargetVideoSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the threshold value used to choose the best seek method. Set this to video GoP value (if know) to improve stream seek performace.
+        /// Gets or sets the threshold value used to choose the best seek method. Set this to video GoP value (if know) to improve stream seek performance.
         /// </summary>
         public int VideoSeekThreshold { get; set; } = 12;
 

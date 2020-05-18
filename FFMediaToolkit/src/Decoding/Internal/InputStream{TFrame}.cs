@@ -35,7 +35,7 @@
         }
 
         /// <summary>
-        /// Ocurrs when sending next packet from the file is required.
+        /// Occurs when sending next packet from the file is required.
         /// </summary>
         public event Action PacketsNeeded;
 
@@ -65,7 +65,7 @@
         public TFrame DecodedFrame => decodedFrame;
 
         /// <summary>
-        /// Adds a packet readed from the file to the internal decoder queue.
+        /// Adds a packet read from the file to the internal decoder queue.
         /// </summary>
         /// <param name="packet">A media packet.</param>
         public void FetchPacket(MediaPacket packet)
@@ -133,7 +133,7 @@
             }
             while (error == -ffmpeg.EAGAIN || error == -35); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
 
-            error.ThrowIfError("An error ocurred while decoding the frame.");
+            error.ThrowIfError("An error occurred while decoding the frame.");
         }
 
         private void DecodePacket()
@@ -142,7 +142,7 @@
             {
                 if (OwnerFile.IsAtEndOfFile)
                 {
-                    throw new EndOfStreamException("End of the media strem.");
+                    throw new EndOfStreamException("End of the media stream.");
                 }
                 else
                 {

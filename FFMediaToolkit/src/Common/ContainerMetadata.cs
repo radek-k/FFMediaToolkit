@@ -32,7 +32,7 @@
             => Metadata = FFDictionary.ToDictionary(sourceMetadata.Pointer, true);
 
         /// <summary>
-        /// Gets or sets the mulimedia title.
+        /// Gets or sets the multimedia title.
         /// </summary>
         public string Title
         {
