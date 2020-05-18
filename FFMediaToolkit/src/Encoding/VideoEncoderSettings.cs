@@ -21,7 +21,7 @@
             KeyframeRate = 12;
             VideoWidth = width;
             VideoHeight = height;
-            VideoFormat = VideoPixelFormat.Yuv420;
+            VideoFormat = ImagePixelFormat.Yuv420;
             Framerate = 30;
             CodecOptions = new Dictionary<string, string>();
         }
@@ -50,7 +50,7 @@
         /// Gets or sets the output video pixel format. The default value is YUV420p.
         /// Added frames will be automatically converted to this format.
         /// </summary>
-        public VideoPixelFormat VideoFormat { get; set; }
+        public ImagePixelFormat VideoFormat { get; set; }
 
         /// <summary>
         /// Gets or sets video frame rate (FPS) value. The default value is 30 frames/s.
