@@ -26,5 +26,10 @@
         /// Represents a ARGB(with alpha channel) 32bpp bitmap pixel format.
         /// </summary>
         Argb32 = AVPixelFormat.AV_PIX_FMT_ARGB,
+
+        /// <summary>
+        /// Represents a UYVY422 pixel format.
+        /// </summary>
+        Uyvy422 = AVPixelFormat.AV_PIX_FMT_UYVY422,
     }
 }
