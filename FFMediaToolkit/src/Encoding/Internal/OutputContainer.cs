@@ -1,6 +1,7 @@
 ﻿namespace FFMediaToolkit.Encoding.Internal
 {
     using System;
+    using System.ComponentModel;
     using System.IO;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
@@ -28,11 +29,16 @@
         public bool IsFileCreated { get; private set; }
 
         /// <summary>
+        /// Gets a dictionary containing format options.
+        /// </summary>
+        internal FFDictionary ContainerOptions { get; private set; }
+
+        /// <summary>
         /// Creates an empty FFmpeg format container for encoding.
         /// </summary>
         /// <param name="path">A output file path. It is used only to guess the container format.</param>
         /// <returns>A new instance of the <see cref="OutputContainer"/>.</returns>
-        /// <remarks>Before you write frames to the container, you must call the <see cref="CreateFile(string)"/> method to create an ouput file.</remarks>
+        /// <remarks>Before you write frames to the container, you must call the <see cref="CreateFile(string)"/> method to create an output file.</remarks>
         public static OutputContainer Create(string path)
         {
             FFmpegLibrariesManager.LoadFFmpeg();
@@ -48,6 +54,18 @@
             var formatContext = ffmpeg.avformat_alloc_context();
             formatContext->oformat = format;
             return new OutputContainer(formatContext);
+        }
+
+        /// <summary>
+        /// Applies a set of metadata fields to the output file.
+        /// </summary>
+        /// <param name="metadata">The metadata object to set.</param>
+        public void SetMetadata(ContainerMetadata metadata)
+        {
+            foreach (var item in metadata.Metadata)
+            {
+                ffmpeg.av_dict_set(&Pointer->metadata, item.Key, item.Value, 0);
+            }
         }
 
         /// <summary>
@@ -70,7 +88,7 @@
         }
 
         /// <summary>
-        /// Creates a media file for this container and writes format header into it. Usable only in encoding.
+        /// Creates a media file for this container and writes format header into it.
         /// </summary>
         /// <param name="path">A path to create the file.</param>
         public void CreateFile(string path)
@@ -85,8 +103,10 @@
                 throw new InvalidOperationException("Cannot create empty media file. You have to add video stream before locking the file");
             }
 
+            var ptr = ContainerOptions.Pointer;
+
             ffmpeg.avio_open(&Pointer->pb, path, ffmpeg.AVIO_FLAG_WRITE).ThrowIfError("Cannot create the output file.");
-            ffmpeg.avformat_write_header(Pointer, null);
+            ffmpeg.avformat_write_header(Pointer, &ptr);
 
             IsFileCreated = true;
         }

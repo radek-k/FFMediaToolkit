@@ -1,7 +1,6 @@
 ﻿namespace FFMediaToolkit.Encoding
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Encoding.Internal;
@@ -48,8 +47,7 @@
         /// <returns>The <see cref="MediaBuilder"/> instance.</returns>
         public MediaBuilder UseFormatOption(string key, string value)
         {
-            // TODO: Implement this
-            // container.ContainerOptions[key] = value;
+            container.ContainerOptions[key] = value;
             return this;
         }
 
@@ -60,7 +58,7 @@
         /// <returns>The <see cref="MediaBuilder"/> instance.</returns>
         public MediaBuilder UseMetadata(ContainerMetadata metadata)
         {
-            // TODO: Implement this
+            container.SetMetadata(metadata);
             return this;
         }
 
