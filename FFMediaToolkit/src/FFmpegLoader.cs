@@ -8,7 +8,7 @@
     /// <summary>
     /// Contains methods for managing FFmpeg libraries.
     /// </summary>
-    public static class FFmpegLibrariesManager
+    public static class FFmpegLoader
     {
         private static LogLevel logLevel = LogLevel.Error;
         private static bool isPathSet;

@@ -34,7 +34,7 @@
         /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
         public static InputContainer LoadFile(string path, MediaOptions options)
         {
-            FFmpegLibrariesManager.LoadFFmpeg();
+            FFmpegLoader.LoadFFmpeg();
 
             var context = ffmpeg.avformat_alloc_context();
             options.DemuxerOptions.ApplyFlags(context);

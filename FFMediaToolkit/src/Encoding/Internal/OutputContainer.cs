@@ -41,7 +41,7 @@
         /// <remarks>Before you write frames to the container, you must call the <see cref="CreateFile(string)"/> method to create an output file.</remarks>
         public static OutputContainer Create(string path)
         {
-            FFmpegLibrariesManager.LoadFFmpeg();
+            FFmpegLoader.LoadFFmpeg();
 
             if (!Path.HasExtension(path))
                 throw new ArgumentException("The file path has no extension.");
