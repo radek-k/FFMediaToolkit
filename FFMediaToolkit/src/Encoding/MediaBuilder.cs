@@ -69,6 +69,11 @@
         /// <returns>This <see cref="MediaBuilder"/> object.</returns>
         public MediaBuilder WithVideo(VideoEncoderSettings settings)
         {
+            if (FFmpegLoader.IsFFmpegGplLicensed == false && (settings.Codec == VideoCodec.H264 || settings.Codec == VideoCodec.H265))
+            {
+                throw new NotSupportedException("The LGPL-licensed FFmpeg build does not contain libx264 and libx265 codecs.");
+            }
+
             container.AddVideoStream(settings);
             videoSettings = settings;
             return this;
