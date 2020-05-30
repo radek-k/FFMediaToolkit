@@ -15,26 +15,27 @@
         /// </summary>
         /// <param name="width">The video frame width.</param>
         /// <param name="height">The video frame height.</param>
-        public VideoEncoderSettings(int width, int height)
+        /// <param name="framerate">The video frames per seconds (fps) value.</param>
+        /// <param name="codec">The video encoder.</param>
+        public VideoEncoderSettings(int width, int height, int framerate = 30, VideoCodec codec = VideoCodec.Default)
         {
-            Bitrate = 30_000_000;
-            KeyframeRate = 12;
             VideoWidth = width;
             VideoHeight = height;
-            VideoFormat = ImagePixelFormat.Yuv420;
-            Framerate = 30;
+            Framerate = framerate;
+            Codec = codec;
             CodecOptions = new Dictionary<string, string>();
         }
 
         /// <summary>
-        /// Gets or sets the video stream bitrate (bytes per seconds). The default value is 30000000 B/s.
+        /// Gets or sets the video stream bitrate (bytes per second). The default value is 5,000,000 B/s.
+        /// If CRF (for H.264/H.265) is set, this value will be ignored.
         /// </summary>
-        public int Bitrate { get; set; }
+        public int Bitrate { get; set; } = 5_000_000;
 
         /// <summary>
         /// Gets or sets the GoP value. The default value is 12.
         /// </summary>
-        public int KeyframeRate { get; set; }
+        public int KeyframeRate { get; set; } = 12;
 
         /// <summary>
         /// Gets or sets the video frame width.
@@ -50,12 +51,22 @@
         /// Gets or sets the output video pixel format. The default value is YUV420p.
         /// Added frames will be automatically converted to this format.
         /// </summary>
-        public ImagePixelFormat VideoFormat { get; set; }
+        public ImagePixelFormat VideoFormat { get; set; } = ImagePixelFormat.Yuv420;
 
         /// <summary>
         /// Gets or sets video frame rate (FPS) value. The default value is 30 frames/s.
         /// </summary>
         public int Framerate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Constant Rate Factor. It supports only H.264 and H.265 codecs.
+        /// </summary>
+        public int? CRF { get; set; } // TODO: Implement this
+
+        /// <summary>
+        /// Gets or sets the encoder preset. It supports only H.264 and H.265 codecs.
+        /// </summary>
+        public EncoderPreset EncoderPreset { get; set; } // TODO: Implement this
 
         /// <summary>
         /// Gets or sets the dictionary with custom codec options.
@@ -64,9 +75,8 @@
 
         /// <summary>
         /// Gets or sets the codec for this stream.
-        /// If <see langword="null"/>, encoder will use default video codec for current container.
-        /// WARNING! Many codecs are deprecated or don't work with video.
+        /// If set to <see cref="VideoCodec.Default"/>, encoder will use default video codec for current container.
         /// </summary>
-        public AVCodecID? Codec { get; set; }
+        public VideoCodec Codec { get; set; }
     }
 }

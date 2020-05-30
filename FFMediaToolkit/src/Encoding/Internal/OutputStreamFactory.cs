@@ -18,7 +18,7 @@
         /// <returns>The new video stream.</returns>
         public static OutputStream<VideoFrame> CreateVideo(OutputContainer container, VideoEncoderSettings config)
         {
-            var codecId = config.Codec ?? container.Pointer->oformat->video_codec;
+            var codecId = config.Codec == VideoCodec.Default ? container.Pointer->oformat->video_codec : (AVCodecID)config.Codec;
 
             if (codecId == AVCodecID.AV_CODEC_ID_NONE)
                 throw new InvalidOperationException("The media container doesn't support video!");
