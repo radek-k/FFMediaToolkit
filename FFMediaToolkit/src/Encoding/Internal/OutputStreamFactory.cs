@@ -3,6 +3,7 @@
     using System;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
+    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -37,7 +38,6 @@
             codecContext->codec_id = codecId;
             codecContext->codec_type = AVMediaType.AVMEDIA_TYPE_VIDEO;
 
-            codecContext->bit_rate = config.Bitrate;
             codecContext->width = config.VideoWidth;
             codecContext->height = config.VideoHeight;
 
@@ -51,6 +51,21 @@
             }
 
             var dict = new FFDictionary(config.CodecOptions);
+
+            if (config.CRF.HasValue && config.Codec.IsMatch(VideoCodec.H264, VideoCodec.H265, VideoCodec.VP9, VideoCodec.VP8))
+            {
+                dict["crf"] = config.CRF.Value.ToString();
+            }
+            else
+            {
+                codecContext->bit_rate = config.Bitrate;
+            }
+
+            if (config.Codec.IsMatch(VideoCodec.H264, VideoCodec.H265))
+            {
+                dict["preset"] = config.EncoderPreset.GetDescription();
+            }
+
             var ptr = dict.Pointer;
 
             ffmpeg.avcodec_open2(codecContext, codec, &ptr);
