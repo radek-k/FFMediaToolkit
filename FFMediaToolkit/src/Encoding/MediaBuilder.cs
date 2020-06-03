@@ -4,6 +4,7 @@
     using System.IO;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Encoding.Internal;
+    using FFMediaToolkit.Helpers;
 
     /// <summary>
     /// Represents a multimedia file creator.
@@ -17,10 +18,12 @@
         private MediaBuilder(string path, ContainerFormat? format)
         {
             if (!Path.IsPathRooted(path))
-                throw new ArgumentException($"The path \"{path}\" is not valid");
+                throw new ArgumentException($"The path \"{path}\" is not valid.");
 
-            // TODO: Implement container format setting.
-            container = OutputContainer.Create(path);
+            if (!Path.HasExtension(path) && format == null)
+                throw new ArgumentException("The file path has no extension.");
+
+            container = OutputContainer.Create(format?.GetDescription() ?? Path.GetExtension(path));
             outputPath = path;
         }
 

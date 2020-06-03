@@ -36,20 +36,17 @@
         /// <summary>
         /// Creates an empty FFmpeg format container for encoding.
         /// </summary>
-        /// <param name="path">A output file path. It is used only to guess the container format.</param>
+        /// <param name="extension">A output file extension. It is used only to guess the container format.</param>
         /// <returns>A new instance of the <see cref="OutputContainer"/>.</returns>
         /// <remarks>Before you write frames to the container, you must call the <see cref="CreateFile(string)"/> method to create an output file.</remarks>
-        public static OutputContainer Create(string path)
+        public static OutputContainer Create(string extension)
         {
             FFmpegLoader.LoadFFmpeg();
 
-            if (!Path.HasExtension(path))
-                throw new ArgumentException("The file path has no extension.");
-
-            var format = ffmpeg.av_guess_format(null, path, null);
+            var format = ffmpeg.av_guess_format(null, "x." + extension, null);
 
             if (format == null)
-                throw new NotSupportedException($"Cannot find a container format for the \"{Path.GetExtension(path)}\" file extension.");
+                throw new NotSupportedException($"Cannot find a container format for the \"{extension}\" file extension.");
 
             var formatContext = ffmpeg.avformat_alloc_context();
             formatContext->oformat = format;
