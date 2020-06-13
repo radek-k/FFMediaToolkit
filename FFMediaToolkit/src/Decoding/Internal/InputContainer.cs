@@ -1,6 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
-    using System;
+    using System.IO;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
@@ -11,20 +11,16 @@
     /// </summary>
     internal unsafe class InputContainer : Wrapper<AVFormatContext>
     {
+        private readonly MediaPacket packet;
+        private bool canReusePacket = false;
+
         private InputContainer(AVFormatContext* formatContext)
-            : base(formatContext)
-        {
-        }
+            : base(formatContext) => packet = MediaPacket.AllocateEmpty(0);
 
         /// <summary>
         /// Gets the video stream.
         /// </summary>
         public InputStream<VideoFrame> Video { get; private set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the reader is at end of the file.
-        /// </summary>
-        public bool IsAtEndOfFile { get; private set; }
 
         /// <summary>
         /// Opens a media container and stream codecs from given path.
@@ -55,61 +51,41 @@
         }
 
         /// <summary>
-        /// Reads the next packet from this file and sends it to the packet queue.
+        /// Reads the next packet from the specified stream.
         /// </summary>
-        /// <returns>Type of the read packet.</returns>
-        public MediaType ReadPacket()
+        /// <param name="streamIndex">Index of the stream.</param>
+        /// <returns>The read packet as <see cref="MediaPacket"/> object.</returns>
+        public MediaPacket ReadNextPacket(int streamIndex)
         {
-            var packet = MediaPacket.AllocateEmpty(0);
-            var result = ffmpeg.av_read_frame(Pointer, packet.Pointer); // Gets the next packet from the file.
-
-            // Check if the end of file error occurred
-            if (result == ffmpeg.AVERROR_EOF)
+            if (canReusePacket)
             {
-                IsAtEndOfFile = true;
-                return MediaType.None;
+                canReusePacket = false;
             }
             else
             {
-                result.ThrowIfError("Cannot read next packet from the file");
+                AddPacket(streamIndex);
             }
 
-            IsAtEndOfFile = false;
-            return EnqueuePacket(packet); // Sends packet to the internal decoder queue.
+            return packet;
         }
 
         /// <summary>
-        /// Seeks stream to the specified video frame.
+        /// Allows to return the last decoded packet with the next <see cref="ReadNextPacket(int)"/> call.
         /// </summary>
-        /// <param name="frameNumber">The target video frame number.</param>
-        public void SeekFile(int frameNumber) => SeekFile(frameNumber.ToTimestamp(Video.Info.RFrameRate, Video.Info.TimeBase));
+        public void ReuseLastPacket() => canReusePacket = true;
 
         /// <summary>
-        /// Seeks stream to the specified target timestamp.
+        /// Seeks all streams in the container to the first key frame before the specified time stamp.
         /// </summary>
-        /// <param name="targetTs">The target timestamp in the default stream time base.</param>
-        public void SeekFile(long targetTs)
+        /// <param name="targetTs">The target time stamp in a stream time base.</param>
+        /// <param name="streamIndex">The stream index. It will be used only to get the correct time base value.</param>
+        public void SeekFile(long targetTs, int streamIndex)
         {
-            ffmpeg.av_seek_frame(Pointer, Video.Info.Index, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
-            IsAtEndOfFile = false;
+            ffmpeg.av_seek_frame(Pointer, streamIndex, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
 
-            Video.ClearQueue();
             Video.FlushBuffers();
-            AddPacket(MediaType.Video);
-            Video.AdjustPackets(targetTs);
+            AddPacket(streamIndex);
         }
-
-        /// <summary>
-        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
-        /// </summary>
-        /// <param name="frameNumber">The target video frame number.</param>
-        public void SeekForward(int frameNumber) => SeekForward(frameNumber.ToTimestamp(Video.Info.RFrameRate, Video.Info.TimeBase));
-
-        /// <summary>
-        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
-        /// </summary>
-        /// <param name="targetTs">The target timestamp in the default stream time base.</param>
-        public void SeekForward(long targetTs) => Video.AdjustPackets(targetTs);
 
         /// <inheritdoc/>
         protected override void OnDisposing()
@@ -135,22 +111,6 @@
         }
 
         /// <summary>
-        /// Sends a packet to the appropriate queue.
-        /// </summary>
-        /// <param name="packet">The packet to send.</param>
-        /// <returns>The detected type of the packet.</returns>
-        private MediaType EnqueuePacket(MediaPacket packet)
-        {
-            if (Video != null && packet.StreamIndex == Video.Info.Index)
-            {
-                Video.FetchPacket(packet);
-                return MediaType.Video;
-            }
-
-            return MediaType.None;
-        }
-
-        /// <summary>
         /// Opens the streams in the file using the specified <see cref="MediaOptions"/>.
         /// </summary>
         /// <param name="options">The <see cref="MediaOptions"/> object.</param>
@@ -162,33 +122,39 @@
                 if (index != null)
                 {
                     Video = InputStreamFactory.OpenVideo(this, index.Value, options);
-                    Video.PacketsNeeded += () => AddPacket(MediaType.Video); // Adds the event handler.
-                    AddPacket(MediaType.Video); // Requests for the first packet.
+                    AddPacket(index.Value); // Requests for the first packet.
                 }
             }
         }
 
         /// <summary>
-        /// Handles the request to send one (or more) packet of the specified type to the decoder queue.
+        /// Reads the next packet from this file.
         /// </summary>
-        /// <param name="type">The type of media packet.</param>
-        private void AddPacket(MediaType type)
+        private void ReadPacket()
         {
-            if (type == MediaType.None)
-            {
-                return;
-            }
+            var result = ffmpeg.av_read_frame(Pointer, packet.Pointer); // Gets the next packet from the file.
 
+            // Check if the end of file error occurred
+            if (result == ffmpeg.AVERROR_EOF)
+            {
+                throw new EndOfStreamException("End of the file.");
+            }
+            else
+            {
+                result.ThrowIfError("Cannot read next packet from the file");
+            }
+        }
+
+        private void AddPacket(int streamIndex)
+        {
             var packetAdded = false;
             while (!packetAdded)
             {
-                if (IsAtEndOfFile)
-                {
-                    return;
-                }
-
-                packetAdded = ReadPacket() == type;
+                ReadPacket();
+                packetAdded = packet.StreamIndex == streamIndex;
             }
+
+            canReusePacket = true;
         }
     }
 }

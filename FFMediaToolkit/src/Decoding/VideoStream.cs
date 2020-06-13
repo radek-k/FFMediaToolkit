@@ -64,7 +64,7 @@
                 }
                 else if (frameNumber == FramePosition - 1)
                 {
-                    return ConvertVideoFrameToBitmap(stream.DecodedFrame);
+                    return ConvertVideoFrameToBitmap(stream.RecentlyDecodedFrame);
                 }
                 else
                 {
@@ -121,17 +121,17 @@
 
         private VideoFrame SeekToFrame(int frameNumber)
         {
+            var ts = frameNumber.ToTimestamp(Info.RFrameRate, Info.TimeBase);
+
             if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.VideoSeekThreshold)
             {
-                stream.OwnerFile.SeekFile(frameNumber);
-            }
-            else
-            {
-                stream.OwnerFile.SeekForward(frameNumber);
+                stream.OwnerFile.SeekFile(ts, Info.Index);
             }
 
+            stream.AdjustPackets(frameNumber.ToTimestamp(Info.RFrameRate, Info.TimeBase));
+
             FramePosition = frameNumber + 1;
-            return stream.DecodedFrame;
+            return stream.RecentlyDecodedFrame;
         }
 
         private Size GetTargetSize() => mediaOptions.TargetVideoSize ?? stream.Info.FrameSize;

@@ -15,9 +15,6 @@
     internal unsafe class InputStream<TFrame> : Wrapper<AVStream>
         where TFrame : MediaFrame, new()
     {
-        private readonly ConcurrentQueue<MediaPacket> packetQueue;
-        private readonly TFrame decodedFrame;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="InputStream{TFrame}"/> class.
         /// </summary>
@@ -27,17 +24,10 @@
             : base(stream)
         {
             OwnerFile = owner;
-            packetQueue = new ConcurrentQueue<MediaPacket>();
 
             Type = typeof(TFrame) == typeof(VideoFrame) ? MediaType.Video : MediaType.None;
             Info = new StreamInfo(stream, owner);
-            decodedFrame = new TFrame();
         }
-
-        /// <summary>
-        /// Occurs when sending next packet from the file is required.
-        /// </summary>
-        public event Action PacketsNeeded;
 
         /// <summary>
         /// Gets the media container that owns this stream.
@@ -62,19 +52,7 @@
         /// <summary>
         /// Gets the recently decoded frame.
         /// </summary>
-        public TFrame DecodedFrame => decodedFrame;
-
-        /// <summary>
-        /// Adds a packet read from the file to the internal decoder queue.
-        /// </summary>
-        /// <param name="packet">A media packet.</param>
-        public void FetchPacket(MediaPacket packet)
-        {
-            if (packet.StreamIndex == Info.Index)
-            {
-                packetQueue.Enqueue(packet);
-            }
-        }
+        public TFrame RecentlyDecodedFrame { get; private set; } = new TFrame();
 
         /// <summary>
         /// Reads the next frame from the stream.
@@ -83,37 +61,32 @@
         public TFrame GetNextFrame()
         {
             ReadNextFrame();
-            return decodedFrame;
+            return RecentlyDecodedFrame;
         }
 
         /// <summary>
-        /// Deletes the packet with the timestamp smaller than the specified.
+        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
         /// </summary>
-        /// <param name="targetTs">The timestamp.</param>
+        /// <param name="frameNumber">The target video frame number.</param>
+        public void AdjustPackets(int frameNumber) => AdjustPackets(frameNumber.ToTimestamp(Info.RFrameRate, Info.TimeBase));
+
+        /// <summary>
+        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
+        /// </summary>
+        /// <param name="targetTs">The target video time stamp.</param>
         public void AdjustPackets(long targetTs)
         {
             do
             {
                 ReadNextFrame();
             }
-            while (decodedFrame.PresentationTimestamp < targetTs);
+            while (RecentlyDecodedFrame.PresentationTimestamp < targetTs);
         }
 
         /// <summary>
         /// Flushes the codec buffers.
         /// </summary>
         public void FlushBuffers() => ffmpeg.avcodec_flush_buffers(CodecPointer);
-
-        /// <summary>
-        /// Clears the packet queue.
-        /// </summary>
-        public void ClearQueue()
-        {
-            while (packetQueue.Count > 0)
-            {
-                packetQueue.TryDequeue(out var _);
-            }
-        }
 
         /// <inheritdoc/>
         protected override void OnDisposing()
@@ -129,7 +102,7 @@
             do
             {
                 DecodePacket(); // Gets the next packet and sends it to the decoder.
-                error = ffmpeg.avcodec_receive_frame(CodecPointer, decodedFrame.Pointer); // Tries to decode frame from the packets.
+                error = ffmpeg.avcodec_receive_frame(CodecPointer, RecentlyDecodedFrame.Pointer); // Tries to decode frame from the packets.
             }
             while (error == -ffmpeg.EAGAIN || error == -35); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
 
@@ -138,39 +111,12 @@
 
         private void DecodePacket()
         {
-            if (!packetQueue.TryPeek(out var pkt))
-            {
-                if (OwnerFile.IsAtEndOfFile)
-                {
-                    throw new EndOfStreamException("End of the media stream.");
-                }
-                else
-                {
-                    throw new Exception("No packets in queue.");
-                }
-            }
+            var pkt = OwnerFile.ReadNextPacket(Info.Index);
 
             // Sends the packet to the decoder.
-            var result = ffmpeg.avcodec_send_packet(CodecPointer, pkt);
-
-            if (result == -ffmpeg.EAGAIN)
-            {
-                return;
-            }
-            else
-            {
-                result.ThrowIfError("Cannot send a packet to the decoder.");
-                packetQueue.TryDequeue(out var _); // Remove the decoded packet from the queue.
-                RequestForNextPacket();
-            }
-        }
-
-        private void RequestForNextPacket()
-        {
-            if (packetQueue.Count < 5)
-            {
-                PacketsNeeded();
-            }
+            ffmpeg.avcodec_send_packet(CodecPointer, pkt)
+                .IfError(-ffmpeg.EAGAIN, e => OwnerFile.ReuseLastPacket(), true) // The packet have to be used again.
+                .ThrowIfError("Cannot send a packet to the decoder.");
         }
     }
 }
