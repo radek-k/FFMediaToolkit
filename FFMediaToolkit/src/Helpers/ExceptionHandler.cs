@@ -1,5 +1,7 @@
 ﻿namespace FFMediaToolkit.Helpers
 {
+    using System.Runtime.CompilerServices;
+
     /// <summary>
     /// Contains common methods for handling FFMpeg exceptions.
     /// </summary>
@@ -16,14 +18,13 @@
         /// </summary>
         /// <param name="errorCode">The exit code returned by a method.</param>
         /// <param name="exceptionMessage">The exception message.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void ThrowIfError(this int errorCode, string exceptionMessage)
         {
-            if (errorCode >= 0)
+            if (errorCode < 0)
             {
-                return;
+                throw new FFmpegException(exceptionMessage, errorCode);
             }
-
-            throw new FFmpegException(exceptionMessage, errorCode);
         }
 
         /// <summary>
@@ -36,7 +37,7 @@
         /// <returns>Original error code or 0 if error handled and the <paramref name="handles"/> is <see langword="true"/>.</returns>
         internal static int IfError(this int errorCode, int handledError, ErrorHandler action, bool handles = true)
         {
-            if (errorCode != handledError)
+            if (errorCode == handledError)
             {
                 action(errorCode);
             }
