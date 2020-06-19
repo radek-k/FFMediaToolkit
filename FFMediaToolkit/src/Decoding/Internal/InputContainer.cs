@@ -85,6 +85,7 @@
 
             Video.FlushBuffers();
             AddPacket(streamIndex);
+            canReusePacket = true;
         }
 
         /// <inheritdoc/>
@@ -123,6 +124,7 @@
                 {
                     Video = InputStreamFactory.OpenVideo(this, index.Value, options);
                     AddPacket(index.Value); // Requests for the first packet.
+                    canReusePacket = true;
                 }
             }
         }
@@ -147,14 +149,11 @@
 
         private void AddPacket(int streamIndex)
         {
-            var packetAdded = false;
-            while (!packetAdded)
+            do
             {
                 ReadPacket();
-                packetAdded = packet.StreamIndex == streamIndex;
             }
-
-            canReusePacket = true;
+            while (packet.StreamIndex != streamIndex);
         }
     }
 }

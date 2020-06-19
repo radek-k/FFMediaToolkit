@@ -97,6 +97,7 @@
 
         private void ReadNextFrame()
         {
+            ffmpeg.av_frame_unref(RecentlyDecodedFrame.Pointer);
             int error;
 
             do
@@ -104,8 +105,7 @@
                 DecodePacket(); // Gets the next packet and sends it to the decoder.
                 error = ffmpeg.avcodec_receive_frame(CodecPointer, RecentlyDecodedFrame.Pointer); // Tries to decode frame from the packets.
             }
-            while (error == -ffmpeg.EAGAIN || error == -35); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
-
+            while (error == ffmpeg.AVERROR(ffmpeg.EAGAIN) || error == -35); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
             error.ThrowIfError("An error occurred while decoding the frame.");
         }
 
@@ -114,9 +114,17 @@
             var pkt = OwnerFile.ReadNextPacket(Info.Index);
 
             // Sends the packet to the decoder.
-            ffmpeg.avcodec_send_packet(CodecPointer, pkt)
-                .IfError(-ffmpeg.EAGAIN, e => OwnerFile.ReuseLastPacket(), true) // The packet have to be used again.
-                .ThrowIfError("Cannot send a packet to the decoder.");
+            var result = ffmpeg.avcodec_send_packet(CodecPointer, pkt);
+
+            if (result == ffmpeg.AVERROR(ffmpeg.EAGAIN))
+            {
+                OwnerFile.ReuseLastPacket();
+            }
+            else
+            {
+                result.ThrowIfError("Cannot send a packet to the decoder.");
+            }
+
         }
     }
 }
