@@ -45,10 +45,11 @@
         /// <summary>
         /// Gets the timestamp of the next frame in the video stream.
         /// </summary>
-        public TimeSpan Position => FramePosition.ToTimeSpan(Info.FrameRate);
+        public TimeSpan Position => FramePosition.ToTimeSpan(Info.AvgFrameRate);
 
         /// <summary>
         /// Reads the specified video frame.
+        /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
         /// </summary>
         /// <param name="frameNumber">The frame index (zero-based number).</param>
         /// <returns>The decoded video frame.</returns>
@@ -79,7 +80,7 @@
         /// </summary>
         /// <param name="targetTime">The frame timestamp.</param>
         /// <returns>The decoded video frame.</returns>
-        public ImageData ReadFrame(TimeSpan targetTime) => ReadFrame(targetTime.ToFrameNumber(Info.RFrameRate));
+        public ImageData ReadFrame(TimeSpan targetTime) => ReadFrame(targetTime.ToFrameNumber(Info.RealFrameRate));
 
         /// <summary>
         /// Reads the next frame from this stream.
@@ -121,14 +122,14 @@
 
         private VideoFrame SeekToFrame(int frameNumber)
         {
-            var ts = frameNumber.ToTimestamp(Info.RFrameRate, Info.TimeBase);
+            var ts = frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase);
 
             if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.VideoSeekThreshold)
             {
                 stream.OwnerFile.SeekFile(ts, Info.Index);
             }
 
-            stream.AdjustPackets(frameNumber.ToTimestamp(Info.RFrameRate, Info.TimeBase));
+            stream.AdjustPackets(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
 
             FramePosition = frameNumber + 1;
             return stream.RecentlyDecodedFrame;

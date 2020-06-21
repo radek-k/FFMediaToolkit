@@ -30,14 +30,14 @@
             FrameSize = new Size(codec->width, codec->height);
             PixelFormat = codec->pix_fmt;
             TimeBase = stream->time_base;
-            RFrameRate = stream->r_frame_rate;
-            FrameRate = RFrameRate.ToDouble();
+            RealFrameRate = stream->r_frame_rate;
+            AvgFrameRate = stream->avg_frame_rate.ToDouble();
             Duration = stream->duration >= 0
                 ? stream->duration.ToTimeSpan(stream->time_base)
                 : TimeSpan.FromTicks(container.Pointer->duration * 10);
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
-            FrameCount = Duration.ToFrameNumber(RFrameRate);
+            FrameCount = Duration.ToFrameNumber(RealFrameRate);
         }
 
         /// <summary>
@@ -61,14 +61,15 @@
         public bool IsInterlaced { get; }
 
         /// <summary>
-        /// Gets the stream frame rate as a <see cref="double"/> value.
+        /// Gets the average frame rate as a <see cref="double"/> value.
         /// </summary>
-        public double FrameRate { get; }
+        public double AvgFrameRate { get; }
 
         /// <summary>
         /// Gets the frame rate as a <see cref="AVRational"/> value.
+        /// It is used to calculate timestamps in the internal decoder methods.
         /// </summary>
-        public AVRational RFrameRate { get; }
+        public AVRational RealFrameRate { get; }
 
         /// <summary>
         /// Gets the stream time base.

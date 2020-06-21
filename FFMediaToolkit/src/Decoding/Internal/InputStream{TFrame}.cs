@@ -68,7 +68,7 @@
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
         /// </summary>
         /// <param name="frameNumber">The target video frame number.</param>
-        public void AdjustPackets(int frameNumber) => AdjustPackets(frameNumber.ToTimestamp(Info.RFrameRate, Info.TimeBase));
+        public void AdjustPackets(int frameNumber) => AdjustPackets(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
 
         /// <summary>
         /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
