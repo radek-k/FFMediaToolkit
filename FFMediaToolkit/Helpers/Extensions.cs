@@ -44,6 +44,14 @@
         }
 
         /// <summary>
+        /// Normalizes this enumeration value - makes it lowercase and trims the specified amount of chars.
+        /// </summary>
+        /// <param name="value">The enumeration value to format.</param>
+        /// <param name="charsToTrim">Number of chars to trim.</param>
+        /// <returns>The normalized string.</returns>
+        internal static string FormatEnum(this Enum value, int charsToTrim) => value.ToString().Substring(charsToTrim).ToLower();
+
+        /// <summary>
         /// Gets the type of content in the <see cref="AVFrame"/>.
         /// </summary>
         /// <param name="frame">The <see cref="AVFrame"/>.</param>

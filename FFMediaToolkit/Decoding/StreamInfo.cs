@@ -23,12 +23,12 @@
             var codec = stream->codec;
             Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(stream->metadata));
             CodecName = ffmpeg.avcodec_get_name(codec->codec_id);
-            CodecId = FormatCodecId(codec->codec_id);
+            CodecId = codec->codec_id.FormatEnum(12);
             Index = stream->index;
             IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE &&
                            codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
             FrameSize = new Size(codec->width, codec->height);
-            PixelFormat = codec->pix_fmt;
+            PixelFormat = codec->pix_fmt.FormatEnum(11);
             TimeBase = stream->time_base;
             RealFrameRate = stream->r_frame_rate;
             AvgFrameRate = stream->avg_frame_rate.ToDouble();
@@ -82,9 +82,9 @@
         public Size FrameSize { get; }
 
         /// <summary>
-        /// Gets the video pixel format.
+        /// Gets a lowercase string representing the video pixel format.
         /// </summary>
-        public AVPixelFormat PixelFormat { get; }
+        public string PixelFormat { get; }
 
         /// <summary>
         /// Gets the estimated number of frames in the stream.
@@ -105,7 +105,5 @@
         /// Gets the stream metadata.
         /// </summary>
         public ReadOnlyDictionary<string, string> Metadata { get; }
-
-        private static string FormatCodecId(AVCodecID id) => id.ToString().Substring(12).ToLower();
     }
 }
