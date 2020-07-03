@@ -29,6 +29,7 @@
                            codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
             FrameSize = new Size(codec->width, codec->height);
             PixelFormat = codec->pix_fmt.FormatEnum(11);
+            AVPixelFormat = codec->pix_fmt;
             TimeBase = stream->time_base;
             RealFrameRate = stream->r_frame_rate;
             AvgFrameRate = stream->avg_frame_rate.ToDouble();
@@ -105,5 +106,10 @@
         /// Gets the stream metadata.
         /// </summary>
         public ReadOnlyDictionary<string, string> Metadata { get; }
+
+        /// <summary>
+        /// Gets the video pixel format.
+        /// </summary>
+        internal AVPixelFormat AVPixelFormat { get; }
     }
 }

@@ -6,6 +6,7 @@
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Graphics;
     using FFMediaToolkit.Helpers;
+    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents a video stream in the <see cref="MediaFile"/>.
@@ -16,6 +17,7 @@
         private readonly VideoFrame frame;
         private readonly ImageConverter converter;
         private readonly MediaOptions mediaOptions;
+        private readonly Size outputFrameSize;
 
         private readonly object syncLock = new object();
 
@@ -29,7 +31,8 @@
             stream = video;
             mediaOptions = options;
             frame = VideoFrame.CreateEmpty();
-            converter = new ImageConverter();
+            outputFrameSize = options.TargetVideoSize ?? video.Info.FrameSize;
+            converter = new ImageConverter(video.Info.FrameSize, video.Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat);
         }
 
         /// <summary>
@@ -70,6 +73,8 @@
                 else
                 {
                     var frame = SeekToFrame(frameNumber);
+                    FramePosition = frameNumber + 1;
+
                     return ConvertVideoFrameToBitmap(frame);
                 }
             }
@@ -114,8 +119,8 @@
 
         private unsafe ImageData ConvertVideoFrameToBitmap(VideoFrame frame)
         {
-            var targetLayout = GetTargetSize(); // Gets the target size of the frame (it may be set by the MediaOptions.TargetVideoSize).
-            var bitmap = ImageData.CreatePooled(targetLayout, mediaOptions.VideoPixelFormat); // Rents memory for the output bitmap.
+            // Gets the target size of the frame (it may be set by the MediaOptions.TargetVideoSize).
+            var bitmap = ImageData.CreatePooled(outputFrameSize, mediaOptions.VideoPixelFormat); // Rents memory for the output bitmap.
             converter.AVFrameToBitmap(frame, bitmap); // Converts the raw video frame using the given size and pixel format and writes it to the ImageData bitmap.
             return bitmap;
         }
@@ -130,11 +135,7 @@
             }
 
             stream.AdjustPackets(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
-
-            FramePosition = frameNumber + 1;
             return stream.RecentlyDecodedFrame;
         }
-
-        private Size GetTargetSize() => mediaOptions.TargetVideoSize ?? stream.Info.FrameSize;
     }
 }
