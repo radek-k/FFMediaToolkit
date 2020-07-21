@@ -21,6 +21,10 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageConverter"/> class.
         /// </summary>
+        /// <param name="sourceSize">Source image size.</param>
+        /// <param name="sourceFormat">Source image format.</param>
+        /// <param name="destinationSize">Destination image size.</param>
+        /// <param name="destinationFormat">Destination image format.</param>
         public ImageConverter(Size sourceSize, AVPixelFormat sourceFormat, Size destinationSize, AVPixelFormat destinationFormat)
             : base(null)
         {
@@ -64,6 +68,9 @@
             }
         }
 
+        /// <inheritdoc/>
+        protected override void OnDisposing() => ffmpeg.sws_freeContext(Pointer);
+
         private void UpdateContext(Size sourceSize, AVPixelFormat sourceFormat, Size destinationSize, AVPixelFormat destinationFormat)
         {
             var scaleMode = sourceSize == destinationSize ? ffmpeg.SWS_POINT : ffmpeg.SWS_BICUBIC;
@@ -76,8 +83,5 @@
 
             UpdatePointer(newPointer);
         }
-
-        /// <inheritdoc/>
-        protected override void OnDisposing() => ffmpeg.sws_freeContext(Pointer);
     }
 }

@@ -106,7 +106,10 @@
             {
                 stream.Dispose();
                 frame.Dispose();
-                converter.Dispose();
+                if (converter.IsValueCreated)
+                {
+                    converter.Value.Dispose();
+                }
             }
         }
 
@@ -121,7 +124,7 @@
         {
             // Gets the target size of the frame (it may be set by the MediaOptions.TargetVideoSize).
             var bitmap = ImageData.CreatePooled(outputFrameSize, mediaOptions.VideoPixelFormat); // Rents memory for the output bitmap.
-            converter.AVFrameToBitmap(frame, bitmap); // Converts the raw video frame using the given size and pixel format and writes it to the ImageData bitmap.
+            converter.Value.AVFrameToBitmap(frame, bitmap); // Converts the raw video frame using the given size and pixel format and writes it to the ImageData bitmap.
             return bitmap;
         }
 
