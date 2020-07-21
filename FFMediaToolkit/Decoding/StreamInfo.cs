@@ -33,12 +33,22 @@
             TimeBase = stream->time_base;
             RealFrameRate = stream->r_frame_rate;
             AvgFrameRate = stream->avg_frame_rate.ToDouble();
+            IsVariableFrameRate = RealFrameRate.ToDouble() == AvgFrameRate;
             Duration = stream->duration >= 0
                 ? stream->duration.ToTimeSpan(stream->time_base)
                 : TimeSpan.FromTicks(container.Pointer->duration * 10);
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
-            FrameCount = Duration.ToFrameNumber(RealFrameRate);
+
+            if (stream->nb_frames > 0)
+            {
+                IsFrameCountProvidedByContainer = true;
+                FrameCount = (int)stream->nb_frames;
+            }
+            else
+            {
+                FrameCount = Duration.ToFrameNumber(stream->avg_frame_rate);
+            }
         }
 
         /// <summary>
@@ -57,9 +67,19 @@
         public string CodecId { get; }
 
         /// <summary>
+        /// Gets a value indicating whether the <see cref="FrameCount"/> value is know from the multimedia container metadata.
+        /// </summary>
+        public bool IsFrameCountProvidedByContainer { get; }
+
+        /// <summary>
         /// Gets a value indicating whether the frames in the stream are interlaced.
         /// </summary>
         public bool IsInterlaced { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the video is variable frame rate (VFR).
+        /// </summary>
+        public bool IsVariableFrameRate { get; }
 
         /// <summary>
         /// Gets the average frame rate as a <see cref="double"/> value.
@@ -88,7 +108,9 @@
         public string PixelFormat { get; }
 
         /// <summary>
-        /// Gets the estimated number of frames in the stream.
+        /// Gets the number of frames value from the container metadata, if available (see <see cref="IsFrameCountProvidedByContainer"/>)
+        /// Otherwise, it is estimated from the video duration and average frame rate.
+        /// This value may not be accurate, if the video is variable frame rate (see <see cref="IsVariableFrameRate"/> property).
         /// </summary>
         public int FrameCount { get; }
 
