@@ -15,7 +15,7 @@
     {
         private readonly InputStream<VideoFrame> stream;
         private readonly VideoFrame frame;
-        private readonly ImageConverter converter;
+        private readonly Lazy<ImageConverter> converter;
         private readonly MediaOptions mediaOptions;
         private readonly Size outputFrameSize;
 
@@ -32,7 +32,7 @@
             mediaOptions = options;
             frame = VideoFrame.CreateEmpty();
             outputFrameSize = options.TargetVideoSize ?? video.Info.FrameSize;
-            converter = new ImageConverter(video.Info.FrameSize, video.Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat);
+            converter = new Lazy<ImageConverter>(() => new ImageConverter(video.Info.FrameSize, video.Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
         }
 
         /// <summary>
