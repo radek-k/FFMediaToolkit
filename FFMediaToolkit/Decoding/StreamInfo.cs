@@ -33,7 +33,7 @@
             TimeBase = stream->time_base;
             RealFrameRate = stream->r_frame_rate;
             AvgFrameRate = stream->avg_frame_rate.ToDouble();
-            IsVariableFrameRate = RealFrameRate.ToDouble() == AvgFrameRate;
+            IsVariableFrameRate = RealFrameRate.ToDouble() != AvgFrameRate;
             Duration = stream->duration >= 0
                 ? stream->duration.ToTimeSpan(stream->time_base)
                 : TimeSpan.FromTicks(container.Pointer->duration * 10);
