@@ -31,7 +31,7 @@
         /// <summary>
         /// Gets a dictionary containing format options.
         /// </summary>
-        internal FFDictionary ContainerOptions { get; private set; }
+        internal FFDictionary ContainerOptions { get; private set; } = new FFDictionary();
 
         /// <summary>
         /// Creates an empty FFmpeg format container for encoding.
