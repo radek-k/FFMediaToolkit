@@ -62,7 +62,7 @@ _____
     // You can set there codec, bitrate, frame rate and many other options.
     var settings = new VideoEncoderSettings(width: 1920, height: 1080, framerate: 30, codec: VideoCodec.H264);
     settings.CRF = 17;
-    var file = MediaBuiler.CreateContainer(@"C:\videos\example.mp4").WithVideo(settings).Create();
+    var file = MediaBuilder.CreateContainer(@"C:\videos\example.mp4").WithVideo(settings).Create();
     while(file.Video.FramesCount < 300)
     {
         file.Video.AddFrame(/*Your code*/);
