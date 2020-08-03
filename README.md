@@ -8,15 +8,17 @@
 
 ## Features
 
-- **Decoding/encoding videos** in any format supported by FFmpeg.
-- **Fast, frame accurate, random acces to any video frame** by frame index or timestamp.
-- **Creating videos from images**.
-- **Compatible with most of .NET graphics libraries**.
+- **Decoding/encoding videos** in almost any format supported by FFmpeg.
+- **Fast<sup id="a1">[1](#f1)</sup>, frame accurate access to any video frame** by frame index<sup id="a1">[2](#f1)</sup> or timestamp.
+- **Creating videos from images** with metadata, pixel format, bitrate, CRF, FPS, GoP, dimensions and other codec settings.
+- **Compatible with most of .NET graphics libraries**<sup id="a1">[3](#f1)</sup>.
 - Supports reading multimedia chapters and metadata.
-- **Configurable** - supports pixel format, bitrate, FPS, GoP, dimensions and custom codec flags settings.
 - **Simple, object-oriented, easy-to-use API** with inline documentation.
 - **Cross-platform** - works on **Linux**, **Windows** and **MacOS** - with **.NET Core** or **.NET Framework** projects.
-
+_____
+<b id="f1">1</b> The time it takes to obtain a frame depends on the number of keyframes in the video stream(see https://en.wikipedia.org/wiki/Key_frame#Video_compression)  
+<b id="f1">2</b> Access to frame by index is not supported in Variable Frame Rate videos.  
+<b id="f3">3</b> See the [usage details](https://github.com/radek-k/FFMediaToolkit#usage-details)
 ## Code samples
 
 - Extract all video frames as PNG files
@@ -57,9 +59,10 @@
 - Encode video from images.
     
     ````c#
-    // You can set there codec, bitrate, framerate and many other options.
-    var settings = new VideoEncoderSettings(width: 1920, height: 1080);
-    var file = new MediaBuilder(@"C:\videos\example.mp4").WithVideo(settings).Create();
+    // You can set there codec, bitrate, frame rate and many other options.
+    var settings = new VideoEncoderSettings(width: 1920, height: 1080, framerate: 30, codec: VideoCodec.H264);
+    settings.CRF = 17;
+    var file = MediaBuilder.CreateContainer(@"C:\videos\example.mp4").WithVideo(settings).Create();
     while(file.Video.FramesCount < 300)
     {
         file.Video.AddFrame(/*Your code*/);
@@ -78,7 +81,7 @@
     PM> Install-Package FFMediaToolkit
     ````
 
-> **FFmpeg libraries are not included with the package.** To use FFMediaToolkit, you need the **lastest FFmpeg (>= v4.2) shared build** binaries. You can download it from the [Zeranoe FFmpeg](https://ffmpeg.zeranoe.com/builds/) site or build your own.
+> **FFmpeg libraries are not included with the package.** To use FFMediaToolkit, you need the **latest FFmpeg (>= v4.2) shared build** binaries. You can download it from the [Zeranoe FFmpeg](https://ffmpeg.zeranoe.com/builds/) site or build your own.
 
 > FFmpeg libraries must have the same architecture as your project. If you want to use 64-bit FFmpeg, you should disable the *Build* -> *Prefer 32-bit* option in Visual Studio project properties.
 - Required FFmpeg binaries (dll/so/dylib):
@@ -92,7 +95,7 @@
   - **Linux** - FFmpeg is pre-installed on many desktop Linux systems. The default path is `/usr/lib/x86` (`_64`) `-linux-gnu/`.
   - **MacOS** - You can install FFmpeg via MacPorts or download `.dylib` files from the [Zeranoe](https://ffmpeg.zeranoe.com/builds/) site. The default path is `/opt/local/lib/`.
 
-  If you want to **use other directory**, you can **specify a path to it** by the  `MediaToolkit.FFmpegPath` property.
+  If you want to **use other directory**, you can **specify a path to it** by the  `FFmpegLoader.FFmpegPath` property.
 
 ## Usage details
 
