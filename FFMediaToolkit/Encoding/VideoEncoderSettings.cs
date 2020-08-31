@@ -21,7 +21,7 @@
         {
             VideoWidth = width;
             VideoHeight = height;
-            Framerate = framerate;
+            Framerate = new AVRational { num = framerate, den = 1 };
             Codec = codec;
             CodecOptions = new Dictionary<string, string>();
         }
@@ -56,7 +56,7 @@
         /// <summary>
         /// Gets or sets video frame rate (FPS) value. The default value is 30 frames/s.
         /// </summary>
-        public int Framerate { get; set; }
+        public AVRational Framerate { get; set; }
 
         /// <summary>
         /// Gets or sets the Constant Rate Factor. It supports only H.264 and H.265 codecs.

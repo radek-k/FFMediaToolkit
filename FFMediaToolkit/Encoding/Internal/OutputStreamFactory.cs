@@ -33,7 +33,7 @@
                 throw new InvalidOperationException($"The {codecId} encoder doesn't support video!");
 
             var videoStream = ffmpeg.avformat_new_stream(container.Pointer, codec);
-            videoStream->time_base = new AVRational { num = 1, den = config.Framerate };
+            videoStream->time_base = config.Framerate;
             var codecContext = videoStream->codec;
             codecContext->codec_id = codecId;
             codecContext->codec_type = AVMediaType.AVMEDIA_TYPE_VIDEO;

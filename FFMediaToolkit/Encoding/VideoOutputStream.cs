@@ -49,7 +49,7 @@
         /// <summary>
         /// Gets the current duration of this stream.
         /// </summary>
-        public TimeSpan CurrentDuration => FramesCount.ToTimeSpan(Configuration.Framerate);
+        public TimeSpan CurrentDuration => FramesCount.ToTimeSpan((double)Configuration.Framerate.num / (double)Configuration.Framerate.den);
 
         /// <summary>
         /// Writes the specified bitmap to the video stream as the next frame.
