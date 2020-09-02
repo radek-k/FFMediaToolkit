@@ -14,6 +14,17 @@
         private static bool isPathSet;
 
         /// <summary>
+        /// Delegate for log message callback.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public delegate void LogCallbackDelegate(string message);
+
+        /// <summary>
+        /// Log message callback event.
+        /// </summary>
+        public static event LogCallbackDelegate LogCallback;
+
+        /// <summary>
         /// Gets or sets the verbosity level of FFMpeg logs printed to standard error/output.
         /// Default value is <see cref="LogLevel.Error"/>.
         /// </summary>
@@ -117,6 +128,30 @@
 
             IsFFmpegLoaded = true;
             LogVerbosity = logLevel;
+        }
+
+        /// <summary>
+        /// Start logging ffmpeg output.
+        /// </summary>
+        public static unsafe void SetupLogging()
+        {
+            ffmpeg.av_log_set_level(ffmpeg.AV_LOG_VERBOSE);
+
+            // do not convert to local function
+            av_log_set_callback_callback logCallback = (p0, level, format, vl) =>
+            {
+                if (level > ffmpeg.av_log_get_level())
+                    return;
+
+                var lineSize = 1024;
+                var lineBuffer = stackalloc byte[lineSize];
+                var printPrefix = 1;
+                ffmpeg.av_log_format_line(p0, level, format, vl, lineBuffer, lineSize, &printPrefix);
+                var line = System.Runtime.InteropServices.Marshal.PtrToStringAnsi((IntPtr)lineBuffer);
+                LogCallback?.Invoke(line);
+            };
+
+            ffmpeg.av_log_set_callback(logCallback);
         }
 
         /// <summary>
