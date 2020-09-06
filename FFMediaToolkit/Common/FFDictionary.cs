@@ -27,15 +27,6 @@
             => Copy(dictionary);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FFDictionary"/> class from given <see cref="AVDictionary"/>.
-        /// </summary>
-        /// <param name="dictionary">The <see cref="AVDictionary"/>.</param>
-        internal FFDictionary(AVDictionary* dictionary)
-            : base(dictionary)
-        {
-        }
-
-        /// <summary>
         /// Gets the number of elements in the dictionary.
         /// </summary>
         public int Count => Pointer == null ? 0 : ffmpeg.av_dict_count(Pointer);

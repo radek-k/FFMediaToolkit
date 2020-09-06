@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Common
 {
+    using FFmpeg.AutoGen;
     using System.Collections.Generic;
 
     /// <summary>
@@ -28,8 +29,8 @@
         /// Initializes a new instance of the <see cref="ContainerMetadata"/> class.
         /// </summary>
         /// <param name="sourceMetadata">The source metadata dictionary.</param>
-        internal unsafe ContainerMetadata(FFDictionary sourceMetadata)
-            => Metadata = FFDictionary.ToDictionary(sourceMetadata.Pointer, true);
+        internal unsafe ContainerMetadata(AVDictionary* sourceMetadata)
+            => Metadata = FFDictionary.ToDictionary(sourceMetadata, true);
 
         /// <summary>
         /// Gets or sets the multimedia title.
