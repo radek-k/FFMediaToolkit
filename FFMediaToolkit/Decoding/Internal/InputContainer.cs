@@ -20,7 +20,7 @@
         /// <summary>
         /// Gets the video stream.
         /// </summary>
-        public InputStream<VideoFrame> Video { get; private set; }
+        public Decoder<VideoFrame> Video { get; private set; }
 
         /// <summary>
         /// Opens a media container and stream codecs from given path.
@@ -37,7 +37,7 @@
             var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions);
             var ptr = dict.Pointer;
 
-            ffmpeg.avformat_open_input(&context, path, null, &ptr)
+            ffmpeg.avformat_open_input(&context, path, null, null)
                 .ThrowIfError("An error occurred while opening the file");
 
             ffmpeg.avformat_find_stream_info(context, null)
@@ -63,7 +63,7 @@
             }
             else
             {
-                AddPacket(streamIndex);
+                GetPacketFromStream(streamIndex);
             }
 
             return packet;
@@ -84,7 +84,7 @@
             ffmpeg.av_seek_frame(Pointer, streamIndex, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
 
             Video.FlushBuffers();
-            AddPacket(streamIndex);
+            GetPacketFromStream(streamIndex);
             canReusePacket = true;
         }
 
@@ -98,34 +98,17 @@
         }
 
         /// <summary>
-        /// Finds the best stream of the specified type in the file.
-        /// </summary>
-        /// <param name="container">The media container.</param>
-        /// <param name="type">Type of the stream to find.</param>
-        /// <param name="relStream">Optional. Index of the related stream.</param>
-        /// <returns>Index of the found stream, otherwise <see langword="null"/>.</returns>
-        private static int? FindBestStream(AVFormatContext* container, AVMediaType type, int relStream = -1)
-        {
-            AVCodec* codec = null;
-            var id = ffmpeg.av_find_best_stream(container, type, -1, relStream, &codec, 0);
-            return id >= 0 ? (int?)id : null;
-        }
-
-        /// <summary>
         /// Opens the streams in the file using the specified <see cref="MediaOptions"/>.
         /// </summary>
         /// <param name="options">The <see cref="MediaOptions"/> object.</param>
         private void OpenStreams(MediaOptions options)
         {
-            if (options.StreamsToLoad != MediaMode.Audio)
+            // if (options.StreamsToLoad != MediaMode.Audio)
+            Video = DecoderFactory.OpenVideo(this, options);
+            if (Video != null)
             {
-                var index = FindBestStream(Pointer, AVMediaType.AVMEDIA_TYPE_VIDEO);
-                if (index != null)
-                {
-                    Video = InputStreamFactory.OpenVideo(this, index.Value, options);
-                    AddPacket(index.Value); // Requests for the first packet.
-                    canReusePacket = true;
-                }
+                GetPacketFromStream(Video.Info.Index); // Requests for the first packet.
+                canReusePacket = true;
             }
         }
 
@@ -147,7 +130,7 @@
             }
         }
 
-        private void AddPacket(int streamIndex)
+        private void GetPacketFromStream(int streamIndex)
         {
             do
             {

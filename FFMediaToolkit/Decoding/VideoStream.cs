@@ -13,7 +13,7 @@
     /// </summary>
     public class VideoStream : IDisposable
     {
-        private readonly InputStream<VideoFrame> stream;
+        private readonly Decoder<VideoFrame> stream;
         private readonly VideoFrame frame;
         private readonly Lazy<ImageConverter> converter;
         private readonly MediaOptions mediaOptions;
@@ -26,7 +26,7 @@
         /// </summary>
         /// <param name="video">The video stream.</param>
         /// <param name="options">The decoder settings.</param>
-        internal VideoStream(InputStream<VideoFrame> video, MediaOptions options)
+        internal VideoStream(Decoder<VideoFrame> video, MediaOptions options)
         {
             stream = video;
             mediaOptions = options;
@@ -106,6 +106,7 @@
             {
                 stream.Dispose();
                 frame.Dispose();
+
                 if (converter.IsValueCreated)
                 {
                     converter.Value.Dispose();
@@ -137,7 +138,7 @@
                 stream.OwnerFile.SeekFile(ts, Info.Index);
             }
 
-            stream.AdjustPackets(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
+            stream.SkipFrames(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
             return stream.RecentlyDecodedFrame;
         }
     }
