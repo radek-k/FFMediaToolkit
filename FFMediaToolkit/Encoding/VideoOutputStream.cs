@@ -20,6 +20,7 @@
         private readonly object syncLock = new object();
         private bool isDisposed;
         private int nextFrameIndex = 0;
+        private double fps;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoOutputStream"/> class.
@@ -34,6 +35,7 @@
 
             var (size, format) = GetStreamLayout(stream);
             encodedFrame = VideoFrame.Create(size, format);
+            fps = config.FramerateRational.num / (double)config.FramerateRational.den;
         }
 
         /// <summary>
@@ -49,7 +51,7 @@
         /// <summary>
         /// Gets the current duration of this stream.
         /// </summary>
-        public TimeSpan CurrentDuration => FramesCount.ToTimeSpan(Configuration.Framerate);
+        public TimeSpan CurrentDuration => FramesCount.ToTimeSpan(fps);
 
         /// <summary>
         /// Writes the specified bitmap to the video stream as the next frame.
