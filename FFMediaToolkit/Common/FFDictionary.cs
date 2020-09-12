@@ -10,21 +10,29 @@
     /// </summary>
     internal unsafe class FFDictionary : Wrapper<AVDictionary>
     {
+        private bool requireDisposing;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FFDictionary"/> class.
         /// </summary>
-        public FFDictionary()
+        /// <param name="dispose">Should the dictionary be disposed automatically?.</param>
+        public FFDictionary(bool dispose = true)
             : base(null)
         {
+            requireDisposing = dispose;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FFDictionary"/> class.
         /// </summary>
         /// <param name="dictionary">The dictionary to copy.</param>
-        public FFDictionary(Dictionary<string, string> dictionary)
+        /// <param name="dispose">Should the dictionary be disposed automatically?.</param>
+        public FFDictionary(Dictionary<string, string> dictionary, bool dispose = true)
             : base(null)
-            => Copy(dictionary);
+        {
+            Copy(dictionary);
+            requireDisposing = dispose;
+        }
 
         /// <summary>
         /// Gets the number of elements in the dictionary.
@@ -108,7 +116,7 @@
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
-            if (Pointer != null && Count > 0)
+            if (!requireDisposing && Pointer != null && Count > 0)
             {
                 var ptr = Pointer;
                 ffmpeg.av_dict_free(&ptr);

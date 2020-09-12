@@ -34,16 +34,13 @@
 
             var context = ffmpeg.avformat_alloc_context();
             options.DemuxerOptions.ApplyFlags(context);
-            var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions);
-            var ptr = dict.Pointer;
+            var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions, false).Pointer;
 
-            ffmpeg.avformat_open_input(&context, path, null, null)
+            ffmpeg.avformat_open_input(&context, path, null, &dict)
                 .ThrowIfError("An error occurred while opening the file");
 
             ffmpeg.avformat_find_stream_info(context, null)
                 .ThrowIfError("Cannot find stream info");
-
-            dict.Update(ptr);
 
             var container = new InputContainer(context);
             container.OpenStreams(options);
