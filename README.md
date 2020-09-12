@@ -1,10 +1,7 @@
-﻿
 # FFMediaToolkit
 
 [![Build status](https://ci.appveyor.com/api/projects/status/9vaaqchtx1d5nldj?svg=true)](https://ci.appveyor.com/project/radek41/ffmediatoolkit) [![Nuget](https://img.shields.io/nuget/v/FFMediaToolkit.svg)](https://www.nuget.org/packages/FFMediaToolkit/)
 [![License](https://img.shields.io/github/license/radek-k/FFMediaToolkit.svg)](https://github.com/radek-k/FFMediaToolkit/blob/master/LICENSE)
-
-> :rocket: The v3.0.0 package is released on [Nuget](https://www.nuget.org/packages/FFMediaToolkit/). See what has changed in the library -> [release notes](https://github.com/radek-k/FFMediaToolkit/releases/tag/v3.0.0)
 
 **FFMediaToolkit** is a **cross-platform** **.NET Standard** library for **creating and reading video files**. It uses native **FFmpeg** libraries by the [FFmpeg.Autogen](https://github.com/Ruslan-B/FFmpeg.AutoGen) bindings.
 
