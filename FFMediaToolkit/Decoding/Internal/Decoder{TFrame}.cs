@@ -12,20 +12,18 @@
     /// Represents a input multimedia stream.
     /// </summary>
     /// <typeparam name="TFrame">The type of frames in the stream.</typeparam>
-    internal unsafe class InputStream<TFrame> : Wrapper<AVStream>
+    internal unsafe class Decoder<TFrame> : Wrapper<AVCodecContext>
         where TFrame : MediaFrame, new()
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InputStream{TFrame}"/> class.
+        /// Initializes a new instance of the <see cref="Decoder{TFrame}"/> class.
         /// </summary>
         /// <param name="stream">The multimedia stream.</param>
         /// <param name="owner">The container that owns the stream.</param>
-        public InputStream(AVStream* stream, InputContainer owner)
-            : base(stream)
+        public Decoder(AVCodecContext* codec, AVStream* stream, InputContainer owner)
+            : base(codec)
         {
             OwnerFile = owner;
-
-            Type = typeof(TFrame) == typeof(VideoFrame) ? MediaType.Video : MediaType.None;
             Info = new StreamInfo(stream, owner);
         }
 
@@ -33,16 +31,6 @@
         /// Gets the media container that owns this stream.
         /// </summary>
         public InputContainer OwnerFile { get; }
-
-        /// <summary>
-        /// Gets a pointer to <see cref="AVCodecContext"/> for this stream.
-        /// </summary>
-        public AVCodecContext* CodecPointer => Pointer->codec;
-
-        /// <summary>
-        /// Gets the type of this stream.
-        /// </summary>
-        public MediaType Type { get; }
 
         /// <summary>
         /// Gets informations about the stream.
@@ -65,16 +53,10 @@
         }
 
         /// <summary>
-        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
+        /// Decodes frames until reach the specified time stamp. Useful to seek few frames forward.
         /// </summary>
-        /// <param name="frameNumber">The target video frame number.</param>
-        public void AdjustPackets(int frameNumber) => AdjustPackets(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
-
-        /// <summary>
-        /// Seeks stream by skipping next packets in the file. Useful to seek few frames forward.
-        /// </summary>
-        /// <param name="targetTs">The target video time stamp.</param>
-        public void AdjustPackets(long targetTs)
+        /// <param name="targetTs">The target time stamp.</param>
+        public void SkipFrames(long targetTs)
         {
             do
             {
@@ -86,13 +68,14 @@
         /// <summary>
         /// Flushes the codec buffers.
         /// </summary>
-        public void FlushBuffers() => ffmpeg.avcodec_flush_buffers(CodecPointer);
+        public void FlushBuffers() => ffmpeg.avcodec_flush_buffers(Pointer);
 
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
+            RecentlyDecodedFrame.Dispose();
             FlushBuffers();
-            ffmpeg.avcodec_close(CodecPointer);
+            ffmpeg.avcodec_close(Pointer);
         }
 
         private void ReadNextFrame()
@@ -102,8 +85,8 @@
 
             do
             {
-                DecodePacket(); // Gets the next packet and sends it to the decoder.
-                error = ffmpeg.avcodec_receive_frame(CodecPointer, RecentlyDecodedFrame.Pointer); // Tries to decode frame from the packets.
+                DecodePacket(); // Gets the next packet and sends it to the decoder
+                error = ffmpeg.avcodec_receive_frame(Pointer, RecentlyDecodedFrame.Pointer); // Tries to decode frame from the packets.
             }
             while (error == ffmpeg.AVERROR(ffmpeg.EAGAIN) || error == -35); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
             error.ThrowIfError("An error occurred while decoding the frame.");
@@ -114,7 +97,7 @@
             var pkt = OwnerFile.ReadNextPacket(Info.Index);
 
             // Sends the packet to the decoder.
-            var result = ffmpeg.avcodec_send_packet(CodecPointer, pkt);
+            var result = ffmpeg.avcodec_send_packet(Pointer, pkt);
 
             if (result == ffmpeg.AVERROR(ffmpeg.EAGAIN))
             {

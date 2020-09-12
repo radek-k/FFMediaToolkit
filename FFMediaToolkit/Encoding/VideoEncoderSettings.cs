@@ -56,17 +56,26 @@
         /// <summary>
         /// Gets or sets video frame rate (FPS) value. The default value is 30 frames/s.
         /// </summary>
-        public int Framerate { get; set; }
+        public int Framerate
+        {
+            get => FramerateRational.num / FramerateRational.den;
+            set => FramerateRational = new AVRational { num = value, den = 1 };
+        }
+
+        /// <summary>
+        /// Gets or sets the video frame rate as a FFmpeg <see cref="AVRational"/> value. Optional. Overwrites <see cref="Framerate"/> property.
+        /// </summary>
+        public AVRational FramerateRational { get; set; }
 
         /// <summary>
         /// Gets or sets the Constant Rate Factor. It supports only H.264 and H.265 codecs.
         /// </summary>
-        public int? CRF { get; set; } // TODO: Implement this
+        public int? CRF { get; set; }
 
         /// <summary>
         /// Gets or sets the encoder preset. It supports only H.264 and H.265 codecs.
         /// </summary>
-        public EncoderPreset EncoderPreset { get; set; } // TODO: Implement this
+        public EncoderPreset EncoderPreset { get; set; }
 
         /// <summary>
         /// Gets or sets the dictionary with custom codec options.

@@ -22,7 +22,7 @@
         {
             FilePath = new IntPtr(container->url).Utf8ToString();
             ContainerFormat = new IntPtr(container->iformat->name).Utf8ToString();
-            Metadata = new ContainerMetadata(new FFDictionary(container->metadata));
+            Metadata = new ContainerMetadata(container->metadata);
             Bitrate = container->bit_rate > 0 ? container->bit_rate : 0;
 
             var timeBase = new AVRational { num = 1, den = ffmpeg.AV_TIME_BASE };
