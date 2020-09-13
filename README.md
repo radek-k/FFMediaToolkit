@@ -39,14 +39,18 @@ _____
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
     
     // Print informations about the video stream.
-    Console.WriteLine("Bitrate: " + file.Info.Bitrate);
-    Console.WriteLine("Duration: " + file.Video.Info.Duration);
-    Console.WriteLine("Frames count: " + file.Video.Info.FrameCount);
-    Console.WriteLine("Frame rate: " + file.Video.Info.FrameRate);
-    Console.WriteLine("Frame size: " + file.Video.Info.FrameSize);
-    Console.WriteLine("Pixel format: " + file.Video.Info.PixelFormat);
-    Console.WriteLine("Codec: " + file.Video.Info.CodecName);
-    Console.WriteLine("Is interlaced: " + file.Video.Info.IsInterlaced);
+    Console.WriteLine($"Bitrate: {file.Info.Bitrate / 1000.0} kb/s");
+    var info = file.Video.Info;
+    Console.WriteLine($"Duration: {info.Duration}");
+    var isFrameCountAccurate = info.IsFrameCountProvidedByContainer || !info.IsVariableFrameRate;
+    var frameCount = isFrameCountAccurate ? info.FrameCount.ToString() : "N/A";
+    Console.WriteLine($"Frames count: {frameCount}");
+    var frameRateInfo = info.IsVariableFrameRate ? "average" : "constant";
+    Console.WriteLine($"Frame rate: {info.AvgFrameRate} fps ({frameRateInfo})");
+    Console.WriteLine($"Frame size: {info.FrameSize}");
+    Console.WriteLine($"Pixel format: {info.PixelFormat}");
+    Console.WriteLine($"Codec: {info.CodecName}");
+    Console.WriteLine($"Is interlaced: {info.IsInterlaced}");
 
     // Gets a frame by its number.
     var frame102 = file.Video.ReadFrame(frameNumber: 102);
@@ -60,12 +64,14 @@ _____
     ````c#
     // You can set there codec, bitrate, frame rate and many other options.
     var settings = new VideoEncoderSettings(width: 1920, height: 1080, framerate: 30, codec: VideoCodec.H264);
+    settings.EncoderPreset = EncoderPreset.Fast;
     settings.CRF = 17;
     var file = MediaBuilder.CreateContainer(@"C:\videos\example.mp4").WithVideo(settings).Create();
     while(file.Video.FramesCount < 300)
     {
         file.Video.AddFrame(/*Your code*/);
     }
+    file.Dispose(); // MediaOutput ("file" variable) must be disposed when encoding is completed. You can use `using() { }` block instead.
     ````
 
 ## Setup
