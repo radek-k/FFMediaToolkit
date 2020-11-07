@@ -22,6 +22,12 @@
         /// </summary>
         public Decoder<VideoFrame> Video { get; private set; }
 
+
+        /// <summary>
+        /// Gets the audio stream.
+        /// </summary>
+        public Decoder<AudioFrame> Audio { get; private set; }
+
         /// <summary>
         /// Opens a media container and stream codecs from given path.
         /// </summary>
@@ -89,6 +95,7 @@
         protected override void OnDisposing()
         {
             Video?.Dispose();
+            Audio?.Dispose();
 
             var ptr = Pointer;
             ffmpeg.avformat_close_input(&ptr);
@@ -105,6 +112,13 @@
             if (Video != null)
             {
                 GetPacketFromStream(Video.Info.Index); // Requests for the first packet.
+                canReusePacket = true;
+            }
+
+            Audio = DecoderFactory.OpenAudio(this, options);
+            if (Audio != null)
+            {
+                GetPacketFromStream(Audio.Info.Index); // Requests for the first packet.
                 canReusePacket = true;
             }
         }
