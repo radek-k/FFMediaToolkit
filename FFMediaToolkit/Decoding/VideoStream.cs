@@ -31,14 +31,14 @@
             stream = video;
             mediaOptions = options;
             frame = VideoFrame.CreateEmpty();
-            outputFrameSize = options.TargetVideoSize ?? video.Info.FrameSize;
-            converter = new Lazy<ImageConverter>(() => new ImageConverter(video.Info.FrameSize, video.Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
+            outputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
+            converter = new Lazy<ImageConverter>(() => new ImageConverter(Info.FrameSize, Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
         }
 
         /// <summary>
         /// Gets informations about this stream.
         /// </summary>
-        public StreamInfo Info => stream.Info;
+        public VideoStreamInfo Info => (VideoStreamInfo)stream.Info;
 
         /// <summary>
         /// Gets the index of the next frame in the video stream.
