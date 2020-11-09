@@ -29,9 +29,6 @@
             IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE &&
                            codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
             TimeBase = stream->time_base;
-            RealFrameRate = stream->r_frame_rate;
-            AvgFrameRate = stream->avg_frame_rate.ToDouble();
-            IsVariableFrameRate = RealFrameRate.ToDouble() != AvgFrameRate;
             Duration = stream->duration >= 0
                 ? stream->duration.ToTimeSpan(stream->time_base)
                 : TimeSpan.FromTicks(container.Pointer->duration * 10);
@@ -54,7 +51,7 @@
         /// of stream passed in <see cref="stream"></see>.
         /// </summary>
         /// <param name="stream">The represented stream.</param>
-        /// <param name="container">The input container.</param>
+        /// <param name="owner">The input container.</param>
         internal static unsafe StreamInfo Create(AVStream* stream, InputContainer owner) {
             var codec = stream->codec;
             if (codec->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
@@ -90,30 +87,19 @@
         public bool IsInterlaced { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the video is variable frame rate (VFR).
-        /// </summary>
-        public bool IsVariableFrameRate { get; }
-
-        /// <summary>
-        /// Gets the average frame rate as a <see cref="double"/> value.
-        /// </summary>
-        public double AvgFrameRate { get; }
-
-        /// <summary>
-        /// Gets the frame rate as a <see cref="AVRational"/> value.
-        /// It is used to calculate timestamps in the internal decoder methods.
-        /// </summary>
-        public AVRational RealFrameRate { get; }
-
-        /// <summary>
         /// Gets the stream time base.
         /// </summary>
         public AVRational TimeBase { get; }
 
         /// <summary>
+        /// Gets the average frame rate as a <see cref="double"/> value.
+        /// </summary>
+        public double AvgFrameRate { get; protected set; }
+
+        /// <summary>
         /// Gets the number of frames value from the container metadata, if available (see <see cref="IsFrameCountProvidedByContainer"/>)
         /// Otherwise, it is estimated from the video duration and average frame rate.
-        /// This value may not be accurate, if the video is variable frame rate (see <see cref="IsVariableFrameRate"/> property).
+        /// This value may not be accurate, e.g. for videos with variable frame rate (see <see cref="VideoStreamInfo.IsVariableFrameRate"/> property).
         /// </summary>
         public int FrameCount { get; }
 
@@ -137,14 +123,33 @@
     /// Represents informations about the video stream.
     /// </summary>
     public class VideoStreamInfo : StreamInfo {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VideoStreamInfo"/> class.
+        /// </summary>
+        /// <param name="stream">A generic stream.</param>
+        /// <param name="container">The input container.</param>
         internal unsafe VideoStreamInfo(AVStream* stream, InputContainer container)
              : base(stream, container)
         {
-             var codec = stream->codec;
-             FrameSize = new Size(codec->width, codec->height);
-             PixelFormat = codec->pix_fmt.FormatEnum(11);
-             AVPixelFormat = codec->pix_fmt;
+            var codec = stream->codec;
+            AvgFrameRate = stream->avg_frame_rate.ToDouble();
+            IsVariableFrameRate = RealFrameRate.ToDouble() != AvgFrameRate;
+            RealFrameRate = stream->r_frame_rate;
+            FrameSize = new Size(codec->width, codec->height);
+            PixelFormat = codec->pix_fmt.FormatEnum(11);
+            AVPixelFormat = codec->pix_fmt;
         }
+
+        /// <summary>
+        /// Gets the frame rate as a <see cref="AVRational"/> value.
+        /// It is used to calculate timestamps in the internal decoder methods.
+        /// </summary>
+        public AVRational RealFrameRate { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the video is variable frame rate (VFR).
+        /// </summary>
+        public bool IsVariableFrameRate { get; }
 
         /// <summary>
         /// Gets the video frame dimensions.
@@ -166,11 +171,20 @@
     /// Represents informations about the audio stream.
     /// </summary>
     public class AudioStreamInfo : StreamInfo {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AudioStreamInfo"/> class.
+        /// </summary>
+        /// <param name="stream">A generic stream.</param>
+        /// <param name="container">The input container.</param>
         internal unsafe AudioStreamInfo(AVStream* stream, InputContainer container)
              : base(stream, container)
         {
             var codec = stream->codec;
             NumChannels = codec->channels;
+            SampleRate = codec->sample_rate;
+            long num_samples = stream->duration >= 0 ? stream->duration : container.Pointer->duration;
+            AvgNumSamplesPerFrame = (int)Math.Round((double)num_samples / FrameCount);
+            AvgFrameRate = SampleRate / AvgNumSamplesPerFrame;
             SampleFormat = codec->sample_fmt.FormatEnum(14);
             AvSampleFormat = codec->sample_fmt;
         }
@@ -179,6 +193,17 @@
         /// Gets the number of audio channels stored in the stream.
         /// </summary>
         public int NumChannels { get; }
+
+        /// <summary>
+        /// Gets the number of samples per second of the audio stream.
+        /// </summary>
+        public int SampleRate { get; }
+
+        /// <summary>
+        /// Gets the average number of samples per frame (chunk of samples) calculated from metadata.
+        /// It is used to calculate timestamps in the internal decoder methods.
+        /// </summary>
+        public int AvgNumSamplesPerFrame { get; }
 
         /// <summary>
         /// Gets a lowercase string representing the audio sample format.

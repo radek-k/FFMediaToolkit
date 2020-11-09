@@ -1,12 +1,14 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
     using System;
+    using FFMediaToolkit.Audio;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Helpers;
+    using FFmpeg.AutoGen;
 
     /// <summary>
-    /// Represents a Audio stream in the <see cref="MediaFile"/>.
+    /// Represents an audio stream in the <see cref="MediaFile"/>.
     /// </summary>
     public class AudioStream : IDisposable
     {
@@ -43,6 +45,54 @@
         /// </summary>
         public TimeSpan Position => FramePosition.ToTimeSpan(Info.AvgFrameRate);
 
+        /// <summary>
+        /// Reads the specified audio frame (chunk of audio samples sized by ffmedia settings).
+        /// </summary>
+        /// <param name="frameNumber">The frame index (zero-based number).</param>
+        /// <returns>The decoded audio frame.</returns>
+        public AudioData ReadFrame(int frameNumber)
+        {
+            lock (syncLock)
+            {
+                frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
+
+                if (frameNumber == FramePosition)
+                {
+                    return GetNextFrameData();
+                }
+                else if (frameNumber == FramePosition - 1)
+                {
+                    return new AudioData(stream.RecentlyDecodedFrame);
+                }
+                else
+                {
+                    var frame = SeekToFrame(frameNumber);
+                    FramePosition = frameNumber + 1;
+
+                    return new AudioData(frame);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Reads the audio frame found at the specified timestamp.
+        /// </summary>
+        /// <param name="targetTime">The frame timestamp.</param>
+        /// <returns>The decoded audio frame.</returns>
+        public AudioData ReadFrame(TimeSpan targetTime) => ReadFrame((int)(targetTime.TotalSeconds * Info.AvgFrameRate));
+
+        /// <summary>
+        /// Reads the next frame from this stream.
+        /// </summary>
+        /// <returns>The decoded audio frame.</returns>
+        public AudioData ReadNextFrame()
+        {
+            lock (syncLock)
+            {
+              return GetNextFrameData();
+            }
+        }
+
         /// <inheritdoc/>
         void IDisposable.Dispose()
         {
@@ -53,21 +103,23 @@
             }
         }
 
-        public ReadOnlySpan<float> NextFrame() {
-            var frame = stream.GetNextFrame();
-            return frame.GetData(0);
+        private AudioData GetNextFrameData()
+        {
+            var bmp = new AudioData(stream.GetNextFrame());
+            FramePosition++;
+            return bmp;
         }
 
         private AudioFrame SeekToFrame(int frameNumber)
         {
-            var ts = frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase);
+            var ts = frameNumber * Info.AvgNumSamplesPerFrame;
 
-            if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.VideoSeekThreshold)
+            if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.AudioSeekThreshold)
             {
                 stream.OwnerFile.SeekFile(ts, Info.Index);
             }
 
-            stream.SkipFrames(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
+            stream.SkipFrames(ts);
             return stream.RecentlyDecodedFrame;
         }
     }

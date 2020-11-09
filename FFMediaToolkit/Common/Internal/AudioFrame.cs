@@ -68,9 +68,11 @@
         public static AudioFrame CreateEmpty() => new AudioFrame();
 
         /// <summary>
-        /// Fetches raw audio data from this video frame for specified channel.
+        /// Fetches raw audio data from this audio frame for specified channel.
         /// </summary>
-        public ReadOnlySpan<float> GetData(uint channel)
+        /// <param name="channel">The index of audio channel that should be retrieved, allowed range: [0..<see cref="NumChannels"/>).</param>
+        /// <returns>The span with samples in range of [-1.0, ..., 1.0].</returns>
+        public ReadOnlySpan<float> GetChannelData(uint channel)
         {
             return new ReadOnlySpan<float>(Pointer->data[channel], NumSamples);
         }
