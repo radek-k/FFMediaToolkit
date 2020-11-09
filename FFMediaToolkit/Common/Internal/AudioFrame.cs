@@ -12,7 +12,8 @@
         /// Initializes a new instance of the <see cref="AudioFrame"/> class with empty frame data.
         /// </summary>
         public AudioFrame()
-            : base(ffmpeg.av_frame_alloc()) {
+            : base(ffmpeg.av_frame_alloc())
+        {
         }
 
         /// <summary>
@@ -20,7 +21,8 @@
         /// </summary>
         /// <param name="frame">The audio <see cref="AVFrame"/>.</param>
         public AudioFrame(AVFrame* frame)
-            : base(frame) {
+            : base(frame)
+        {
             if (frame->GetMediaType() != MediaType.Audio)
                 throw new ArgumentException("Cannot create an AudioFrame instance from the AVFrame with type: " + frame->GetMediaType());
         }
@@ -47,7 +49,8 @@
         /// <param name="num_channels">The number of channels in the audio frame.</param>
         /// <param name="sampleFormat">The audio sample format.</param>
         /// <returns>The new audio frame.</returns>
-        public static AudioFrame Create(int num_samples, int num_channels, AVSampleFormat sampleFormat) {
+        public static AudioFrame Create(int num_samples, int num_channels, AVSampleFormat sampleFormat)
+        {
             var frame = ffmpeg.av_frame_alloc();
             frame->nb_samples = num_samples;
             frame->channels = num_channels;
@@ -67,13 +70,16 @@
         /// <summary>
         /// Fetches raw audio data from this video frame for specified channel.
         /// </summary>
-        public ReadOnlySpan<float> GetData(uint channel) {
+        public ReadOnlySpan<float> GetData(uint channel)
+        {
             return new ReadOnlySpan<float>(Pointer->data[channel], NumSamples);
         }
 
         /// <inheritdoc/>
-        internal override unsafe void Update(AVFrame* newFrame) {
-            if (newFrame->GetMediaType() != MediaType.Audio) {
+        internal override unsafe void Update(AVFrame* newFrame)
+        {
+            if (newFrame->GetMediaType() != MediaType.Audio)
+            {
                 throw new ArgumentException("The new frame doesn't contain audio data.");
             }
 
