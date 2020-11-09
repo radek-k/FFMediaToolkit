@@ -98,6 +98,12 @@
                 Video = null;
             }
 
+            if (HasAudio)
+            {
+                ((IDisposable)Audio).Dispose();
+                Audio = null;
+            }
+
             container.Dispose();
 
             isDisposed = true;
