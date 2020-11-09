@@ -57,11 +57,13 @@
             if (canReusePacket)
             {
                 canReusePacket = false;
+                if (packet.StreamIndex != streamIndex)
+                    packet.Wipe();
+                else
+                    return packet;
             }
-            else
-            {
-                GetPacketFromStream(streamIndex);
-            }
+
+            GetPacketFromStream(streamIndex);
 
             return packet;
         }
@@ -132,8 +134,12 @@
             do
             {
                 ReadPacket();
+                if (packet.StreamIndex != streamIndex)
+                    packet.Wipe();
+                else
+                    break;
             }
-            while (packet.StreamIndex != streamIndex);
-        }
+            while (true);
+         }
     }
 }

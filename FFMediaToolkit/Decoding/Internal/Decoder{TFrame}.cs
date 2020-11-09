@@ -106,6 +106,7 @@
             else
             {
                 result.ThrowIfError("Cannot send a packet to the decoder.");
+                pkt.Wipe();
             }
         }
     }
