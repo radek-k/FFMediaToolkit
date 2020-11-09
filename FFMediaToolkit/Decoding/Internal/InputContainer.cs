@@ -86,7 +86,10 @@
         {
             ffmpeg.av_seek_frame(Pointer, streamIndex, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
 
-            Video.FlushBuffers();
+            if (Video?.Info?.Index == streamIndex)
+                Video.FlushBuffers();
+            if (Audio?.Info?.Index == streamIndex)
+                Audio.FlushBuffers();
             GetPacketFromStream(streamIndex);
             canReusePacket = true;
         }
@@ -107,20 +110,22 @@
         /// <param name="options">The <see cref="MediaOptions"/> object.</param>
         private void OpenStreams(MediaOptions options)
         {
-            // if (options.StreamsToLoad != MediaMode.Audio)
-            Video = DecoderFactory.OpenVideo(this, options);
-            if (Video != null)
-            {
-                GetPacketFromStream(Video.Info.Index); // Requests for the first packet.
-                canReusePacket = true;
-            }
+            if (options.StreamsToLoad == MediaMode.AudioVideo || options.StreamsToLoad == MediaMode.Video)
+                Video = DecoderFactory.OpenVideo(this, options);
 
-            Audio = DecoderFactory.OpenAudio(this, options);
-            if (Audio != null)
-            {
-                GetPacketFromStream(Audio.Info.Index); // Requests for the first packet.
-                canReusePacket = true;
-            }
+            if (options.StreamsToLoad == MediaMode.AudioVideo || options.StreamsToLoad == MediaMode.Audio)
+                Audio = DecoderFactory.OpenAudio(this, options);
+
+            // Requests for the first packet.
+            if (Video != null && Audio != null)
+                ReadPacket();
+            else if (Video != null)
+                GetPacketFromStream(Video.Info.Index);
+            else if (Audio != null)
+                GetPacketFromStream(Audio.Info.Index);
+            else
+                return;
+            canReusePacket = true;
         }
 
         /// <summary>
