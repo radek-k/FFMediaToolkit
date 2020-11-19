@@ -17,6 +17,8 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\FFMediaToolkit.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
