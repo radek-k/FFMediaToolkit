@@ -21,6 +21,11 @@
                 Video = new VideoStream(container.Video, options);
             }
 
+            if (container.Audio != null)
+            {
+                Audio = new AudioStream(container.Audio, options);
+            }
+
             Info = new MediaInfo(container.Pointer);
         }
 
@@ -33,6 +38,16 @@
         /// Gets a value indicating whether the file contains video stream and the stream is loaded.
         /// </summary>
         public bool HasVideo => Video != null;
+
+        /// <summary>
+        /// Gets the audio stream.
+        /// </summary>
+        public AudioStream Audio { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the file contains audio stream and the stream is loaded.
+        /// </summary>
+        public bool HasAudio => Audio != null;
 
         /// <summary>
         /// Gets informations about the media container.
@@ -81,6 +96,12 @@
             {
                 ((IDisposable)Video).Dispose();
                 Video = null;
+            }
+
+            if (HasAudio)
+            {
+                ((IDisposable)Audio).Dispose();
+                Audio = null;
             }
 
             container.Dispose();

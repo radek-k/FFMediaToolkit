@@ -24,7 +24,7 @@
             : base(codec)
         {
             OwnerFile = owner;
-            Info = new StreamInfo(stream, owner);
+            Info = StreamInfo.Create(stream, owner);
         }
 
         /// <summary>
