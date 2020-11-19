@@ -116,7 +116,7 @@
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
-            if (!requireDisposing && Pointer != null && Count > 0)
+            if (requireDisposing && Pointer != null && Count > 0)
             {
                 var ptr = Pointer;
                 ffmpeg.av_dict_free(&ptr);
