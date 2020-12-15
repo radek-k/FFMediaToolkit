@@ -91,10 +91,10 @@ PM> Install-Package FFMediaToolkit
 **FFmpeg libraries are not included with the package.** To use FFMediaToolkit, you need the **FFmpeg shared build** binaries: `avcodec`, `avformat`, `avutil`, `swresample`, `swscale`.
 
 - **Windows** - You can download it from the [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) or [gyan.dev](https://www.gyan.dev/ffmpeg/builds/). You only need `*.dll` files from the `.\bin` directory (**not `.\lib`**) of the ZIP package. Place the binaries in the `.\ffmpeg\x86_64\`(64bit) in the application output directory or set `FFmpegLoader.FFmpegPath`.
-- **Linux** - Download FFmpeg using your package manager and set the path.
-- **MacOS** - Install FFmpeg via [Homebrew](https://formulae.brew.sh/formula/ffmpeg) and set the patch.
+- **Linux** - Download FFmpeg using your package manager.
+- **MacOS** - Install FFmpeg via [Homebrew](https://formulae.brew.sh/formula/ffmpeg).`
 
-You need to set `FFmpegLoader.FFmpegPath` with full path to FFmpeg libraries.
+**You need to set `FFmpegLoader.FFmpegPath` with full path to FFmpeg libraries.**
 > If you want to use 64-bit FFmpeg, you must disable the *Build* -> *Prefer 32-bit* option in Visual Studio project properties.
 
 ## Usage details
