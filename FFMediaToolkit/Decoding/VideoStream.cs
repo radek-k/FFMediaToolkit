@@ -60,23 +60,24 @@
         {
             lock (syncLock)
             {
-                frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
+                var frame = GetFrame(frameNumber);
+                return frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
+            }
+        }
 
-                if (frameNumber == FramePosition)
-                {
-                    return GetNextFrameAsBitmap();
-                }
-                else if (frameNumber == FramePosition - 1)
-                {
-                    return ConvertVideoFrameToBitmap(stream.RecentlyDecodedFrame);
-                }
-                else
-                {
-                    var frame = SeekToFrame(frameNumber);
-                    FramePosition = frameNumber + 1;
-
-                    return ConvertVideoFrameToBitmap(frame);
-                }
+        /// <summary>
+        /// Reads the specified video frame and writes the converted bitmap bytes directly to the provided buffer.
+        /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
+        /// </summary>
+        /// <param name="frameNumber">Index of frame to read (zero-based number).</param>
+        /// <param name="buffer">Pointer to the memory buffer.</param>
+        /// <param name="bufferStride">Number of bytes in a single row of pixel data.</param>
+        public void ReadFrameToPointer(int frameNumber, IntPtr buffer, int bufferStride)
+        {
+            lock (syncLock)
+            {
+                var frame = GetFrame(frameNumber);
+                CopyFrameToMemory(frame, buffer, bufferStride);
             }
         }
 
@@ -91,11 +92,26 @@
         /// Reads the next frame from this stream.
         /// </summary>
         /// <returns>The decoded video frame.</returns>
-        public unsafe ImageData ReadNextFrame()
+        public ImageData ReadNextFrame()
         {
             lock (syncLock)
             {
-                return GetNextFrameAsBitmap();
+                var frame = GetNextFrame();
+                return frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
+            }
+        }
+
+        /// <summary>
+        /// Reads the next frame from this stream and writes the converted bitmap bytes directly to the provided buffer.
+        /// </summary>
+        /// <param name="buffer">Pointer to the memory buffer.</param>
+        /// <param name="bufferStride">Number of bytes in a single row of pixel data.</param>
+        public void ReadNextFrameToPointer(IntPtr buffer, int bufferStride)
+        {
+            lock (syncLock)
+            {
+                var frame = GetNextFrame();
+                CopyFrameToMemory(frame, buffer, bufferStride);
             }
         }
 
@@ -114,32 +130,41 @@
             }
         }
 
-        private ImageData GetNextFrameAsBitmap()
+        private VideoFrame GetFrame(int frameNumber)
         {
-            var bmp = ConvertVideoFrameToBitmap(stream.GetNextFrame());
-            FramePosition++;
-            return bmp;
-        }
+            frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
 
-        private unsafe ImageData ConvertVideoFrameToBitmap(VideoFrame frame)
-        {
-            // Gets the target size of the frame (it may be set by the MediaOptions.TargetVideoSize).
-            var bitmap = ImageData.CreatePooled(outputFrameSize, mediaOptions.VideoPixelFormat); // Rents memory for the output bitmap.
-            converter.Value.AVFrameToBitmap(frame, bitmap); // Converts the raw video frame using the given size and pixel format and writes it to the ImageData bitmap.
-            return bitmap;
-        }
-
-        private VideoFrame SeekToFrame(int frameNumber)
-        {
-            var ts = frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase);
-
-            if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.VideoSeekThreshold)
+            if (frameNumber == FramePosition)
             {
-                stream.OwnerFile.SeekFile(ts, Info.Index);
+                return GetNextFrame();
+            }
+            else if (frameNumber != FramePosition - 1)
+            {
+                var ts = frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase);
+
+                if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.VideoSeekThreshold)
+                {
+                    stream.OwnerFile.SeekFile(ts, Info.Index);
+                }
+
+                stream.SkipFrames(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
+                FramePosition = frameNumber + 1;
             }
 
-            stream.SkipFrames(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
             return stream.RecentlyDecodedFrame;
+        }
+
+        private VideoFrame GetNextFrame()
+        {
+            var frame = stream.GetNextFrame();
+            FramePosition++;
+            return frame;
+        }
+
+        private unsafe void CopyFrameToMemory(VideoFrame frame, IntPtr target, int stride)
+        {
+            var ptr = (byte*)target.ToPointer();
+            converter.Value.AVFrameToBitmap(frame, ptr, stride);
         }
     }
 }

@@ -58,14 +58,12 @@
         /// </summary>
         /// <param name="videoFrame">The video frame to convert.</param>
         /// <param name="destination">The destination <see cref="ImageData"/>.</param>
-        internal void AVFrameToBitmap(VideoFrame videoFrame, ImageData destination)
+        /// <param name="stride">Size of the single bitmap row.</param>
+        internal void AVFrameToBitmap(VideoFrame videoFrame, byte* destination, int stride)
         {
-            fixed (byte* ptr = destination.Data)
-            {
-                var data = new byte*[4] { ptr, null, null, null };
-                var linesize = new int[4] { destination.Stride, 0, 0, 0 };
-                ffmpeg.sws_scale(Pointer, videoFrame.Pointer->data, videoFrame.Pointer->linesize, 0, videoFrame.Layout.Height, data, linesize);
-            }
+            var data = new byte*[4] { destination, null, null, null };
+            var linesize = new int[4] { stride, 0, 0, 0 };
+            ffmpeg.sws_scale(Pointer, videoFrame.Pointer->data, videoFrame.Pointer->linesize, 0, videoFrame.Layout.Height, data, linesize);
         }
 
         /// <inheritdoc/>
