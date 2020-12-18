@@ -34,9 +34,18 @@
             RealFrameRate = stream->r_frame_rate;
             AvgFrameRate = stream->avg_frame_rate.ToDouble();
             IsVariableFrameRate = RealFrameRate.ToDouble() != AvgFrameRate;
-            Duration = stream->duration >= 0
-                ? stream->duration.ToTimeSpan(stream->time_base)
-                : TimeSpan.FromTicks(container.Pointer->duration * 10);
+
+            if (stream->duration >= 0)
+            {
+                Duration = stream->duration.ToTimeSpan(stream->time_base);
+                DurationRaw = stream->duration;
+            }
+            else
+            {
+                Duration = TimeSpan.FromTicks(container.Pointer->duration * 10);
+                DurationRaw = Duration.ToTimestamp(TimeBase);
+            }
+
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
 
@@ -133,5 +142,10 @@
         /// Gets the video pixel format.
         /// </summary>
         internal AVPixelFormat AVPixelFormat { get; }
+
+        /// <summary>
+        /// Gets the duration of the stream in the time base units.
+        /// </summary>
+        internal long DurationRaw { get; }
     }
 }
