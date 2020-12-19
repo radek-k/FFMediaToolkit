@@ -70,7 +70,7 @@
         /// Reads the specified video frame.
         /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
         /// A <see langword="false"/> return value indicates that reached end of stream so frame was not read. 
-        /// The method throws exception if any other error occurred.
+        /// The method throws exception if another error has occurred.
         /// </summary>
         /// <param name="frameNumber">The frame index (zero-based number).</param>
         /// <param name="bitmap">The decoded video frame.</param>
@@ -96,10 +96,10 @@
         }
 
         /// <summary>
-        /// Reads the specified video frame and writes the converted bitmap bytes directly to the provided buffer. A <see cref="false"/> return value indicates that reached end of stream so frame was not read. The method throws exception if any other error occurred.
+        /// Reads the specified video frame and writes the converted bitmap bytes directly to the provided buffer. A <see cref="false"/> return value indicates that reached end of stream so frame was not read. The method throws exception if another error has occurred.
         /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
         /// A <see langword="false"/> return value indicates that reached end of stream.
-        /// The method throws exception if any other error occurred.
+        /// The method throws exception if another error has occurred.
         /// </summary>
         /// <param name="frameNumber">The frame index (zero-based number).</param>
         /// <param name="buffer">Pointer to the memory buffer.</param>
@@ -140,9 +140,8 @@
 
         /// <summary>
         /// Reads the video frame found at the specified timestamp.
-        /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
         /// A <see langword="false"/> return value indicates that reached end of stream.
-        /// The method throws exception if any other error occurred.
+        /// The method throws exception if another error has occurred.
         /// </summary>
         /// <param name="targetTime">The frame timestamp.</param>
         /// <param name="bitmap">The decoded video frame.</param>
@@ -170,7 +169,7 @@
         /// <summary>
         /// Reads the video frame found at the specified timestamp.
         /// A <see langword="false"/> return value indicates that reached end of stream.
-        /// The method throws exception if any other error occurred.
+        /// The method throws exception if another error has occurred.
         /// </summary>
         /// <param name="targetTime">The frame timestamp.</param>
         /// <param name="buffer">Pointer to the memory buffer.</param>
@@ -211,7 +210,7 @@
         /// <summary>
         /// Reads the next frame from this stream.
         /// A <see langword="false"/> return value indicates that reached end of stream.
-        /// The method throws exception if any other error occurred.
+        /// The method throws exception if another error has occurred.
         /// </summary>
         /// <param name="bitmap">The decoded video frame.</param>
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
@@ -237,8 +236,8 @@
 
         /// <summary>
         /// Reads the next frame from this stream and writes the converted bitmap bytes directly to the provided buffer.
-        /// A <see langword="false"/> return value indicates that reached end of stream so frame was not read. 
-        /// The method throws exception if any other error occurred.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
         /// </summary>
         /// <param name="buffer">Pointer to the memory buffer.</param>
         /// <param name="bufferStride">Number of bytes in a single row of pixel data.</param>
@@ -317,6 +316,7 @@
                 }
 
                 stream.SkipFrames(ts);
+                FramePosition = Position.ToFrameNumber(Info.RealFrameRate) + 1;
             }
 
             return stream.RecentlyDecodedFrame;
@@ -331,6 +331,11 @@
 
         private unsafe void CopyFrameToMemory(VideoFrame frame, IntPtr target, int stride)
         {
+            if (stride != ImageData.EstimateStride(outputFrameSize.Width, mediaOptions.VideoPixelFormat))
+            {
+                throw new ArgumentOutOfRangeException(nameof(stride), "Stride does not match output bitmap size and pixel format.");
+            }
+
             var ptr = (byte*)target.ToPointer();
             converter.Value.AVFrameToBitmap(frame, ptr, stride);
         }
