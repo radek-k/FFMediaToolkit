@@ -52,11 +52,20 @@
             if (stream->nb_frames > 0)
             {
                 IsFrameCountProvidedByContainer = true;
-                FrameCount = (int)stream->nb_frames;
+                NumberOfFrames = (int)stream->nb_frames;
+                FrameCount = NumberOfFrames.Value;
             }
             else
             {
                 FrameCount = Duration.ToFrameNumber(stream->avg_frame_rate);
+                if (!IsVariableFrameRate)
+                {
+                    NumberOfFrames = FrameCount;
+                }
+                else
+                {
+                    NumberOfFrames = null;
+                }
             }
         }
 
@@ -121,7 +130,13 @@
         /// Otherwise, it is estimated from the video duration and average frame rate.
         /// This value may not be accurate, if the video is variable frame rate (see <see cref="IsVariableFrameRate"/> property).
         /// </summary>
+        [Obsolete("Please use \"StreamInfo.NumberOfFrames\" property instead.")]
         public int FrameCount { get; }
+
+        /// <summary>
+        /// Gets the number of frames value taken from the container metadata or estimated in constant frame rate videos. Returns <see langword="null"/> if not available.
+        /// </summary>
+        public int? NumberOfFrames { get; }
 
         /// <summary>
         /// Gets the stream duration.

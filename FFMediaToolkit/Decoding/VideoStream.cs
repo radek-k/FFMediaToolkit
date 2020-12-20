@@ -61,7 +61,7 @@
         {
             lock (syncLock)
             {
-                var frame = GetFrame(frameNumber);
+                var frame = GetFrame(frameNumber, Info.FrameCount);
                 return frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
             }
         }
@@ -77,12 +77,17 @@
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
         public bool TryReadFrame(int frameNumber, out ImageData bitmap)
         {
+            if (Info.IsVariableFrameRate)
+            {
+                throw new NotSupportedException("Access to frame by index is not supported in variable frame rate video.");
+            }
+
             lock (syncLock)
             {
                 VideoFrame frame;
                 try
                 {
-                    frame = GetFrame(frameNumber);
+                    frame = GetFrame(frameNumber, Info.NumberOfFrames.Value);
                 }
                 catch (EndOfStreamException)
                 {
@@ -107,12 +112,17 @@
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
         public bool TryReadFrameToPointer(int frameNumber, IntPtr buffer, int bufferStride)
         {
+            if (Info.IsVariableFrameRate)
+            {
+                throw new NotSupportedException("Access to frame by index is not supported in variable frame rate video.");
+            }
+
             lock (syncLock)
             {
                 VideoFrame frame;
                 try
                 {
-                    frame = GetFrame(frameNumber);
+                    frame = GetFrame(frameNumber, Info.NumberOfFrames.Value);
                 }
                 catch (EndOfStreamException)
                 {
@@ -275,9 +285,9 @@
             }
         }
 
-        private VideoFrame GetFrame(int frameNumber)
+        private VideoFrame GetFrame(int frameNumber, int frameCount)
         {
-            frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
+            frameNumber = frameNumber.Clamp(0, frameCount != 0 ? frameCount - 1 : int.MaxValue);
 
             if (frameNumber == FramePosition)
             {
