@@ -23,10 +23,11 @@ _____
 - Extract all video frames as PNG files
   
     ```c#
+    int i = 0;
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
-    for (int i = 0; i < file.Video.Info.FrameCount; i++)
+    while(file.Video.TryReadNextFrame(out var imageData))
     {
-        file.Video.ReadFrame(i).ToBitmap().Save($@"C:\images\frame_{i}.png");
+        imageData.ToBitmap().Save($@"C:\images\frame_{i++}.png");
         // See the #Usage details for example .ToBitmap() implementation
         // The .Save() method may be different depending on your graphics library
     }
@@ -43,9 +44,7 @@ _____
     Console.WriteLine($"Bitrate: {file.Info.Bitrate / 1000.0} kb/s");
     var info = file.Video.Info;
     Console.WriteLine($"Duration: {info.Duration}");
-    var isFrameCountAccurate = info.IsFrameCountProvidedByContainer || !info.IsVariableFrameRate;
-    var frameCount = isFrameCountAccurate ? info.FrameCount.ToString() : "N/A";
-    Console.WriteLine($"Frames count: {frameCount}");
+    Console.WriteLine($"Frames count: {info.NumberOfFrames ?? "N/A"}");
     var frameRateInfo = info.IsVariableFrameRate ? "average" : "constant";
     Console.WriteLine($"Frame rate: {info.AvgFrameRate} fps ({frameRateInfo})");
     Console.WriteLine($"Frame size: {info.FrameSize}");

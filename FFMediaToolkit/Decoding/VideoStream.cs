@@ -224,7 +224,7 @@
         /// </summary>
         /// <param name="bitmap">The decoded video frame.</param>
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
-        public bool TryReadFrameNextFrame(out ImageData bitmap)
+        public bool TryReadNextFrame(out ImageData bitmap)
         {
             lock (syncLock)
             {
