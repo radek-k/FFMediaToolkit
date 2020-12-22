@@ -80,6 +80,12 @@
         public static bool? IsFFmpegGplLicensed { get; private set; }
 
         /// <summary>
+        /// Gets the FFmpeg license text
+        /// Empty when FFmpeg libraries were not yet loaded.
+        /// </summary>
+        public static string FFmpegLicense { get; private set; } = string.Empty;
+
+        /// <summary>
         /// Gets a value indicating whether the FFmpeg binary files were successfully loaded.
         /// </summary>
         internal static bool IsFFmpegLoaded { get; private set; }
@@ -119,7 +125,8 @@
             try
             {
                 FFmpegVersion = ffmpeg.av_version_info();
-                IsFFmpegGplLicensed = ffmpeg.avcodec_license().StartsWith("GPL");
+                FFmpegLicense = ffmpeg.avcodec_license();
+                IsFFmpegGplLicensed = FFmpegLicense.StartsWith("GPL");
             }
             catch (DllNotFoundException ex)
             {
