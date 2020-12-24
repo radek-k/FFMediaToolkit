@@ -56,7 +56,7 @@
         /// <param name="path">A path to the multimedia file.</param>
         /// <param name="options">The media settings.</param>
         /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
-        public static InputContainer LoadFile(string path, MediaOptions options) => MakeContainer(path, options, context => { });
+        public static InputContainer LoadFile(string path, MediaOptions options) => MakeContainer(path, options, _ => { });
 
         /// <summary>
         /// Opens a media container and stream codecs from given stream.
