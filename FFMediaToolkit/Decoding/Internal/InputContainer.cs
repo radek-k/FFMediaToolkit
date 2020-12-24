@@ -1,9 +1,11 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
     using System.IO;
+
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
+
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -11,6 +13,11 @@
     /// </summary>
     internal unsafe class InputContainer : Wrapper<AVFormatContext>
     {
+        private static avio_alloc_context_read_packet readCallback;
+        private static avio_alloc_context_seek seekCallback;
+
+        private delegate void AVFormatContextDelegate(AVFormatContext* context);
+
         private readonly MediaPacket packet;
         private bool canReusePacket = false;
 
@@ -22,13 +29,7 @@
         /// </summary>
         public Decoder<VideoFrame> Video { get; private set; }
 
-        /// <summary>
-        /// Opens a media container and stream codecs from given path.
-        /// </summary>
-        /// <param name="path">A path to the multimedia file.</param>
-        /// <param name="options">The media settings.</param>
-        /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
-        public static InputContainer LoadFile(string path, MediaOptions options)
+        private static InputContainer MakeContainer(string url, MediaOptions options, AVFormatContextDelegate contextDelegate)
         {
             FFmpegLoader.LoadFFmpeg();
 
@@ -36,7 +37,9 @@
             options.DemuxerOptions.ApplyFlags(context);
             var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions, false).Pointer;
 
-            ffmpeg.avformat_open_input(&context, path, null, &dict)
+            contextDelegate(context);
+
+            ffmpeg.avformat_open_input(&context, url, null, &dict)
                 .ThrowIfError("An error occurred while opening the file");
 
             ffmpeg.avformat_find_stream_info(context, null)
@@ -45,6 +48,41 @@
             var container = new InputContainer(context);
             container.OpenStreams(options);
             return container;
+        }
+
+        /// <summary>
+        /// Opens a media container and stream codecs from given path.
+        /// </summary>
+        /// <param name="path">A path to the multimedia file.</param>
+        /// <param name="options">The media settings.</param>
+        /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
+        public static InputContainer LoadFile(string path, MediaOptions options) => MakeContainer(path, options, context => { });
+
+        /// <summary>
+        /// Opens a media container and stream codecs from given stream.
+        /// </summary>
+        /// <param name="stream">A stream of the multimedia file.</param>
+        /// <param name="options">The media settings.</param>
+        /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
+        public static InputContainer LoadStream(Stream stream, MediaOptions options)
+        {
+            return MakeContainer(null, options, context =>
+            {
+                var avioStream = new AvioStream(stream);
+
+                // Prevents garbage collection
+                readCallback = avioStream.Read;
+                seekCallback = avioStream.Seek;
+
+                int bufferLength = 4096;
+                var avioBuffer = (byte*)ffmpeg.av_malloc((ulong)bufferLength);
+
+                context->pb = ffmpeg.avio_alloc_context(avioBuffer, bufferLength, 0, null, readCallback, null, seekCallback);
+                if (context->pb == null)
+                {
+                    throw new FFmpegException("Cannot allocate AVIOContext.");
+                }
+            });
         }
 
         /// <summary>
@@ -94,6 +132,13 @@
 
             var ptr = Pointer;
             ffmpeg.avformat_close_input(&ptr);
+
+            // Note: the internal buffer could have changed, and be != avio_ctx_buffer
+            if (Pointer->pb != null)
+            {
+                ffmpeg.av_free(Pointer->pb->buffer);
+                ffmpeg.avio_context_free(&Pointer->pb);
+            }
         }
 
         /// <summary>
@@ -140,6 +185,6 @@
                     break;
             }
             while (true);
-         }
+        }
     }
 }
