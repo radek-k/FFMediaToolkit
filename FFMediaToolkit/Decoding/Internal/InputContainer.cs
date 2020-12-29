@@ -15,40 +15,18 @@
     {
         private static avio_alloc_context_read_packet readCallback;
         private static avio_alloc_context_seek seekCallback;
-
-        private delegate void AVFormatContextDelegate(AVFormatContext* context);
-
         private readonly MediaPacket packet;
         private bool canReusePacket = false;
 
         private InputContainer(AVFormatContext* formatContext)
             : base(formatContext) => packet = MediaPacket.AllocateEmpty(0);
 
+        private delegate void AVFormatContextDelegate(AVFormatContext* context);
+
         /// <summary>
         /// Gets the video stream.
         /// </summary>
         public Decoder<VideoFrame> Video { get; private set; }
-
-        private static InputContainer MakeContainer(string url, MediaOptions options, AVFormatContextDelegate contextDelegate)
-        {
-            FFmpegLoader.LoadFFmpeg();
-
-            var context = ffmpeg.avformat_alloc_context();
-            options.DemuxerOptions.ApplyFlags(context);
-            var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions, false).Pointer;
-
-            contextDelegate(context);
-
-            ffmpeg.avformat_open_input(&context, url, null, &dict)
-                .ThrowIfError("An error occurred while opening the file");
-
-            ffmpeg.avformat_find_stream_info(context, null)
-                .ThrowIfError("Cannot find stream info");
-
-            var container = new InputContainer(context);
-            container.OpenStreams(options);
-            return container;
-        }
 
         /// <summary>
         /// Opens a media container and stream codecs from given path.
@@ -139,6 +117,27 @@
                 ffmpeg.av_free(Pointer->pb->buffer);
                 ffmpeg.avio_context_free(&Pointer->pb);
             }
+        }
+
+        private static InputContainer MakeContainer(string url, MediaOptions options, AVFormatContextDelegate contextDelegate)
+        {
+            FFmpegLoader.LoadFFmpeg();
+
+            var context = ffmpeg.avformat_alloc_context();
+            options.DemuxerOptions.ApplyFlags(context);
+            var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions, false).Pointer;
+
+            contextDelegate(context);
+
+            ffmpeg.avformat_open_input(&context, url, null, &dict)
+                .ThrowIfError("An error occurred while opening the file");
+
+            ffmpeg.avformat_find_stream_info(context, null)
+                .ThrowIfError("Cannot find stream info");
+
+            var container = new InputContainer(context);
+            container.OpenStreams(options);
+            return container;
         }
 
         /// <summary>
