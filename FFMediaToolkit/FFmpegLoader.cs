@@ -80,6 +80,12 @@
         public static bool? IsFFmpegGplLicensed { get; private set; }
 
         /// <summary>
+        /// Gets the FFmpeg license text
+        /// Empty when FFmpeg libraries were not yet loaded.
+        /// </summary>
+        public static string FFmpegLicense { get; private set; } = string.Empty;
+
+        /// <summary>
         /// Gets a value indicating whether the FFmpeg binary files were successfully loaded.
         /// </summary>
         internal static bool IsFFmpegLoaded { get; private set; }
@@ -111,7 +117,7 @@
                 catch (DirectoryNotFoundException)
                 {
                     throw new DirectoryNotFoundException("Cannot found the default FFmpeg directory.\n" +
-                        "On Windows you have to specify a path to a directory containing the FFmpeg shared build DLL files\n" +
+                        "On Windows you have to set \"FFmpegLoader.FFmpegPath\" with full path to the directory containing FFmpeg shared build \".dll\" files\n" +
                         "For more informations please see https://github.com/radek-k/FFMediaToolkit#setup");
                 }
             }
@@ -119,7 +125,8 @@
             try
             {
                 FFmpegVersion = ffmpeg.av_version_info();
-                IsFFmpegGplLicensed = ffmpeg.avcodec_license().StartsWith("GPL");
+                FFmpegLicense = ffmpeg.avcodec_license();
+                IsFFmpegGplLicensed = FFmpegLicense.StartsWith("GPL");
             }
             catch (DllNotFoundException ex)
             {
@@ -160,7 +167,7 @@
         /// <param name="exception">The original exception.</param>
         internal static void HandleLibraryLoadError(Exception exception)
         {
-            throw new DllNotFoundException($"Cannot load required FFmpeg libraries from {FFmpegPath} directory.\nFor more informations please see https://github.com/radek-k/FFMediaToolkit#setup", exception);
+            throw new DllNotFoundException($"Cannot load required FFmpeg libraries from {FFmpegPath} directory.\nMake sure the \"Build\"Prefer 32-bit\" option in the project settings is turned off.\nFor more informations please see https://github.com/radek-k/FFMediaToolkit#setup", exception);
         }
     }
 }

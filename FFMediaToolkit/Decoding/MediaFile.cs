@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+
     using FFMediaToolkit.Decoding.Internal;
 
     /// <summary>
@@ -81,6 +82,32 @@
             catch (Exception ex)
             {
                 throw new Exception("Failed to open the media file", ex);
+            }
+        }
+
+        /// <summary>
+        /// Opens a media stream with default settings.
+        /// </summary>
+        /// <param name="stream">A stream of the multimedia file.</param>
+        /// <returns>The opened <see cref="MediaFile"/>.</returns>
+        public static MediaFile Open(Stream stream) => Open(stream, new MediaOptions());
+
+        /// <summary>
+        /// Opens a media stream.
+        /// </summary>
+        /// <param name="stream">A stream of the multimedia file.</param>
+        /// <param name="options">The decoder settings.</param>
+        /// <returns>The opened <see cref="MediaFile"/>.</returns>
+        public static MediaFile Open(Stream stream, MediaOptions options)
+        {
+            try
+            {
+                var container = InputContainer.LoadStream(stream, options);
+                return new MediaFile(container, options);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to open the media stream", ex);
             }
         }
 

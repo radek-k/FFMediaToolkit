@@ -29,20 +29,42 @@
             IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE &&
                            codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
             TimeBase = stream->time_base;
-            Duration = stream->duration >= 0
-                ? stream->duration.ToTimeSpan(stream->time_base)
-                : TimeSpan.FromTicks(container.Pointer->duration * 10);
+
+            RealFrameRate = stream->r_frame_rate;
+            AvgFrameRate = stream->avg_frame_rate.ToDouble();
+            IsVariableFrameRate = RealFrameRate.ToDouble() != AvgFrameRate;
+
+            if (stream->duration >= 0)
+            {
+                Duration = stream->duration.ToTimeSpan(stream->time_base);
+                DurationRaw = stream->duration;
+            }
+            else
+            {
+                Duration = TimeSpan.FromTicks(container.Pointer->duration * 10);
+                DurationRaw = Duration.ToTimestamp(TimeBase);
+            }
+
             var start = stream->start_time.ToTimeSpan(stream->time_base);
             StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
 
             if (stream->nb_frames > 0)
             {
                 IsFrameCountProvidedByContainer = true;
-                FrameCount = (int)stream->nb_frames;
+                NumberOfFrames = (int)stream->nb_frames;
+                FrameCount = NumberOfFrames.Value;
             }
             else
             {
                 FrameCount = Duration.ToFrameNumber(stream->avg_frame_rate);
+                if (!IsVariableFrameRate)
+                {
+                    NumberOfFrames = FrameCount;
+                }
+                else
+                {
+                    NumberOfFrames = null;
+                }
             }
         }
 
@@ -101,6 +123,7 @@
         /// Otherwise, it is estimated from the video duration and average frame rate.
         /// This value may not be accurate, e.g. for videos with variable frame rate (see <see cref="VideoStreamInfo.IsVariableFrameRate"/> property).
         /// </summary>
+        [Obsolete("Please use \"StreamInfo.NumberOfFrames\" property instead.")]
         public int FrameCount { get; }
 
         /// <summary>
@@ -117,6 +140,11 @@
         /// Gets the stream metadata.
         /// </summary>
         public ReadOnlyDictionary<string, string> Metadata { get; }
+
+        /// <summary>
+        /// Gets the duration of the stream in the time base units.
+        /// </summary>
+        internal long DurationRaw { get; }
     }
 
     /// <summary>
@@ -173,6 +201,12 @@
     public class AudioStreamInfo : StreamInfo {
         /// <summary>
         /// Initializes a new instance of the <see cref="AudioStreamInfo"/> class.
+        /// Gets the number of frames value taken from the container metadata or estimated in constant frame rate videos. Returns <see langword="null"/> if not available.
+        /// </summary>
+        public int? NumberOfFrames { get; }
+
+        /// <summary>
+        /// Gets the stream duration.
         /// </summary>
         /// <param name="stream">A generic stream.</param>
         /// <param name="container">The input container.</param>
