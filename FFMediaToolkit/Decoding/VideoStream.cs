@@ -14,7 +14,7 @@
     /// </summary>
     public class VideoStream : IDisposable
     {
-        private readonly Decoder<VideoFrame> stream;
+        private readonly Decoder stream;
         private readonly Lazy<ImageConverter> converter;
         private readonly MediaOptions mediaOptions;
         private readonly Size outputFrameSize;
@@ -27,13 +27,13 @@
         /// </summary>
         /// <param name="video">The video stream.</param>
         /// <param name="options">The decoder settings.</param>
-        internal VideoStream(Decoder<VideoFrame> video, MediaOptions options)
+        internal VideoStream(Decoder video, MediaOptions options)
         {
             stream = video;
             mediaOptions = options;
 
-            outputFrameSize = options.TargetVideoSize ?? video.Info.FrameSize;
-            converter = new Lazy<ImageConverter>(() => new ImageConverter(video.Info.FrameSize, video.Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
+            outputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
+            converter = new Lazy<ImageConverter>(() => new ImageConverter(Info.FrameSize, Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
             threshold = TimeSpan.FromSeconds(0.5).ToTimestamp(Info.TimeBase);
         }
 
@@ -62,7 +62,7 @@
         {
             lock (syncLock)
             {
-                var frame = GetFrame(frameNumber, Info.FrameCount);
+                var frame = GetFrame(frameNumber, Info.NumberOfFrames.Value);
                 return frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
             }
         }
@@ -70,7 +70,7 @@
         /// <summary>
         /// Reads the specified video frame.
         /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
-        /// A <see langword="false"/> return value indicates that reached end of stream so frame was not read. 
+        /// A <see langword="false"/> return value indicates that reached end of stream so frame was not read.
         /// The method throws exception if another error has occurred.
         /// </summary>
         /// <param name="frameNumber">The frame index (zero-based number).</param>
@@ -102,7 +102,7 @@
         }
 
         /// <summary>
-        /// Reads the specified video frame and writes the converted bitmap bytes directly to the provided buffer. A <see cref="false"/> return value indicates that reached end of stream so frame was not read. The method throws exception if another error has occurred.
+        /// Reads the specified video frame and writes the converted bitmap bytes directly to the provided buffer. A <see langword="false"/> return value indicates that reached end of stream so frame was not read. The method throws exception if another error has occurred.
         /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
         /// A <see langword="false"/> return value indicates that reached end of stream.
         /// The method throws exception if another error has occurred.
@@ -307,7 +307,7 @@
                 FramePosition = frameNumber + 1;
             }
 
-            return stream.RecentlyDecodedFrame;
+            return stream.RecentlyDecodedFrame as VideoFrame;
         }
 
         private VideoFrame GetFrameByTimestamp(long ts)
@@ -330,14 +330,14 @@
                 FramePosition = Position.ToFrameNumber(Info.RealFrameRate) + 1;
             }
 
-            return stream.RecentlyDecodedFrame;
+            return stream.RecentlyDecodedFrame as VideoFrame;
         }
 
         private VideoFrame GetNextFrame()
         {
             var frame = stream.GetNextFrame();
             FramePosition++;
-            return frame;
+            return frame as VideoFrame;
         }
 
         private unsafe void CopyFrameToMemory(VideoFrame frame, IntPtr target, int stride)

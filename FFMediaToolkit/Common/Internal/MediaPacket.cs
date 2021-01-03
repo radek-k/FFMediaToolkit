@@ -48,12 +48,11 @@
         /// <summary>
         /// Allocates a new empty packet.
         /// </summary>
-        /// <param name="streamIndex">The packet stream index.</param>
         /// <returns>The new <see cref="MediaPacket"/>.</returns>
-        public static MediaPacket AllocateEmpty(int streamIndex)
+        public static MediaPacket AllocateEmpty()
         {
             var packet = ffmpeg.av_packet_alloc();
-            packet->stream_index = streamIndex;
+            packet->stream_index = -1;
             return new MediaPacket(packet);
         }
 

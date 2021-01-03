@@ -5,14 +5,13 @@
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Helpers;
-    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents an audio stream in the <see cref="MediaFile"/>.
     /// </summary>
     public class AudioStream : IDisposable
     {
-        private readonly Decoder<AudioFrame> stream;
+        private readonly Decoder stream;
         private readonly AudioFrame frame;
         private readonly MediaOptions mediaOptions;
 
@@ -23,7 +22,7 @@
         /// </summary>
         /// <param name="audio">The Audio stream.</param>
         /// <param name="options">The decoder settings.</param>
-        internal AudioStream(Decoder<AudioFrame> audio, MediaOptions options)
+        internal AudioStream(Decoder audio, MediaOptions options)
         {
             stream = audio;
             mediaOptions = options;
@@ -54,7 +53,7 @@
         {
             lock (syncLock)
             {
-                frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
+                frameNumber = frameNumber.Clamp(0, Info.NumberOfFrames.Value != 0 ? Info.NumberOfFrames.Value - 1 : int.MaxValue);
 
                 if (frameNumber == FramePosition)
                 {
@@ -62,7 +61,7 @@
                 }
                 else if (frameNumber == FramePosition - 1)
                 {
-                    return new AudioData(stream.RecentlyDecodedFrame);
+                    return new AudioData(stream.RecentlyDecodedFrame as AudioFrame);
                 }
                 else
                 {
@@ -105,7 +104,7 @@
 
         private AudioData GetNextFrameData()
         {
-            var bmp = new AudioData(stream.GetNextFrame());
+            var bmp = new AudioData(stream.GetNextFrame() as AudioFrame);
             FramePosition++;
             return bmp;
         }
@@ -120,7 +119,7 @@
             }
 
             stream.SkipFrames(ts);
-            return stream.RecentlyDecodedFrame;
+            return stream.RecentlyDecodedFrame as AudioFrame;
         }
     }
 }

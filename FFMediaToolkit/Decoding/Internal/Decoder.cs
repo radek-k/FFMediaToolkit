@@ -1,8 +1,7 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
     using System;
-    using System.Collections.Concurrent;
-    using System.IO;
+    using System.Collections.Generic;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
@@ -11,13 +10,15 @@
     /// <summary>
     /// Represents a input multimedia stream.
     /// </summary>
-    /// <typeparam name="TFrame">The type of frames in the stream.</typeparam>
-    internal unsafe class Decoder<TFrame> : Wrapper<AVCodecContext>
-        where TFrame : MediaFrame, new()
+    internal unsafe class Decoder : Wrapper<AVCodecContext>
     {
+        private bool reuseLastPacket;
+        private MediaPacket packet;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="Decoder{TFrame}"/> class.
+        /// Initializes a new instance of the <see cref="Decoder"/> class.
         /// </summary>
+        /// <param name="codec">The underlying codec.</param>
         /// <param name="stream">The multimedia stream.</param>
         /// <param name="owner">The container that owns the stream.</param>
         public Decoder(AVCodecContext* codec, AVStream* stream, InputContainer owner)
@@ -25,6 +26,17 @@
         {
             OwnerFile = owner;
             Info = StreamInfo.Create(stream, owner);
+            switch (Info.Type)
+            {
+                case MediaType.Audio:
+                    RecentlyDecodedFrame = new AudioFrame();
+                    break;
+                case MediaType.Video:
+                    RecentlyDecodedFrame = new VideoFrame();
+                    break;
+                default:
+                    throw new Exception("Tried to create a decoder from an unsupported stream or codec type.");
+            }
         }
 
         /// <summary>
@@ -38,15 +50,29 @@
         public StreamInfo Info { get; }
 
         /// <summary>
+        /// Gets a FIFO collection of media packets that the codec has buffered.
+        /// </summary>
+        public Queue<MediaPacket> BufferedPackets { get; }
+
+        /// <summary>
         /// Gets the recently decoded frame.
         /// </summary>
-        public TFrame RecentlyDecodedFrame { get; private set; } = new TFrame();
+        public MediaFrame RecentlyDecodedFrame { get; }
+
+        /// <summary>
+        /// Adds the specified packet to the codec buffer.
+        /// </summary>
+        /// <param name="packet">The packet to be buffered.</param>
+        public void BufferPacket(MediaPacket packet)
+        {
+            BufferedPackets.Enqueue(packet);
+        }
 
         /// <summary>
         /// Reads the next frame from the stream.
         /// </summary>
         /// <returns>The decoded frame.</returns>
-        public TFrame GetNextFrame()
+        public MediaFrame GetNextFrame()
         {
             ReadNextFrame();
             return RecentlyDecodedFrame;
@@ -94,19 +120,25 @@
 
         private void DecodePacket()
         {
-            var pkt = OwnerFile.ReadNextPacket(Info.Index);
+            if (!reuseLastPacket)
+            {
+                if (BufferedPackets.Count == 0)
+                    OwnerFile.GetPacketFromStream(Info.Index);
+                packet = BufferedPackets.Dequeue();
+            }
 
             // Sends the packet to the decoder.
-            var result = ffmpeg.avcodec_send_packet(Pointer, pkt);
+            var result = ffmpeg.avcodec_send_packet(Pointer, packet);
 
             if (result == ffmpeg.AVERROR(ffmpeg.EAGAIN))
             {
-                OwnerFile.ReuseLastPacket();
+                reuseLastPacket = true;
             }
             else
             {
+                reuseLastPacket = false;
                 result.ThrowIfError("Cannot send a packet to the decoder.");
-                pkt.Wipe();
+                packet.Wipe();
             }
         }
     }

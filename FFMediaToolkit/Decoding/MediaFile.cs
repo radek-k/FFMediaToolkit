@@ -2,7 +2,8 @@
 {
     using System;
     using System.IO;
-
+    using System.Linq;
+    using FFMediaToolkit.Common;
     using FFMediaToolkit.Decoding.Internal;
 
     /// <summary>
@@ -17,14 +18,17 @@
         {
             this.container = container;
 
-            if (container.Video != null)
+            var video = container.Decoders.FirstOrDefault(codec => codec.Info.Type == MediaType.Video);
+            var audio = container.Decoders.FirstOrDefault(codec => codec.Info.Type == MediaType.Audio);
+
+            if (video != null)
             {
-                Video = new VideoStream(container.Video, options);
+                Video = new VideoStream(video, options);
             }
 
-            if (container.Audio != null)
+            if (audio != null)
             {
-                Audio = new AudioStream(container.Audio, options);
+                Audio = new AudioStream(audio, options);
             }
 
             Info = new MediaInfo(container.Pointer);

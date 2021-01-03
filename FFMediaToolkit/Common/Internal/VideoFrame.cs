@@ -91,7 +91,6 @@
             return bitmap;
         }
 
-
         /// <inheritdoc/>
         internal override unsafe void Update(AVFrame* newFrame)
         {

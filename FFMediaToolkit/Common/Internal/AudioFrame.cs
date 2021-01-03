@@ -1,4 +1,5 @@
-﻿namespace FFMediaToolkit.Common.Internal {
+﻿namespace FFMediaToolkit.Common.Internal
+{
     using System;
     using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
@@ -40,7 +41,7 @@
         /// <summary>
         /// Gets the audio sample format.
         /// </summary>
-        public AVSampleFormat SampleFormat => Pointer != null ? (AVSampleFormat) Pointer->format : AVSampleFormat.AV_SAMPLE_FMT_NONE;
+        public AVSampleFormat SampleFormat => Pointer != null ? (AVSampleFormat)Pointer->format : AVSampleFormat.AV_SAMPLE_FMT_NONE;
 
         /// <summary>
         /// Creates an audio frame with given dimensions and allocates a buffer for it.
