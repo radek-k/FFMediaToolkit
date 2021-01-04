@@ -37,12 +37,9 @@
                 default:
                     throw new Exception("Tried to create a decoder from an unsupported stream or codec type.");
             }
-        }
 
-        /// <summary>
-        /// Gets the media container that owns this stream.
-        /// </summary>
-        public InputContainer OwnerFile { get; }
+            BufferedPackets = new Queue<MediaPacket>();
+        }
 
         /// <summary>
         /// Gets informations about the stream.
@@ -50,14 +47,24 @@
         public StreamInfo Info { get; }
 
         /// <summary>
-        /// Gets a FIFO collection of media packets that the codec has buffered.
+        /// Gets the media container that owns this stream.
         /// </summary>
-        public Queue<MediaPacket> BufferedPackets { get; }
+        public InputContainer OwnerFile { get; }
 
         /// <summary>
         /// Gets the recently decoded frame.
         /// </summary>
         public MediaFrame RecentlyDecodedFrame { get; }
+
+        /// <summary>
+        /// Indicates whether the codec has buffered packets.
+        /// </summary>
+        public bool IsBufferEmpty => BufferedPackets.Count == 0;
+
+        /// <summary>
+        /// Gets a FIFO collection of media packets that the codec has buffered.
+        /// </summary>
+        private Queue<MediaPacket> BufferedPackets { get; }
 
         /// <summary>
         /// Adds the specified packet to the codec buffer.
@@ -122,7 +129,7 @@
         {
             if (!reuseLastPacket)
             {
-                if (BufferedPackets.Count == 0)
+                if (IsBufferEmpty)
                     OwnerFile.GetPacketFromStream(Info.Index);
                 packet = BufferedPackets.Dequeue();
             }

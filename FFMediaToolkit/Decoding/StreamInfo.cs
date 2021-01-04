@@ -26,6 +26,8 @@
             CodecName = ffmpeg.avcodec_get_name(codec->codec_id);
             CodecId = codec->codec_id.FormatEnum(12);
             Index = stream->index;
+            Type = type;
+
             TimeBase = stream->time_base;
             RealFrameRate = stream->r_frame_rate;
             AvgFrameRate = stream->avg_frame_rate.ToDouble();

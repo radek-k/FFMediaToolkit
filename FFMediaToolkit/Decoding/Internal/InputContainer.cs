@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
+    using System;
     using System.IO;
 
     using FFMediaToolkit.Common;
@@ -19,6 +20,7 @@
         private InputContainer(AVFormatContext* formatContext)
             : base(formatContext)
         {
+            Decoders = new Decoder[Pointer->nb_streams];
         }
 
         private delegate void AVFormatContextDelegate(AVFormatContext* context);
@@ -142,8 +144,15 @@
             {
                 var stream = Pointer->streams[i];
 
-                DecoderFactory.OpenStream(this, options, stream);
-                GetPacketFromStream(i);
+                try
+                {
+                    Decoders[i] = DecoderFactory.OpenStream(this, options, stream);
+                    GetPacketFromStream(i);
+                }
+                catch (Exception)
+                {
+                    Decoders[i] = null;
+                }
             }
         }
 
