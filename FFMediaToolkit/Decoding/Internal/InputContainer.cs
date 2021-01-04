@@ -74,7 +74,7 @@
         {
             ffmpeg.av_seek_frame(Pointer, streamIndex, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
 
-            Decoders[streamIndex].FlushBuffers();
+            Decoders[streamIndex].FlushUnmanagedBuffers();
             GetPacketFromStream(streamIndex);
         }
 

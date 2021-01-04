@@ -18,41 +18,31 @@
         {
             this.container = container;
 
-            var video = container.Decoders.FirstOrDefault(codec => codec.Info.Type == MediaType.Video);
-            var audio = container.Decoders.FirstOrDefault(codec => codec.Info.Type == MediaType.Audio);
+            var video = container.Decoders.Where(codec => codec.Info.Type == MediaType.Video);
+            var audio = container.Decoders.Where(codec => codec.Info.Type == MediaType.Audio);
 
-            if (video != null)
+            if (video.Any())
             {
-                Video = new VideoStream(video, options);
+                Video = video.Select(codec => new VideoStream(codec, options)).ToArray();
             }
 
-            if (audio != null)
+            if (audio.Any())
             {
-                Audio = new AudioStream(audio, options);
+                Audio = audio.Select(codec => new AudioStream(codec, options)).ToArray();
             }
 
             Info = new MediaInfo(container.Pointer);
         }
 
         /// <summary>
-        /// Gets the video stream.
+        /// Gets the video streams.
         /// </summary>
-        public VideoStream Video { get; private set; }
+        public VideoStream[] Video { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the file contains video stream and the stream is loaded.
+        /// Gets the audio streams.
         /// </summary>
-        public bool HasVideo => Video != null;
-
-        /// <summary>
-        /// Gets the audio stream.
-        /// </summary>
-        public AudioStream Audio { get; private set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the file contains audio stream and the stream is loaded.
-        /// </summary>
-        public bool HasAudio => Audio != null;
+        public AudioStream[] Audio { get; }
 
         /// <summary>
         /// Gets informations about the media container.
@@ -123,17 +113,13 @@
                 return;
             }
 
-            if (HasVideo)
-            {
-                ((IDisposable)Video).Dispose();
-                Video = null;
-            }
+            var video = Video.Cast<MediaStream>();
+            var audio = Audio.Cast<MediaStream>();
 
-            if (HasAudio)
-            {
-                ((IDisposable)Audio).Dispose();
-                Audio = null;
-            }
+            var streams = video.Concat(audio);
+
+            foreach (var stream in streams)
+                stream.Dispose();
 
             container.Dispose();
 

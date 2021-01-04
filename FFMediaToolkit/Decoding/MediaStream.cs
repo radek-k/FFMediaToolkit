@@ -47,9 +47,15 @@
 
         private long Threshold { get; }
 
+        /// <summary>
+        /// Discards all buffered frame data associated with this stream.
+        /// </summary>
+        public void DiscardBufferedData() => Stream.DiscardBufferedData();
+
         /// <inheritdoc/>
-        public virtual void Dispose()
+        public void Dispose()
         {
+            DiscardBufferedData();
             Stream.Dispose();
         }
 
@@ -57,10 +63,7 @@
         /// Gets the data belonging to the next frame in the stream.
         /// </summary>
         /// <returns>The next frame's data.</returns>
-        internal MediaFrame GetNextFrame()
-        {
-            return Stream.GetNextFrame();
-        }
+        internal MediaFrame GetNextFrame() => Stream.GetNextFrame();
 
         /// <summary>
         /// Seeks the stream to the specified time and returns the nearest frame's data.

@@ -99,15 +99,29 @@
         }
 
         /// <summary>
+        /// Discards all packet data buffered by this instance.
+        /// </summary>
+        public void DiscardBufferedData()
+        {
+            foreach (var packet in BufferedPackets)
+            {
+                packet.Wipe();
+                packet.Dispose();
+            }
+
+            BufferedPackets.Clear();
+        }
+
+        /// <summary>
         /// Flushes the codec buffers.
         /// </summary>
-        public void FlushBuffers() => ffmpeg.avcodec_flush_buffers(Pointer);
+        public void FlushUnmanagedBuffers() => ffmpeg.avcodec_flush_buffers(Pointer);
 
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
             RecentlyDecodedFrame.Dispose();
-            FlushBuffers();
+            FlushUnmanagedBuffers();
             ffmpeg.avcodec_close(Pointer);
         }
 
