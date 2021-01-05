@@ -89,9 +89,18 @@
             {
                 packet = ReadPacket();
                 var stream = Decoders[packet.StreamIndex];
-                stream.BufferPacket(packet);
+                if (stream == null)
+                {
+                    packet.Wipe();
+                    packet.Dispose();
+                    packet = null;
+                }
+                else
+                {
+                    stream.BufferPacket(packet);
+                }
             }
-            while (packet.StreamIndex != streamIndex);
+            while (packet?.StreamIndex != streamIndex);
         }
 
         /// <inheritdoc/>
@@ -143,6 +152,10 @@
             for (int i = 0; i < Pointer->nb_streams; i++)
             {
                 var stream = Pointer->streams[i];
+                var mode = (MediaMode)(1 << (int)stream->codec->codec_type);
+
+                if (!options.StreamsToLoad.HasFlag(mode))
+                    continue;
 
                 try
                 {

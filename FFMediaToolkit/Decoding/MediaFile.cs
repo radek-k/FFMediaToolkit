@@ -18,8 +18,8 @@
         {
             this.container = container;
 
-            var video = container.Decoders.Where(codec => codec.Info.Type == MediaType.Video);
-            var audio = container.Decoders.Where(codec => codec.Info.Type == MediaType.Audio);
+            var video = container.Decoders.Where(codec => codec?.Info.Type == MediaType.Video);
+            var audio = container.Decoders.Where(codec => codec?.Info.Type == MediaType.Audio);
 
             if (video.Any())
             {
@@ -40,9 +40,19 @@
         public VideoStream[] Video { get; }
 
         /// <summary>
+        /// Gets a value indicating whether the file contains video streams.
+        /// </summary>
+        public bool HasVideo => Video.Length > 0;
+
+        /// <summary>
         /// Gets the audio streams.
         /// </summary>
         public AudioStream[] Audio { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the file contains video streams.
+        /// </summary>
+        public bool HasAudio => Audio.Length > 0;
 
         /// <summary>
         /// Gets informations about the media container.

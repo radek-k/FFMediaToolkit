@@ -1,8 +1,31 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
+    using System;
     using System.Collections.Generic;
     using System.Drawing;
     using FFMediaToolkit.Graphics;
+
+    /// <summary>
+    /// Represents the audio/video streams loading modes.
+    /// </summary>
+    [Flags]
+    public enum MediaMode
+    {
+        /// <summary>
+        /// Enables loading only video streams.
+        /// </summary>
+        Video = 1,
+
+        /// <summary>
+        /// Enables loading only audio streams.
+        /// </summary>
+        Audio = 2,
+
+        /// <summary>
+        /// Enables loading both audio and video streams if they exist.
+        /// </summary>
+        AudioVideo = Audio | Video,
+    }
 
     /// <summary>
     /// Represents the multimedia file container options.
@@ -55,5 +78,10 @@
         /// Gets or sets the dictionary with global options for the multimedia decoders.
         /// </summary>
         public Dictionary<string, string> DecoderOptions { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Gets or sets which streams (audio/video) will be loaded.
+        /// </summary>
+        public MediaMode StreamsToLoad { get; set; } = MediaMode.AudioVideo;
     }
 }
