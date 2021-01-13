@@ -152,9 +152,7 @@
             for (int i = 0; i < Pointer->nb_streams; i++)
             {
                 var stream = Pointer->streams[i];
-                var mode = (MediaMode)(1 << (int)stream->codec->codec_type);
-
-                if (!options.StreamsToLoad.HasFlag(mode))
+                if (!options.ShouldLoadStreamsOfType(stream->codec->codec_type))
                     continue;
 
                 try

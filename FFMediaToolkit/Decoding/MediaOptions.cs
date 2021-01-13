@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Drawing;
     using FFMediaToolkit.Graphics;
+    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents the audio/video streams loading modes.
@@ -14,12 +15,12 @@
         /// <summary>
         /// Enables loading only video streams.
         /// </summary>
-        Video = 1,
+        Video = 1 << AVMediaType.AVMEDIA_TYPE_VIDEO,
 
         /// <summary>
         /// Enables loading only audio streams.
         /// </summary>
-        Audio = 2,
+        Audio = 1 << AVMediaType.AVMEDIA_TYPE_AUDIO,
 
         /// <summary>
         /// Enables loading both audio and video streams if they exist.
@@ -83,5 +84,17 @@
         /// Gets or sets which streams (audio/video) will be loaded.
         /// </summary>
         public MediaMode StreamsToLoad { get; set; } = MediaMode.AudioVideo;
+
+        /// <summary>
+        /// Determines whether streams of a certain <see cref="AVMediaType"/> should be loaded
+        /// (Based on <see cref="StreamsToLoad"/> property).
+        /// </summary>
+        /// <param name="type">A given <see cref="AVMediaType"/>.</param>
+        /// <returns><see langword="true"/> if streams of the <see cref="AVMediaType"/> given are to be loaded.</returns>
+        public bool ShouldLoadStreamsOfType(AVMediaType type)
+        {
+            var mode = (MediaMode)(1 << (int)type);
+            return StreamsToLoad.HasFlag(mode);
+        }
     }
 }

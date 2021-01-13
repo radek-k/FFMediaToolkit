@@ -29,7 +29,7 @@
         public StreamInfo Info => Stream.Info;
 
         /// <summary>
-        /// Gets the timestamp of the recently decoded frame in the video stream.
+        /// Gets the timestamp of the recently decoded frame in the media stream.
         /// </summary>
         public TimeSpan Position => Stream.RecentlyDecodedFrame.PresentationTimestamp.ToTimeSpan(Info.TimeBase);
 
@@ -53,7 +53,7 @@
         public void DiscardBufferedData() => Stream.DiscardBufferedData();
 
         /// <inheritdoc/>
-        public void Dispose()
+        public virtual void Dispose()
         {
             DiscardBufferedData();
             Stream.Dispose();

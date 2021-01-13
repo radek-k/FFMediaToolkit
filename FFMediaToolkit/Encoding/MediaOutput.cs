@@ -1,7 +1,7 @@
 ﻿namespace FFMediaToolkit.Encoding
 {
     using System;
-    using FFMediaToolkit.Common;
+    using System.Linq;
     using FFMediaToolkit.Encoding.Internal;
 
     /// <summary>
@@ -16,15 +16,17 @@
         /// Initializes a new instance of the <see cref="MediaOutput"/> class.
         /// </summary>
         /// <param name="mediaContainer">The <see cref="OutputContainer"/> object.</param>
-        /// <param name="videoSettings">The video stream settings.</param>
-        internal MediaOutput(OutputContainer mediaContainer, VideoEncoderSettings videoSettings)
+        internal MediaOutput(OutputContainer mediaContainer)
         {
             container = mediaContainer;
 
-            if (mediaContainer.Video != null)
-            {
-                Video = new VideoOutputStream(mediaContainer.Video, videoSettings);
-            }
+            Video = container.Video
+                .Select(o => new VideoOutputStream(o.stream, o.config))
+                .ToArray();
+
+            Audio = container.Audio
+                .Select(o => new AudioOutputStream(o.stream, o.config))
+                .ToArray();
         }
 
         /// <summary>
@@ -33,14 +35,14 @@
         ~MediaOutput() => Dispose();
 
         /// <summary>
-        /// Gets the video stream in the media file.
+        /// Gets the video streams in the media file.
         /// </summary>
-        public VideoOutputStream Video { get; }
+        public VideoOutputStream[] Video { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the media file contains video stream.
+        /// Gets the video streams in the media file.
         /// </summary>
-        public bool HasVideo => Video != null;
+        public AudioOutputStream[] Audio { get; }
 
         /// <inheritdoc/>
         public void Dispose()

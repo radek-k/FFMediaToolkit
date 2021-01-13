@@ -21,15 +21,8 @@
             var video = container.Decoders.Where(codec => codec?.Info.Type == MediaType.Video);
             var audio = container.Decoders.Where(codec => codec?.Info.Type == MediaType.Audio);
 
-            if (video.Any())
-            {
-                Video = video.Select(codec => new VideoStream(codec, options)).ToArray();
-            }
-
-            if (audio.Any())
-            {
-                Audio = audio.Select(codec => new AudioStream(codec, options)).ToArray();
-            }
+            Video = video.Select(codec => new VideoStream(codec, options)).ToArray();
+            Audio = audio.Select(codec => new AudioStream(codec, options)).ToArray();
 
             Info = new MediaInfo(container.Pointer);
         }

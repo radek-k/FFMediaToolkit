@@ -13,7 +13,6 @@
     {
         private readonly OutputContainer container;
         private readonly string outputPath;
-        private VideoEncoderSettings videoSettings;
 
         private MediaBuilder(string path, ContainerFormat? format)
         {
@@ -78,11 +77,19 @@
             }
 
             container.AddVideoStream(settings);
-            videoSettings = settings;
             return this;
         }
 
-        // TODO: Audio encoding (in v4.0 or v5.0 release)
+        /// <summary>
+        /// Adds a new audio stream to the file.
+        /// </summary>
+        /// <param name="settings">The video stream settings.</param>
+        /// <returns>This <see cref="MediaBuilder"/> object.</returns>
+        public MediaBuilder WithAudio(AudioEncoderSettings settings)
+        {
+            container.AddAudioStream(settings);
+            return this;
+        }
 
         /// <summary>
         /// Creates a multimedia file for specified video stream.
@@ -92,7 +99,7 @@
         {
             container.CreateFile(outputPath);
 
-            return new MediaOutput(container, videoSettings);
+            return new MediaOutput(container);
         }
     }
 }

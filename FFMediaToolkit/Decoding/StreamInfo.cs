@@ -44,8 +44,10 @@
                 DurationRaw = Duration.ToTimestamp(TimeBase);
             }
 
-            var start = stream->start_time.ToTimeSpan(stream->time_base);
-            StartTime = start == TimeSpan.MinValue ? TimeSpan.Zero : start;
+            if (stream->start_time >= 0)
+            {
+                StartTime = stream->start_time.ToTimeSpan(stream->time_base);
+            }
 
             if (stream->nb_frames > 0)
             {

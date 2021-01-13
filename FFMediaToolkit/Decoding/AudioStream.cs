@@ -5,12 +5,15 @@
     using FFMediaToolkit.Audio;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
+    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents an audio stream in the <see cref="MediaFile"/>.
     /// </summary>
-    public class AudioStream : MediaStream
+    public unsafe class AudioStream : MediaStream
     {
+        private SwrContext* swrContext;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AudioStream"/> class.
         /// </summary>
@@ -19,6 +22,18 @@
         internal AudioStream(Decoder stream, MediaOptions options)
             : base(stream, options)
         {
+            swrContext = ffmpeg.swr_alloc_set_opts(
+                null,
+                Info.ChannelLayout,
+                (AVSampleFormat)SampleFormat.SingleP,
+                Info.SampleRate,
+                Info.ChannelLayout,
+                (AVSampleFormat)Info.SampleFormat,
+                Info.SampleRate,
+                0,
+                null);
+
+            ffmpeg.swr_init(swrContext);
         }
 
         /// <summary>
@@ -33,7 +48,17 @@
         public new AudioData GetNextFrame()
         {
             var frame = base.GetNextFrame() as AudioFrame;
-            return new AudioData(frame);
+
+            var converted = AudioFrame.Create(
+                frame.SampleRate,
+                frame.NumChannels,
+                frame.NumSamples,
+                frame.ChannelLayout,
+                SampleFormat.SingleP);
+
+            ffmpeg.swr_convert_frame(swrContext, converted.Pointer, frame.Pointer);
+
+            return new AudioData(converted);
         }
 
         /// <summary>
@@ -88,6 +113,17 @@
                 data = default;
                 return false;
             }
+        }
+
+        /// <inheritdoc/>
+        public override void Dispose()
+        {
+            fixed (SwrContext** ptr = &swrContext)
+            {
+                ffmpeg.swr_free(ptr);
+            }
+
+            base.Dispose();
         }
     }
 }

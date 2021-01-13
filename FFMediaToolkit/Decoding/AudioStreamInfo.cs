@@ -1,9 +1,8 @@
 ﻿namespace FFMediaToolkit.Decoding
 {
-    using System;
+    using FFMediaToolkit.Audio;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Decoding.Internal;
-    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -22,10 +21,9 @@
             var codec = stream->codec;
             NumChannels = codec->channels;
             SampleRate = codec->sample_rate;
-            long num_samples = stream->duration >= 0 ? stream->duration : container.Pointer->duration;
-            AvgNumSamplesPerFrame = (int)Math.Round((double)num_samples / NumberOfFrames.Value);
-            SampleFormat = codec->sample_fmt.FormatEnum(14);
-            AvSampleFormat = codec->sample_fmt;
+            SamplesPerFrame = codec->frame_size > 0 ? codec->frame_size : codec->sample_rate / 20;
+            SampleFormat = (SampleFormat)codec->sample_fmt;
+            ChannelLayout = ffmpeg.av_get_default_channel_layout(codec->channels);
         }
 
         /// <summary>
@@ -42,16 +40,16 @@
         /// Gets the average number of samples per frame (chunk of samples) calculated from metadata.
         /// It is used to calculate timestamps in the internal decoder methods.
         /// </summary>
-        public int AvgNumSamplesPerFrame { get; }
-
-        /// <summary>
-        /// Gets a lowercase string representing the audio sample format.
-        /// </summary>
-        public string SampleFormat { get; }
+        public int SamplesPerFrame { get; }
 
         /// <summary>
         /// Gets the audio sample format.
         /// </summary>
-        internal AVSampleFormat AvSampleFormat { get; }
+        public SampleFormat SampleFormat { get; }
+
+        /// <summary>
+        /// Gets the channel layout for this stream.
+        /// </summary>
+        internal long ChannelLayout { get; }
     }
 }

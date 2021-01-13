@@ -17,10 +17,8 @@
         private readonly VideoFrame encodedFrame;
         private readonly ImageConverter converter;
 
-        private readonly object syncLock = new object();
         private bool isDisposed;
-        private int nextFrameIndex = 0;
-        private double fps;
+        private long lastFramePts = -1;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoOutputStream"/> class.
@@ -35,7 +33,6 @@
 
             var (size, format) = GetStreamLayout(stream);
             encodedFrame = VideoFrame.Create(size, format);
-            fps = config.FramerateRational.num / (double)config.FramerateRational.den;
         }
 
         /// <summary>
@@ -44,53 +41,51 @@
         public VideoEncoderSettings Configuration { get; }
 
         /// <summary>
-        /// Gets the total number of video frames encoded to this stream.
-        /// </summary>
-        public int FramesCount => nextFrameIndex;
-
-        /// <summary>
         /// Gets the current duration of this stream.
         /// </summary>
-        public TimeSpan CurrentDuration => FramesCount.ToTimeSpan(fps);
+        public TimeSpan CurrentDuration => lastFramePts.ToTimeSpan(Configuration.TimeBase);
 
         /// <summary>
         /// Writes the specified bitmap to the video stream as the next frame.
         /// </summary>
         /// <param name="frame">The bitmap to write.</param>
-        /// <param name="customFramePts">(optional) custom PTS value for the frame.</param>
-        public void AddFrame(ImageData frame, long customFramePts)
+        /// <param name="customPtsValue">(optional) custom PTS value for the frame.</param>
+        public void AddFrame(ImageData frame, long customPtsValue)
         {
-            lock (syncLock)
-            {
-                encodedFrame.UpdateFromBitmap(frame, converter);
-                encodedFrame.PresentationTimestamp = customFramePts;
-                stream.Push(encodedFrame);
-                nextFrameIndex++;
-            }
+            if (customPtsValue <= lastFramePts)
+                throw new Exception("Cannot add a frame that occurs chronologically before the most recently written frame!");
+
+            encodedFrame.UpdateFromBitmap(frame, converter);
+            encodedFrame.PresentationTimestamp = customPtsValue;
+            stream.Push(encodedFrame);
         }
 
         /// <summary>
         /// Writes the specified bitmap to the video stream as the next frame.
         /// </summary>
         /// <param name="frame">The bitmap to write.</param>
-        public void AddFrame(ImageData frame) => AddFrame(frame, nextFrameIndex);
+        /// <param name="customTime">Custom timestamp for this frame.</param>
+        public void AddFrame(ImageData frame, TimeSpan customTime) => AddFrame(frame, customTime.ToTimestamp(Configuration.TimeBase));
+
+        /// <summary>
+        /// Writes the specified bitmap to the video stream as the next frame.
+        /// </summary>
+        /// <param name="frame">The bitmap to write.</param>
+        public void AddFrame(ImageData frame) => AddFrame(frame, lastFramePts + 1);
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            lock (syncLock)
+            if (isDisposed)
             {
-                if (isDisposed)
-                {
-                    return;
-                }
-
-                stream.Dispose();
-                encodedFrame.Dispose();
-                converter.Dispose();
-
-                isDisposed = true;
+                return;
             }
+
+            stream.Dispose();
+            encodedFrame.Dispose();
+            converter.Dispose();
+
+            isDisposed = true;
         }
 
         private static unsafe (Size, AVPixelFormat) GetStreamLayout(OutputStream<VideoFrame> videoStream)
