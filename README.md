@@ -119,9 +119,9 @@ FFMediaToolkit uses the [*ref struct*](https://docs.microsoft.com/pl-pl/dotnet/c
     // ImageData -> Bitmap (unsafe)
     public static unsafe Bitmap ToBitmap(this ImageData bitmap)
     {
-        fixed(byte* = bitmap.Data)
+        fixed(byte* p = bitmap.Data)
         {
-            return new Bitmap(bitmap.ImageSize.Width, bitmap.ImageSize.Height, bitmap.Stride, PixelFormat.Format24bppRgb, new IntPtr(bitmap.Data));
+            return new Bitmap(bitmap.ImageSize.Width, bitmap.ImageSize.Height, bitmap.Stride, PixelFormat.Format24bppRgb, new IntPtr(p));
         }
     }
   
