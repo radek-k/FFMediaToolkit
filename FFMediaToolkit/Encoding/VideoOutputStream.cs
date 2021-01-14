@@ -58,6 +58,8 @@
             encodedFrame.UpdateFromBitmap(frame, converter);
             encodedFrame.PresentationTimestamp = customPtsValue;
             stream.Push(encodedFrame);
+
+            lastFramePts = customPtsValue;
         }
 
         /// <summary>

@@ -96,6 +96,8 @@
             frame.UpdateFromSampleData(samples);
             frame.PresentationTimestamp = customPtsValue;
             stream.Push(frame);
+
+            lastFramePts = customPtsValue;
         }
 
         /// <summary>
