@@ -31,7 +31,7 @@
         /// <summary>
         /// Gets the timestamp of the recently decoded frame in the media stream.
         /// </summary>
-        public TimeSpan Position => Stream.RecentlyDecodedFrame.PresentationTimestamp.ToTimeSpan(Info.TimeBase);
+        public TimeSpan Position => Math.Max(Stream.RecentlyDecodedFrame.PresentationTimestamp, 0).ToTimeSpan(Info.TimeBase);
 
         /// <summary>
         /// Indicates whether the stream has buffered frame data.
