@@ -164,6 +164,8 @@
                     return 4;
                 case ImagePixelFormat.Rgb24:
                     return 3;
+                case ImagePixelFormat.Rgba32:
+                    return 4;
                 case ImagePixelFormat.Argb32:
                     return 4;
                 case ImagePixelFormat.Uyvy422:

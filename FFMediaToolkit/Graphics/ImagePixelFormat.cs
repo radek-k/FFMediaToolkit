@@ -23,6 +23,11 @@
         Rgb24 = AVPixelFormat.AV_PIX_FMT_RGB24,
 
         /// <summary>
+        /// Represents a RGBA(with alpha channel) 32bpp bitmap pixel format.
+        /// </summary>
+        Rgba32 = AVPixelFormat.AV_PIX_FMT_RGBA,
+
+        /// <summary>
         /// Represents a ARGB(with alpha channel) 32bpp bitmap pixel format.
         /// </summary>
         Argb32 = AVPixelFormat.AV_PIX_FMT_ARGB,
