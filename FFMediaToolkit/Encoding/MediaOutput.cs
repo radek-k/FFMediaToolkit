@@ -20,11 +20,11 @@
         {
             container = mediaContainer;
 
-            Video = container.Video
+            VideoStreams = container.Video
                 .Select(o => new VideoOutputStream(o.stream, o.config))
                 .ToArray();
 
-            Audio = container.Audio
+            AudioStreams = container.Audio
                 .Select(o => new AudioOutputStream(o.stream, o.config))
                 .ToArray();
         }
@@ -37,12 +37,22 @@
         /// <summary>
         /// Gets the video streams in the media file.
         /// </summary>
-        public VideoOutputStream[] Video { get; }
+        public VideoOutputStream[] VideoStreams { get; }
 
         /// <summary>
-        /// Gets the video streams in the media file.
+        /// Gets the audio streams in the media file.
         /// </summary>
-        public AudioOutputStream[] Audio { get; }
+        public AudioOutputStream[] AudioStreams { get; }
+
+        /// <summary>
+        /// Gets the first video stream in the media file.
+        /// </summary>
+        public VideoOutputStream Video => VideoStreams.FirstOrDefault();
+
+        /// <summary>
+        /// Gets the first audio stream in the media file.
+        /// </summary>
+        public AudioOutputStream Audio => AudioStreams.FirstOrDefault();
 
         /// <inheritdoc/>
         public void Dispose()

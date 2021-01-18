@@ -21,31 +21,41 @@
             var video = container.Decoders.Where(codec => codec?.Info.Type == MediaType.Video);
             var audio = container.Decoders.Where(codec => codec?.Info.Type == MediaType.Audio);
 
-            Video = video.Select(codec => new VideoStream(codec, options)).ToArray();
-            Audio = audio.Select(codec => new AudioStream(codec, options)).ToArray();
+            VideoStreams = video.Select(codec => new VideoStream(codec, options)).ToArray();
+            AudioStreams = audio.Select(codec => new AudioStream(codec, options)).ToArray();
 
             Info = new MediaInfo(container.Pointer);
         }
 
         /// <summary>
-        /// Gets the video streams.
+        /// Gets all the video streams in the media file.
         /// </summary>
-        public VideoStream[] Video { get; }
+        public VideoStream[] VideoStreams { get; }
+
+        /// <summary>
+        /// Gets the first video stream in the media file.
+        /// </summary>
+        public VideoStream Video => VideoStreams.FirstOrDefault();
 
         /// <summary>
         /// Gets a value indicating whether the file contains video streams.
         /// </summary>
-        public bool HasVideo => Video.Length > 0;
+        public bool HasVideo => VideoStreams.Length > 0;
 
         /// <summary>
-        /// Gets the audio streams.
+        /// Gets all the audio streams in the media file.
         /// </summary>
-        public AudioStream[] Audio { get; }
+        public AudioStream[] AudioStreams { get; }
+
+        /// <summary>
+        /// Gets the first audio stream in the media file.
+        /// </summary>
+        public AudioStream Audio => AudioStreams.FirstOrDefault();
 
         /// <summary>
         /// Gets a value indicating whether the file contains video streams.
         /// </summary>
-        public bool HasAudio => Audio.Length > 0;
+        public bool HasAudio => AudioStreams.Length > 0;
 
         /// <summary>
         /// Gets informations about the media container.
@@ -116,8 +126,8 @@
                 return;
             }
 
-            var video = Video.Cast<MediaStream>();
-            var audio = Audio.Cast<MediaStream>();
+            var video = VideoStreams.Cast<MediaStream>();
+            var audio = AudioStreams.Cast<MediaStream>();
 
             var streams = video.Concat(audio);
 

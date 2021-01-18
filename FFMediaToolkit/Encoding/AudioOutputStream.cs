@@ -23,7 +23,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="AudioOutputStream"/> class.
         /// </summary>
-        /// <param name="stream">The video stream.</param>
+        /// <param name="stream">The audio stream.</param>
         /// <param name="config">The stream setting.</param>
         internal AudioOutputStream(OutputStream<AudioFrame> stream, AudioEncoderSettings config)
         {
@@ -81,6 +81,8 @@
 
             stream.Push(converted);
             converted.Dispose();
+
+            lastFramePts = customPtsValue;
         }
 
         /// <summary>
