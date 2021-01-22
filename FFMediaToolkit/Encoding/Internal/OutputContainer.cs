@@ -1,8 +1,7 @@
 ﻿namespace FFMediaToolkit.Encoding.Internal
 {
     using System;
-    using System.ComponentModel;
-    using System.IO;
+    using System.Collections.Generic;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
@@ -16,12 +15,19 @@
         private OutputContainer(AVFormatContext* formatContext)
             : base(formatContext)
         {
+            Video = new List<(OutputStream<VideoFrame>, VideoEncoderSettings)>();
+            Audio = new List<(OutputStream<AudioFrame>, AudioEncoderSettings)>();
         }
 
         /// <summary>
-        /// Gets the video stream.
+        /// Gets the video streams.
         /// </summary>
-        public OutputStream<VideoFrame> Video { get; private set; }
+        public List<(OutputStream<VideoFrame> stream, VideoEncoderSettings config)> Video { get; }
+
+        /// <summary>
+        /// Gets the audio streams.
+        /// </summary>
+        public List<(OutputStream<AudioFrame> stream, AudioEncoderSettings config)> Audio { get; }
 
         /// <summary>
         /// Gets a value indicating whether the file is created.
@@ -76,12 +82,21 @@
                 throw new InvalidOperationException("The stream must be added before creating a file.");
             }
 
-            if (Video != null)
+            Video.Add((OutputStreamFactory.CreateVideo(this, config), config));
+        }
+
+        /// <summary>
+        /// Adds a new audio stream to the container. Usable only in encoding, before locking file.
+        /// </summary>
+        /// <param name="config">The stream configuration.</param>
+        public void AddAudioStream(AudioEncoderSettings config)
+        {
+            if (IsFileCreated)
             {
-                throw new InvalidOperationException("The video stream was already created.");
+                throw new InvalidOperationException("The stream must be added before creating a file.");
             }
 
-            Video = OutputStreamFactory.CreateVideo(this, config);
+            Audio.Add((OutputStreamFactory.CreateAudio(this, config), config));
         }
 
         /// <summary>
@@ -125,7 +140,15 @@
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
-            Video?.Dispose();
+            foreach (var output in Video)
+            {
+                output.stream.Dispose();
+            }
+
+            foreach (var output in Audio)
+            {
+                output.stream.Dispose();
+            }
 
             if (IsFileCreated)
             {

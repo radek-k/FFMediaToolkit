@@ -1,7 +1,7 @@
 ﻿namespace FFMediaToolkit.Common
 {
-    using FFmpeg.AutoGen;
     using System.Collections.Generic;
+    using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents multimedia file metadata info.

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Drawing;
+    using System.IO;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Graphics;
@@ -11,135 +12,91 @@
     /// <summary>
     /// Represents a video stream in the <see cref="MediaFile"/>.
     /// </summary>
-    public class VideoStream : IDisposable
+    public class VideoStream : MediaStream
     {
-        private readonly Decoder<VideoFrame> stream;
-        private readonly VideoFrame frame;
-        private readonly Lazy<ImageConverter> converter;
-        private readonly MediaOptions mediaOptions;
-        private readonly Size outputFrameSize;
-
-        private readonly object syncLock = new object();
-
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoStream"/> class.
         /// </summary>
-        /// <param name="video">The video stream.</param>
+        /// <param name="stream">The video stream.</param>
         /// <param name="options">The decoder settings.</param>
-        internal VideoStream(Decoder<VideoFrame> video, MediaOptions options)
+        internal VideoStream(Decoder stream, MediaOptions options)
+            : base(stream, options)
         {
-            stream = video;
-            mediaOptions = options;
-            frame = VideoFrame.CreateEmpty();
-            outputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
-            converter = new Lazy<ImageConverter>(() => new ImageConverter(Info.FrameSize, Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
+            OutputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
+            Converter = new Lazy<ImageConverter>(() => new ImageConverter(Info.FrameSize, Info.AVPixelFormat, OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
         }
 
         /// <summary>
         /// Gets informations about this stream.
         /// </summary>
-        public VideoStreamInfo Info => (VideoStreamInfo)stream.Info;
+        public new VideoStreamInfo Info => base.Info as VideoStreamInfo;
+
+        private Lazy<ImageConverter> Converter { get; }
+
+        private Size OutputFrameSize { get; }
 
         /// <summary>
-        /// Gets the index of the next frame in the video stream.
+        /// Reads the next frame from the video stream.
         /// </summary>
-        public int FramePosition { get; private set; }
-
-        /// <summary>
-        /// Gets the timestamp of the next frame in the video stream.
-        /// </summary>
-        public TimeSpan Position => FramePosition.ToTimeSpan(Info.AvgFrameRate);
-
-        /// <summary>
-        /// Reads the specified video frame.
-        /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
-        /// </summary>
-        /// <param name="frameNumber">The frame index (zero-based number).</param>
-        /// <returns>The decoded video frame.</returns>
-        public ImageData ReadFrame(int frameNumber)
+        /// <returns>A decoded bitmap.</returns>
+        public new ImageData GetNextFrame()
         {
-            lock (syncLock)
+            var frame = base.GetNextFrame() as VideoFrame;
+            return frame.ToBitmap(Converter.Value, Options.VideoPixelFormat, OutputFrameSize);
+        }
+
+        /// <summary>
+        /// Reads the next frame from the video stream.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
+        /// </summary>
+        /// <param name="bitmap">The decoded video frame.</param>
+        /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        public bool TryGetNextFrame(out ImageData bitmap)
+        {
+            try
             {
-                frameNumber = frameNumber.Clamp(0, Info.FrameCount != 0 ? Info.FrameCount - 1 : int.MaxValue);
-
-                if (frameNumber == FramePosition)
-                {
-                    return GetNextFrameAsBitmap();
-                }
-                else if (frameNumber == FramePosition - 1)
-                {
-                    return ConvertVideoFrameToBitmap(stream.RecentlyDecodedFrame);
-                }
-                else
-                {
-                    var frame = SeekToFrame(frameNumber);
-                    FramePosition = frameNumber + 1;
-
-                    return ConvertVideoFrameToBitmap(frame);
-                }
+                bitmap = GetNextFrame();
+                return true;
+            }
+            catch (EndOfStreamException)
+            {
+                bitmap = default;
+                return false;
             }
         }
 
         /// <summary>
         /// Reads the video frame found at the specified timestamp.
         /// </summary>
-        /// <param name="targetTime">The frame timestamp.</param>
+        /// <param name="time">The frame timestamp.</param>
         /// <returns>The decoded video frame.</returns>
-        public ImageData ReadFrame(TimeSpan targetTime) => ReadFrame(targetTime.ToFrameNumber(Info.RealFrameRate));
+        public new ImageData GetFrame(TimeSpan time)
+        {
+            var frame = base.GetFrame(time) as VideoFrame;
+            return frame.ToBitmap(Converter.Value, Options.VideoPixelFormat, OutputFrameSize);
+        }
 
         /// <summary>
-        /// Reads the next frame from this stream.
+        /// Reads the video frame found at the specified timestamp.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
         /// </summary>
-        /// <returns>The decoded video frame.</returns>
-        public unsafe ImageData ReadNextFrame()
+        /// <param name="time">The frame timestamp.</param>
+        /// <param name="bitmap">The decoded video frame.</param>
+        /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        public bool TryGetFrame(TimeSpan time, out ImageData bitmap)
         {
-            lock (syncLock)
+            try
             {
-                return GetNextFrameAsBitmap();
+                bitmap = GetFrame(time);
+                return true;
             }
-        }
-
-        /// <inheritdoc/>
-        void IDisposable.Dispose()
-        {
-            lock (syncLock)
+            catch (EndOfStreamException)
             {
-                stream.Dispose();
-                frame.Dispose();
-
-                if (converter.IsValueCreated)
-                {
-                    converter.Value.Dispose();
-                }
+                bitmap = default;
+                return false;
             }
-        }
-
-        private ImageData GetNextFrameAsBitmap()
-        {
-            var bmp = ConvertVideoFrameToBitmap(stream.GetNextFrame());
-            FramePosition++;
-            return bmp;
-        }
-
-        private unsafe ImageData ConvertVideoFrameToBitmap(VideoFrame frame)
-        {
-            // Gets the target size of the frame (it may be set by the MediaOptions.TargetVideoSize).
-            var bitmap = ImageData.CreatePooled(outputFrameSize, mediaOptions.VideoPixelFormat); // Rents memory for the output bitmap.
-            converter.Value.AVFrameToBitmap(frame, bitmap); // Converts the raw video frame using the given size and pixel format and writes it to the ImageData bitmap.
-            return bitmap;
-        }
-
-        private VideoFrame SeekToFrame(int frameNumber)
-        {
-            var ts = frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase);
-
-            if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.VideoSeekThreshold)
-            {
-                stream.OwnerFile.SeekFile(ts, Info.Index);
-            }
-
-            stream.SkipFrames(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
-            return stream.RecentlyDecodedFrame;
         }
     }
 }
