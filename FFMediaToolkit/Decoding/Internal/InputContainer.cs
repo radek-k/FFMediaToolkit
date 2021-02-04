@@ -114,8 +114,7 @@
             var ptr = Pointer;
             ffmpeg.avformat_close_input(&ptr);
 
-            // Note: the internal buffer could have changed, and be != avio_ctx_buffer
-            if (Pointer->pb != null)
+            if (Pointer->pb != null && Pointer->pb->buffer != null)
             {
                 ffmpeg.av_free(Pointer->pb->buffer);
                 ffmpeg.avio_context_free(&Pointer->pb);
