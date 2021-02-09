@@ -6,7 +6,6 @@
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Graphics;
-    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -14,6 +13,9 @@
     /// </summary>
     public class VideoStream : MediaStream
     {
+        private readonly int outputFrameStride;
+        private readonly int requiredBufferSize;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoStream"/> class.
         /// </summary>
@@ -24,6 +26,9 @@
         {
             OutputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
             Converter = new Lazy<ImageConverter>(() => new ImageConverter(Info.FrameSize, Info.AVPixelFormat, OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
+
+            outputFrameStride = ImageData.EstimateStride(OutputFrameSize.Width, Options.VideoPixelFormat);
+            requiredBufferSize = outputFrameStride * OutputFrameSize.Height;
         }
 
         /// <summary>
@@ -39,6 +44,8 @@
         /// Reads the next frame from the video stream.
         /// </summary>
         /// <returns>A decoded bitmap.</returns>
+        /// <exception cref="EndOfStreamException">End of the stream.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
         public new ImageData GetNextFrame()
         {
             var frame = base.GetNextFrame() as VideoFrame;
@@ -52,6 +59,7 @@
         /// </summary>
         /// <param name="bitmap">The decoded video frame.</param>
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
         public bool TryGetNextFrame(out ImageData bitmap)
         {
             try
@@ -67,10 +75,38 @@
         }
 
         /// <summary>
+        /// Reads the next frame from the video stream  and writes the converted bitmap data directly to the provided buffer.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
+        /// </summary>
+        /// <param name="buffer">Pointer to the memory buffer.</param>
+        /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        /// <exception cref="ArgumentException">Too small buffer.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public unsafe bool UnsafeTryGetNextFrame(Span<byte> buffer)
+        {
+            try
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    ConvertCopyFrameToMemory(base.GetNextFrame() as VideoFrame, ptr, buffer.Length);
+                }
+
+                return true;
+            }
+            catch (EndOfStreamException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Reads the video frame found at the specified timestamp.
         /// </summary>
         /// <param name="time">The frame timestamp.</param>
         /// <returns>The decoded video frame.</returns>
+        /// <exception cref="EndOfStreamException">End of the stream.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
         public new ImageData GetFrame(TimeSpan time)
         {
             var frame = base.GetFrame(time) as VideoFrame;
@@ -85,6 +121,7 @@
         /// <param name="time">The frame timestamp.</param>
         /// <param name="bitmap">The decoded video frame.</param>
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
         public bool TryGetFrame(TimeSpan time, out ImageData bitmap)
         {
             try
@@ -97,6 +134,43 @@
                 bitmap = default;
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Reads the video frame found at the specified timestamp and writes the converted bitmap data directly to the provided buffer.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
+        /// </summary>
+        /// <param name="time">The frame timestamp.</param>
+        /// <param name="buffer">Pointer to the memory buffer.</param>
+        /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        /// <exception cref="ArgumentException">Too small buffer.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public unsafe bool UnsafeTryGetFrame(TimeSpan time, Span<byte> buffer)
+        {
+            try
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    ConvertCopyFrameToMemory(base.GetFrame(time) as VideoFrame, ptr, buffer.Length);
+                }
+            }
+            catch (EndOfStreamException)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private unsafe void ConvertCopyFrameToMemory(VideoFrame frame, byte* target, int size)
+        {
+            if (size < requiredBufferSize)
+            {
+                throw new ArgumentException(nameof(size), "Destination buffer is smaller than the converted bitmap data.");
+            }
+
+            Converter.Value.AVFrameToBitmap(frame, target, outputFrameStride);
         }
     }
 }
