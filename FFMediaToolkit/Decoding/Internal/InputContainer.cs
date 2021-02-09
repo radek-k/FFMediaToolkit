@@ -108,7 +108,7 @@
         {
             foreach (var decoder in Decoders)
             {
-                decoder.Dispose();
+                decoder?.Dispose();
             }
 
             var ptr = Pointer;
