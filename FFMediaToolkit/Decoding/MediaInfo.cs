@@ -34,7 +34,18 @@
                     TimeSpan.Zero;
             Chapters = new ReadOnlyCollection<MediaChapter>(ParseChapters(container));
 
-            fileInfo = new Lazy<FileInfo>(() => new FileInfo(FilePath));
+            fileInfo = new Lazy<FileInfo>(() =>
+            {
+                try
+                {
+                    var info = new FileInfo(FilePath);
+                    return info;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
         }
 
         /// <summary>
@@ -45,6 +56,7 @@
         /// <summary>
         /// Gets a <see cref="System.IO.FileInfo"/> object for the media file.
         /// It contains file size, directory, last access, creation and write timestamps.
+        /// Returns <see langword="null"/> if not available, for example when <see cref="Stream"/> was used to open the <see cref="MediaFile"/>.
         /// </summary>
         public FileInfo FileInfo => fileInfo.Value;
 
