@@ -3,20 +3,16 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/9vaaqchtx1d5nldj?svg=true)](https://ci.appveyor.com/project/radek-k/ffmediatoolkit) [![Nuget](https://img.shields.io/nuget/v/FFMediaToolkit.svg)](https://www.nuget.org/packages/FFMediaToolkit/)
 [![License](https://img.shields.io/github/license/radek-k/FFMediaToolkit.svg)](https://github.com/radek-k/FFMediaToolkit/blob/master/LICENSE)
 
-**FFMediaToolkit** is a .NET library for creating and reading video files. It uses native FFmpeg libraries by the [FFmpeg.Autogen](https://github.com/Ruslan-B/FFmpeg.AutoGen) bindings.
+**FFMediaToolkit** is a .NET library for creating and reading multimedia files. It uses native FFmpeg libraries by the [FFmpeg.Autogen](https://github.com/Ruslan-B/FFmpeg.AutoGen) bindings.
 
 ## Features
 
-- Decoding/encoding videos in many formats supported by FFmpeg.
-- Access to any video frame by frame index<sup id="a1">[2](#f1)</sup> or timestamp.
+- Decoding/encoding audio-video files in many formats supported by FFmpeg.
+- Extracting audio data as floating point arrays.
+- Access to any video frame by timestamp.
 - Creating videos from images with metadata, pixel format, bitrate, CRF, FPS, GoP, dimensions and other codec settings.
 - Supports reading multimedia chapters and metadata.
 - Cross-platform - works on Linux, Windows, and macOS - with .NET Core or .NET Framework projects.
-
-_____
-
-<b id="f1">1</b> The time it takes to obtain a frame depends on the number of keyframes in the video stream(see https://en.wikipedia.org/wiki/Key_frame#Video_compression)  
-<b id="f1">2</b> Access to frame by index **is not supported** in Variable Frame Rate videos.
 
 ## Code samples
 
@@ -25,7 +21,7 @@ _____
     ```c#
     int i = 0;
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
-    while(file.Video.TryReadNextFrame(out var imageData))
+    while(file.Video.TryGetNextFrame(out var imageData))
     {
         imageData.ToBitmap().Save($@"C:\images\frame_{i++}.png");
         // See the #Usage details for example .ToBitmap() implementation
@@ -41,7 +37,7 @@ _____
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
     
      // Gets the frame at 5th second of the video.
-    var frame5s = file.Video.ReadFrame(TimeSpan.FromSeconds(5));
+    var frame5s = file.Video.GetFrame(TimeSpan.FromSeconds(5));
     
     // Print informations about the video stream.
     Console.WriteLine($"Bitrate: {file.Info.Bitrate / 1000.0} kb/s");
@@ -88,7 +84,7 @@ PM> Install-Package FFMediaToolkit
 
 - **Windows** - You can download it from the [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) or [gyan.dev](https://www.gyan.dev/ffmpeg/builds/). You only need `*.dll` files from the `.\bin` directory (**not `.\lib`**) of the ZIP package. Place the binaries in the `.\ffmpeg\x86_64\`(64bit) in the application output directory or set `FFmpegLoader.FFmpegPath`.
 - **Linux** - Download FFmpeg using your package manager.
-- **macOS** - Install FFmpeg via [Homebrew](https://formulae.brew.sh/formula/ffmpeg).`
+- **macOS** - Install FFmpeg via [Homebrew](https://formulae.brew.sh/formula/ffmpeg).
 
 **You need to set `FFmpegLoader.FFmpegPath` with a full path to FFmpeg libraries.**
 > If you want to use 64-bit FFmpeg, you have to disable the *Build* -> *Prefer 32-bit* option in Visual Studio project properties.
@@ -168,7 +164,7 @@ Dim file As FileStream = New FileStream("path to the video file", FileMode.Open,
 Dim media As MediaFile = MediaFile.Load(file)
 Dim bmp As WriteableBimap = New WriteableBitmap(media.Video.Info.FrameSize.Width, media.Video.Info.FrameSize.Height, 96, 96, PixelFormats.Bgr24, Nothing)
 bmp.Lock()
-Dim decoded As Boolean = media.Video.TryReadFrameToPointer(TimeSpan.FromMinutes(1), bmp.BackBuffer, bmp.BackBufferStride)
+Dim decoded As Boolean = media.Video.TryGetFrame(TimeSpan.FromMinutes(1), bmp.BackBuffer, bmp.BackBufferStride)
 If decoded Then
     bmp.AddDirtyRect(New Int32Rect(0, 0, media.Video.Info.FrameSize.Width, media.Video.Info.FrameSize.Height))
 End If
@@ -177,7 +173,7 @@ imageBox.Source = bmp
 ````
 Converting `ImageData` to a byte array:
 ````vb
-Dim data() As Byte = media.Video.ReadNextFrame().Data.ToArray()
+Dim data() As Byte = media.Video.GetNextFrame().Data.ToArray()
 ````
 ## Licensing
 
