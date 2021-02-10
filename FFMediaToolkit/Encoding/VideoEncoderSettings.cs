@@ -1,7 +1,7 @@
 ﻿namespace FFMediaToolkit.Encoding
 {
     using System.Collections.Generic;
-    using FFMediaToolkit.Common;
+
     using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
 
@@ -66,6 +66,11 @@
         /// Gets or sets the video frame rate as a FFmpeg <see cref="AVRational"/> value. Optional. Overwrites <see cref="Framerate"/> property.
         /// </summary>
         public AVRational FramerateRational { get; set; }
+
+        /// <summary>
+        /// Gets the calculated time base for the video stream. Value is always equal to reciporical of <see cref="FramerateRational"/>.
+        /// </summary>
+        public AVRational TimeBase => new AVRational { num = FramerateRational.den, den = FramerateRational.num };
 
         /// <summary>
         /// Gets or sets the Constant Rate Factor. It supports only H.264 and H.265 codecs.

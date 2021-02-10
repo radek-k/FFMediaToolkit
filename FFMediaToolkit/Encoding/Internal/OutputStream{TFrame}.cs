@@ -23,7 +23,7 @@
             : base(stream)
         {
             OwnerFile = owner;
-            packet = MediaPacket.AllocateEmpty(stream->index);
+            packet = MediaPacket.AllocateEmpty();
         }
 
         /// <summary>

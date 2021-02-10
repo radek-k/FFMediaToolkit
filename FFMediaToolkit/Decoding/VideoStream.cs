@@ -6,174 +6,144 @@
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
     using FFMediaToolkit.Graphics;
-    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
     /// Represents a video stream in the <see cref="MediaFile"/>.
     /// </summary>
-    public class VideoStream : IDisposable
+    public class VideoStream : MediaStream
     {
-        private readonly Decoder<VideoFrame> stream;
-        private readonly Lazy<ImageConverter> converter;
-        private readonly MediaOptions mediaOptions;
-        private readonly Size outputFrameSize;
-        private readonly long threshold;
-
-        private readonly object syncLock = new object();
+        private readonly int outputFrameStride;
+        private readonly int requiredBufferSize;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoStream"/> class.
         /// </summary>
-        /// <param name="video">The video stream.</param>
+        /// <param name="stream">The video stream.</param>
         /// <param name="options">The decoder settings.</param>
-        internal VideoStream(Decoder<VideoFrame> video, MediaOptions options)
+        internal VideoStream(Decoder stream, MediaOptions options)
+            : base(stream, options)
         {
-            stream = video;
-            mediaOptions = options;
-            outputFrameSize = options.TargetVideoSize ?? video.Info.FrameSize;
-            converter = new Lazy<ImageConverter>(() => new ImageConverter(video.Info.FrameSize, video.Info.AVPixelFormat, outputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
-            threshold = TimeSpan.FromSeconds(0.5).ToTimestamp(Info.TimeBase);
+            OutputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
+            Converter = new Lazy<ImageConverter>(() => new ImageConverter(Info.FrameSize, Info.AVPixelFormat, OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
+
+            outputFrameStride = ImageData.EstimateStride(OutputFrameSize.Width, Options.VideoPixelFormat);
+            requiredBufferSize = outputFrameStride * OutputFrameSize.Height;
         }
 
         /// <summary>
         /// Gets informations about this stream.
         /// </summary>
-        public StreamInfo Info => stream.Info;
+        public new VideoStreamInfo Info => base.Info as VideoStreamInfo;
+
+        private Lazy<ImageConverter> Converter { get; }
+
+        private Size OutputFrameSize { get; }
 
         /// <summary>
-        /// Gets the index of the next frame in the video stream.
+        /// Reads the next frame from the video stream.
         /// </summary>
-        public int FramePosition { get; private set; }
-
-        /// <summary>
-        /// Gets the timestamp of the recently decoded frame in the video stream.
-        /// </summary>
-        public TimeSpan Position => stream.RecentlyDecodedFrame.PresentationTimestamp.ToTimeSpan(Info.TimeBase);
-
-        /// <summary>
-        /// Reads the specified video frame.
-        /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
-        /// </summary>
-        /// <param name="frameNumber">The frame index (zero-based number).</param>
-        /// <returns>The decoded video frame.</returns>
-        public ImageData ReadFrame(int frameNumber)
+        /// <returns>A decoded bitmap.</returns>
+        /// <exception cref="EndOfStreamException">End of the stream.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public new ImageData GetNextFrame()
         {
-            lock (syncLock)
-            {
-                var frame = GetFrame(frameNumber, Info.FrameCount);
-                return frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
-            }
+            var frame = base.GetNextFrame() as VideoFrame;
+            return frame.ToBitmap(Converter.Value, Options.VideoPixelFormat, OutputFrameSize);
         }
 
         /// <summary>
-        /// Reads the specified video frame.
-        /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
-        /// A <see langword="false"/> return value indicates that reached end of stream so frame was not read. 
-        /// The method throws exception if another error has occurred.
-        /// </summary>
-        /// <param name="frameNumber">The frame index (zero-based number).</param>
-        /// <param name="bitmap">The decoded video frame.</param>
-        /// <returns><see langword="false"/> if reached end of the stream.</returns>
-        public bool TryReadFrame(int frameNumber, out ImageData bitmap)
-        {
-            if (Info.IsVariableFrameRate)
-            {
-                throw new NotSupportedException("Access to frame by index is not supported in variable frame rate video.");
-            }
-
-            lock (syncLock)
-            {
-                VideoFrame frame;
-                try
-                {
-                    frame = GetFrame(frameNumber, Info.NumberOfFrames.Value);
-                }
-                catch (EndOfStreamException)
-                {
-                    bitmap = default;
-                    return false;
-                }
-
-                bitmap = frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Reads the specified video frame and writes the converted bitmap bytes directly to the provided buffer. A <see cref="false"/> return value indicates that reached end of stream so frame was not read. The method throws exception if another error has occurred.
-        /// This does not work with Variable Frame Rate videos! Use the <see cref="ReadFrame(TimeSpan)"/> overload instead.
+        /// Reads the next frame from the video stream.
         /// A <see langword="false"/> return value indicates that reached end of stream.
         /// The method throws exception if another error has occurred.
         /// </summary>
-        /// <param name="frameNumber">The frame index (zero-based number).</param>
+        /// <param name="bitmap">The decoded video frame.</param>
+        /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public bool TryGetNextFrame(out ImageData bitmap)
+        {
+            try
+            {
+                bitmap = GetNextFrame();
+                return true;
+            }
+            catch (EndOfStreamException)
+            {
+                bitmap = default;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Reads the next frame from the video stream  and writes the converted bitmap data directly to the provided buffer.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
+        /// </summary>
         /// <param name="buffer">Pointer to the memory buffer.</param>
-        /// <param name="bufferStride">Number of bytes in a single row of pixel data.</param>
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
-        public bool TryReadFrameToPointer(int frameNumber, IntPtr buffer, int bufferStride)
+        /// <exception cref="ArgumentException">Too small buffer.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public unsafe bool TryGetNextFrame(Span<byte> buffer)
         {
-            if (Info.IsVariableFrameRate)
+            if (buffer.Length < requiredBufferSize)
             {
-                throw new NotSupportedException("Access to frame by index is not supported in variable frame rate video.");
+                throw new ArgumentException(nameof(buffer), "Destination buffer is smaller than the converted bitmap data.");
             }
 
-            lock (syncLock)
+            try
             {
-                VideoFrame frame;
-                try
+                fixed (byte* ptr = buffer)
                 {
-                    frame = GetFrame(frameNumber, Info.NumberOfFrames.Value);
-                }
-                catch (EndOfStreamException)
-                {
-                    return false;
+                    ConvertCopyFrameToMemory(base.GetNextFrame() as VideoFrame, ptr);
                 }
 
-                CopyFrameToMemory(frame, buffer, bufferStride);
                 return true;
             }
-        }
-
-        /// <summary>
-        /// Reads the video frame found at the specified timestamp.
-        /// </summary>
-        /// <param name="targetTime">The frame timestamp.</param>
-        /// <returns>The decoded video frame.</returns>
-        public ImageData ReadFrame(TimeSpan targetTime)
-        {
-            lock (syncLock)
+            catch (EndOfStreamException)
             {
-                var frame = GetFrameByTimestamp(targetTime.ToTimestamp(Info.TimeBase));
-                return frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
+                return false;
             }
         }
 
         /// <summary>
-        /// Reads the video frame found at the specified timestamp.
+        /// Reads the next frame from the video stream  and writes the converted bitmap data directly to the provided buffer.
         /// A <see langword="false"/> return value indicates that reached end of stream.
         /// The method throws exception if another error has occurred.
         /// </summary>
-        /// <param name="targetTime">The frame timestamp.</param>
-        /// <param name="bitmap">The decoded video frame.</param>
+        /// <param name="buffer">Pointer to the memory buffer.</param>
+        /// <param name="bufferStride">Size in bytes of a single row of pixels.</param>
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
-        public bool TryReadFrame(TimeSpan targetTime, out ImageData bitmap)
+        /// <exception cref="ArgumentException">Too small buffer.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public unsafe bool TryGetNextFrame(IntPtr buffer, int bufferStride)
         {
-            lock (syncLock)
+            if (bufferStride != outputFrameStride)
             {
-                VideoFrame frame;
-                try
-                {
-                    frame = GetFrameByTimestamp(targetTime.ToTimestamp(Info.TimeBase));
-                }
-                catch (EndOfStreamException)
-                {
-                    bitmap = default;
-                    return false;
-                }
+                throw new ArgumentException(nameof(bufferStride), "Destination buffer is smaller than the converted bitmap data.");
+            }
 
-                bitmap = frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
+            try
+            {
+                ConvertCopyFrameToMemory(base.GetNextFrame() as VideoFrame, (byte*)buffer);
                 return true;
             }
+            catch (EndOfStreamException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Reads the video frame found at the specified timestamp.
+        /// </summary>
+        /// <param name="time">The frame timestamp.</param>
+        /// <returns>The decoded video frame.</returns>
+        /// <exception cref="EndOfStreamException">End of the stream.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public new ImageData GetFrame(TimeSpan time)
+        {
+            var frame = base.GetFrame(time) as VideoFrame;
+            return frame.ToBitmap(Converter.Value, Options.VideoPixelFormat, OutputFrameSize);
         }
 
         /// <summary>
@@ -181,173 +151,88 @@
         /// A <see langword="false"/> return value indicates that reached end of stream.
         /// The method throws exception if another error has occurred.
         /// </summary>
-        /// <param name="targetTime">The frame timestamp.</param>
-        /// <param name="buffer">Pointer to the memory buffer.</param>
-        /// <param name="bufferStride">Number of bytes in a single row of pixel data.</param>
-        /// <returns><see langword="false"/> if reached end of the stream.</returns>
-        public bool TryReadFrameToPointer(TimeSpan targetTime, IntPtr buffer, int bufferStride)
-        {
-            lock (syncLock)
-            {
-                VideoFrame frame;
-                try
-                {
-                    frame = GetFrameByTimestamp(targetTime.ToTimestamp(Info.TimeBase));
-                }
-                catch (EndOfStreamException)
-                {
-                    return false;
-                }
-
-                CopyFrameToMemory(frame, buffer, bufferStride);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Reads the next frame from this stream.
-        /// </summary>
-        /// <returns>The decoded video frame.</returns>
-        public ImageData ReadNextFrame()
-        {
-            lock (syncLock)
-            {
-                var frame = GetNextFrame();
-                return frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
-            }
-        }
-
-        /// <summary>
-        /// Reads the next frame from this stream.
-        /// A <see langword="false"/> return value indicates that reached end of stream.
-        /// The method throws exception if another error has occurred.
-        /// </summary>
+        /// <param name="time">The frame timestamp.</param>
         /// <param name="bitmap">The decoded video frame.</param>
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
-        public bool TryReadNextFrame(out ImageData bitmap)
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public bool TryGetFrame(TimeSpan time, out ImageData bitmap)
         {
-            lock (syncLock)
+            try
             {
-                VideoFrame frame;
-                try
-                {
-                    frame = GetNextFrame();
-                }
-                catch (EndOfStreamException)
-                {
-                    bitmap = default;
-                    return false;
-                }
-
-                bitmap = frame.ToBitmap(converter.Value, mediaOptions.VideoPixelFormat, outputFrameSize);
+                bitmap = GetFrame(time);
                 return true;
+            }
+            catch (EndOfStreamException)
+            {
+                bitmap = default;
+                return false;
             }
         }
 
         /// <summary>
-        /// Reads the next frame from this stream and writes the converted bitmap bytes directly to the provided buffer.
+        /// Reads the video frame found at the specified timestamp and writes the converted bitmap data directly to the provided buffer.
         /// A <see langword="false"/> return value indicates that reached end of stream.
         /// The method throws exception if another error has occurred.
         /// </summary>
+        /// <param name="time">The frame timestamp.</param>
         /// <param name="buffer">Pointer to the memory buffer.</param>
-        /// <param name="bufferStride">Number of bytes in a single row of pixel data.</param>
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
-        public bool TryReadNextFrameToPointer(IntPtr buffer, int bufferStride)
+        /// <exception cref="ArgumentException">Too small buffer.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public unsafe bool TryGetFrame(TimeSpan time, Span<byte> buffer)
         {
-            lock (syncLock)
+            if (buffer.Length < requiredBufferSize)
             {
-                VideoFrame frame;
-                try
+                throw new ArgumentException(nameof(buffer), "Destination buffer is smaller than the converted bitmap data.");
+            }
+
+            try
+            {
+                fixed (byte* ptr = buffer)
                 {
-                    frame = GetNextFrame();
-                }
-                catch (EndOfStreamException)
-                {
-                    return false;
+                    ConvertCopyFrameToMemory(base.GetFrame(time) as VideoFrame, ptr);
                 }
 
-                CopyFrameToMemory(frame, buffer, bufferStride);
                 return true;
             }
-        }
-
-        /// <inheritdoc/>
-        void IDisposable.Dispose()
-        {
-            lock (syncLock)
+            catch (EndOfStreamException)
             {
-                stream.Dispose();
-
-                if (converter.IsValueCreated)
-                {
-                    converter.Value.Dispose();
-                }
+                return false;
             }
         }
 
-        private VideoFrame GetFrame(int frameNumber, int frameCount)
+        /// <summary>
+        /// Reads the video frame found at the specified timestamp and writes the converted bitmap data directly to the provided buffer.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
+        /// </summary>
+        /// <param name="time">The frame timestamp.</param>
+        /// <param name="buffer">Pointer to the memory buffer.</param>
+        /// <param name="bufferStride">Size in bytes of a single row of pixels.</param>
+        /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        /// <exception cref="ArgumentException">Too small buffer.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public unsafe bool TryGetFrame(TimeSpan time, IntPtr buffer, int bufferStride)
         {
-            frameNumber = frameNumber.Clamp(0, frameCount != 0 ? frameCount - 1 : int.MaxValue);
-
-            if (frameNumber == FramePosition)
+            if (bufferStride != outputFrameStride)
             {
-                return GetNextFrame();
-            }
-            else if (frameNumber != FramePosition - 1)
-            {
-                var ts = frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase);
-
-                if (frameNumber < FramePosition || frameNumber > FramePosition + mediaOptions.VideoSeekThreshold)
-                {
-                    stream.OwnerFile.SeekFile(ts, Info.Index);
-                }
-
-                stream.SkipFrames(frameNumber.ToTimestamp(Info.RealFrameRate, Info.TimeBase));
-                FramePosition = frameNumber + 1;
+                throw new ArgumentException(nameof(bufferStride), "Destination buffer is smaller than the converted bitmap data.");
             }
 
-            return stream.RecentlyDecodedFrame;
+            try
+            {
+                ConvertCopyFrameToMemory(base.GetFrame(time) as VideoFrame, (byte*)buffer);
+                return true;
+            }
+            catch (EndOfStreamException)
+            {
+                return false;
+            }
         }
 
-        private VideoFrame GetFrameByTimestamp(long ts)
+        private unsafe void ConvertCopyFrameToMemory(VideoFrame frame, byte* target)
         {
-            var frame = stream.RecentlyDecodedFrame;
-            ts = Math.Max(0, Math.Min(ts, Info.DurationRaw));
-
-            if (ts > frame.PresentationTimestamp && ts < frame.PresentationTimestamp + threshold)
-            {
-                return GetNextFrame();
-            }
-            else if (ts != frame.PresentationTimestamp)
-            {
-                if (ts < frame.PresentationTimestamp || ts >= frame.PresentationTimestamp + threshold)
-                {
-                    stream.OwnerFile.SeekFile(ts, Info.Index);
-                }
-
-                stream.SkipFrames(ts);
-                FramePosition = Position.ToFrameNumber(Info.RealFrameRate) + 1;
-            }
-
-            return stream.RecentlyDecodedFrame;
-        }
-
-        private VideoFrame GetNextFrame()
-        {
-            var frame = stream.GetNextFrame();
-            FramePosition++;
-            return frame;
-        }
-
-        private unsafe void CopyFrameToMemory(VideoFrame frame, IntPtr target, int stride)
-        {
-            if (stride != ImageData.EstimateStride(outputFrameSize.Width, mediaOptions.VideoPixelFormat))
-            {
-                throw new ArgumentOutOfRangeException(nameof(stride), "Stride does not match output bitmap size and pixel format.");
-            }
-
-            var ptr = (byte*)target.ToPointer();
-            converter.Value.AVFrameToBitmap(frame, ptr, stride);
+            Converter.Value.AVFrameToBitmap(frame, target, outputFrameStride);
         }
     }
 }

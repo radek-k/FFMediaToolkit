@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Decoding.Internal
 {
+    using System;
     using System.IO;
 
     using FFMediaToolkit.Common;
@@ -15,23 +16,19 @@
     {
         private static avio_alloc_context_read_packet readCallback;
         private static avio_alloc_context_seek seekCallback;
-        private readonly MediaPacket packet;
-        private readonly bool avioContextDisposingRequired;
-        private bool canReusePacket = false;
 
-        private InputContainer(AVFormatContext* formatContext, bool useCustomAvioContext)
+        private InputContainer(AVFormatContext* formatContext)
             : base(formatContext)
         {
-            packet = MediaPacket.AllocateEmpty(0);
-            avioContextDisposingRequired = useCustomAvioContext;
+            Decoders = new Decoder[Pointer->nb_streams];
         }
 
-        private delegate bool AVFormatContextDelegate(AVFormatContext* context);
+        private delegate void AVFormatContextDelegate(AVFormatContext* context);
 
         /// <summary>
-        /// Gets the video stream.
+        /// List of all stream codecs that have been opened from the file.
         /// </summary>
-        public Decoder<VideoFrame> Video { get; private set; }
+        public Decoder[] Decoders { get; }
 
         /// <summary>
         /// Opens a media container and stream codecs from given path.
@@ -39,7 +36,7 @@
         /// <param name="path">A path to the multimedia file.</param>
         /// <param name="options">The media settings.</param>
         /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
-        public static InputContainer LoadFile(string path, MediaOptions options) => MakeContainer(path, options, _ => false);
+        public static InputContainer LoadFile(string path, MediaOptions options) => MakeContainer(path, options, _ => { });
 
         /// <summary>
         /// Opens a media container and stream codecs from given stream.
@@ -65,36 +62,8 @@
                 {
                     throw new FFmpegException("Cannot allocate AVIOContext.");
                 }
-
-                return true;
             });
         }
-
-        /// <summary>
-        /// Reads the next packet from the specified stream.
-        /// </summary>
-        /// <param name="streamIndex">Index of the stream.</param>
-        /// <returns>The read packet as <see cref="MediaPacket"/> object.</returns>
-        public MediaPacket ReadNextPacket(int streamIndex)
-        {
-            if (canReusePacket)
-            {
-                canReusePacket = false;
-                if (packet.StreamIndex != streamIndex)
-                    packet.Wipe();
-                else
-                    return packet;
-            }
-
-            GetPacketFromStream(streamIndex);
-
-            return packet;
-        }
-
-        /// <summary>
-        /// Allows to return the last decoded packet with the next <see cref="ReadNextPacket(int)"/> call.
-        /// </summary>
-        public void ReuseLastPacket() => canReusePacket = true;
 
         /// <summary>
         /// Seeks all streams in the container to the first key frame before the specified time stamp.
@@ -105,27 +74,50 @@
         {
             ffmpeg.av_seek_frame(Pointer, streamIndex, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
 
-            Video.FlushBuffers();
+            Decoders[streamIndex].FlushUnmanagedBuffers();
             GetPacketFromStream(streamIndex);
-            canReusePacket = true;
+        }
+
+        /// <summary>
+        /// Reads a packet from the specified stream index and buffers it in the respective codec.
+        /// </summary>
+        /// <param name="streamIndex">Index of the stream to read from.</param>
+        public void GetPacketFromStream(int streamIndex)
+        {
+            MediaPacket packet;
+            do
+            {
+                packet = ReadPacket();
+                var stream = Decoders[packet.StreamIndex];
+                if (stream == null)
+                {
+                    packet.Wipe();
+                    packet.Dispose();
+                    packet = null;
+                }
+                else
+                {
+                    stream.BufferPacket(packet);
+                }
+            }
+            while (packet?.StreamIndex != streamIndex);
         }
 
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
-            Video?.Dispose();
+            foreach (var decoder in Decoders)
+            {
+                decoder?.Dispose();
+            }
 
             var ptr = Pointer;
             ffmpeg.avformat_close_input(&ptr);
 
-            // Note: the internal buffer could have changed, and be != avio_ctx_buffer
-            if (Pointer->pb != null)
+            if (Pointer->pb != null && Pointer->pb->buffer != null)
             {
                 ffmpeg.av_free(Pointer->pb->buffer);
-                if (avioContextDisposingRequired)
-                {
-                    ffmpeg.avio_context_free(&Pointer->pb);
-                }
+                ffmpeg.avio_context_free(&Pointer->pb);
             }
         }
 
@@ -137,7 +129,7 @@
             options.DemuxerOptions.ApplyFlags(context);
             var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions, false).Pointer;
 
-            var avio = contextDelegate(context);
+            contextDelegate(context);
 
             ffmpeg.avformat_open_input(&context, url, null, &dict)
                 .ThrowIfError("An error occurred while opening the file");
@@ -145,7 +137,7 @@
             ffmpeg.avformat_find_stream_info(context, null)
                 .ThrowIfError("Cannot find stream info");
 
-            var container = new InputContainer(context, avio);
+            var container = new InputContainer(context);
             container.OpenStreams(options);
             return container;
         }
@@ -156,21 +148,31 @@
         /// <param name="options">The <see cref="MediaOptions"/> object.</param>
         private void OpenStreams(MediaOptions options)
         {
-            // if (options.StreamsToLoad != MediaMode.Audio)
-            Video = DecoderFactory.OpenVideo(this, options);
-            if (Video != null)
+            for (int i = 0; i < Pointer->nb_streams; i++)
             {
-                GetPacketFromStream(Video.Info.Index); // Requests for the first packet.
-                canReusePacket = true;
+                var stream = Pointer->streams[i];
+                if (!options.ShouldLoadStreamsOfType(stream->codec->codec_type))
+                    continue;
+
+                try
+                {
+                    Decoders[i] = DecoderFactory.OpenStream(this, options, stream);
+                    GetPacketFromStream(i);
+                }
+                catch (Exception)
+                {
+                    Decoders[i] = null;
+                }
             }
         }
 
         /// <summary>
         /// Reads the next packet from this file.
         /// </summary>
-        private void ReadPacket()
+        private MediaPacket ReadPacket()
         {
-            var result = ffmpeg.av_read_frame(Pointer, packet.Pointer); // Gets the next packet from the file.
+            var pkt = MediaPacket.AllocateEmpty();
+            var result = ffmpeg.av_read_frame(Pointer, pkt.Pointer); // Gets the next packet from the file.
 
             // Check if the end of file error occurred
             if (result == ffmpeg.AVERROR_EOF)
@@ -181,19 +183,8 @@
             {
                 result.ThrowIfError("Cannot read next packet from the file");
             }
-        }
 
-        private void GetPacketFromStream(int streamIndex)
-        {
-            do
-            {
-                ReadPacket();
-                if (packet.StreamIndex != streamIndex)
-                    packet.Wipe();
-                else
-                    break;
-            }
-            while (true);
+            return pkt;
         }
     }
 }
