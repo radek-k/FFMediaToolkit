@@ -83,15 +83,48 @@
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
         /// <exception cref="ArgumentException">Too small buffer.</exception>
         /// <exception cref="FFmpegException">Internal decoding error.</exception>
-        public unsafe bool UnsafeTryGetNextFrame(Span<byte> buffer)
+        public unsafe bool TryGetNextFrame(Span<byte> buffer)
         {
+            if (buffer.Length < requiredBufferSize)
+            {
+                throw new ArgumentException(nameof(buffer), "Destination buffer is smaller than the converted bitmap data.");
+            }
+
             try
             {
                 fixed (byte* ptr = buffer)
                 {
-                    ConvertCopyFrameToMemory(base.GetNextFrame() as VideoFrame, ptr, buffer.Length);
+                    ConvertCopyFrameToMemory(base.GetNextFrame() as VideoFrame, ptr);
                 }
 
+                return true;
+            }
+            catch (EndOfStreamException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Reads the next frame from the video stream  and writes the converted bitmap data directly to the provided buffer.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
+        /// </summary>
+        /// <param name="buffer">Pointer to the memory buffer.</param>
+        /// <param name="bufferStride">Size in bytes of a single row of pixels.</param>
+        /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        /// <exception cref="ArgumentException">Too small buffer.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public unsafe bool TryGetNextFrame(IntPtr buffer, int bufferStride)
+        {
+            if (bufferStride != outputFrameStride)
+            {
+                throw new ArgumentException(nameof(bufferStride), "Destination buffer is smaller than the converted bitmap data.");
+            }
+
+            try
+            {
+                ConvertCopyFrameToMemory(base.GetNextFrame() as VideoFrame, (byte*)buffer);
                 return true;
             }
             catch (EndOfStreamException)
@@ -146,30 +179,59 @@
         /// <returns><see langword="false"/> if reached end of the stream.</returns>
         /// <exception cref="ArgumentException">Too small buffer.</exception>
         /// <exception cref="FFmpegException">Internal decoding error.</exception>
-        public unsafe bool UnsafeTryGetFrame(TimeSpan time, Span<byte> buffer)
+        public unsafe bool TryGetFrame(TimeSpan time, Span<byte> buffer)
         {
+            if (buffer.Length < requiredBufferSize)
+            {
+                throw new ArgumentException(nameof(buffer), "Destination buffer is smaller than the converted bitmap data.");
+            }
+
             try
             {
                 fixed (byte* ptr = buffer)
                 {
-                    ConvertCopyFrameToMemory(base.GetFrame(time) as VideoFrame, ptr, buffer.Length);
+                    ConvertCopyFrameToMemory(base.GetFrame(time) as VideoFrame, ptr);
                 }
+
+                return true;
             }
             catch (EndOfStreamException)
             {
                 return false;
             }
-
-            return true;
         }
 
-        private unsafe void ConvertCopyFrameToMemory(VideoFrame frame, byte* target, int size)
+        /// <summary>
+        /// Reads the video frame found at the specified timestamp and writes the converted bitmap data directly to the provided buffer.
+        /// A <see langword="false"/> return value indicates that reached end of stream.
+        /// The method throws exception if another error has occurred.
+        /// </summary>
+        /// <param name="time">The frame timestamp.</param>
+        /// <param name="buffer">Pointer to the memory buffer.</param>
+        /// <param name="bufferStride">Size in bytes of a single row of pixels.</param>
+        /// <returns><see langword="false"/> if reached end of the stream.</returns>
+        /// <exception cref="ArgumentException">Too small buffer.</exception>
+        /// <exception cref="FFmpegException">Internal decoding error.</exception>
+        public unsafe bool TryGetFrame(TimeSpan time, IntPtr buffer, int bufferStride)
         {
-            if (size < requiredBufferSize)
+            if (bufferStride != outputFrameStride)
             {
-                throw new ArgumentException(nameof(size), "Destination buffer is smaller than the converted bitmap data.");
+                throw new ArgumentException(nameof(bufferStride), "Destination buffer is smaller than the converted bitmap data.");
             }
 
+            try
+            {
+                ConvertCopyFrameToMemory(base.GetFrame(time) as VideoFrame, (byte*)buffer);
+                return true;
+            }
+            catch (EndOfStreamException)
+            {
+                return false;
+            }
+        }
+
+        private unsafe void ConvertCopyFrameToMemory(VideoFrame frame, byte* target)
+        {
             Converter.Value.AVFrameToBitmap(frame, target, outputFrameStride);
         }
     }
