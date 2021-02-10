@@ -23,7 +23,7 @@
             Decoders = new Decoder[Pointer->nb_streams];
         }
 
-        private delegate bool AVFormatContextDelegate(AVFormatContext* context);
+        private delegate void AVFormatContextDelegate(AVFormatContext* context);
 
         /// <summary>
         /// List of all stream codecs that have been opened from the file.
@@ -36,7 +36,7 @@
         /// <param name="path">A path to the multimedia file.</param>
         /// <param name="options">The media settings.</param>
         /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
-        public static InputContainer LoadFile(string path, MediaOptions options) => MakeContainer(path, options, _ => false);
+        public static InputContainer LoadFile(string path, MediaOptions options) => MakeContainer(path, options, _ => { });
 
         /// <summary>
         /// Opens a media container and stream codecs from given stream.
@@ -62,8 +62,6 @@
                 {
                     throw new FFmpegException("Cannot allocate AVIOContext.");
                 }
-
-                return true;
             });
         }
 
@@ -119,10 +117,7 @@
             if (Pointer->pb != null && Pointer->pb->buffer != null)
             {
                 ffmpeg.av_free(Pointer->pb->buffer);
-                if (avioContextDisposingRequired)
-                {
-                    ffmpeg.avio_context_free(&Pointer->pb);
-                }
+                ffmpeg.avio_context_free(&Pointer->pb);
             }
         }
 
@@ -134,7 +129,7 @@
             options.DemuxerOptions.ApplyFlags(context);
             var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions, false).Pointer;
 
-            var avio = contextDelegate(context);
+            contextDelegate(context);
 
             ffmpeg.avformat_open_input(&context, url, null, &dict)
                 .ThrowIfError("An error occurred while opening the file");
@@ -142,7 +137,7 @@
             ffmpeg.avformat_find_stream_info(context, null)
                 .ThrowIfError("Cannot find stream info");
 
-            var container = new InputContainer(context, avio);
+            var container = new InputContainer(context);
             container.OpenStreams(options);
             return container;
         }
