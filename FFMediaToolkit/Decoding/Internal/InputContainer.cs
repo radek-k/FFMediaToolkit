@@ -119,12 +119,6 @@
 
             var ptr = Pointer;
             ffmpeg.avformat_close_input(&ptr);
-
-            if (Pointer->pb != null && Pointer->pb->buffer != null)
-            {
-                ffmpeg.av_free(Pointer->pb->buffer);
-                ffmpeg.avio_context_free(&Pointer->pb);
-            }
         }
 
         private static InputContainer MakeContainer(string url, MediaOptions options, AVFormatContextDelegate contextDelegate)
