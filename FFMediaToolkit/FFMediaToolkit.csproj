@@ -9,7 +9,7 @@
     <Copyright>Copyright (c) 2019-2021 Radosław Kmiotek</Copyright>
     <Description>Cross-platform audio/video processing library based on FFmpeg native libraries. Supports audio/video frames extraction (fast access to any frame by timestamp), reading file metadata and encoding media files from bitmap images and audio data.</Description>
     <PackageTags>ffmpeg;video;audio;encoder;encoding;decoder;decoding;h264;mp4;c#;netstandard;netcore;frame-extraction</PackageTags>
-    <VersionPrefix>4.0.1</VersionPrefix>
+    <VersionPrefix>4.1.0</VersionPrefix>
     <RepositoryUrl>https://github.com/radek-k/FFMediaToolkit</RepositoryUrl>
     <PackageProjectUrl>https://github.com/radek-k/FFMediaToolkit</PackageProjectUrl>
     <PackageLicenseFile></PackageLicenseFile>

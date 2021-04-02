@@ -42,6 +42,11 @@
         public MediaOptions() => DecoderThreads = null;
 
         /// <summary>
+        /// Gets or sets the limit of memory used by the packet buffer. Default limit is 40 MB per stream.
+        /// </summary>
+        public int PacketBufferSizeLimit { get; set; } = 40;
+
+        /// <summary>
         /// Gets or sets the demuxer settings.
         /// </summary>
         public ContainerOptions DemuxerOptions { get; set; } = new ContainerOptions();

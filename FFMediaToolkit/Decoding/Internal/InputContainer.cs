@@ -17,10 +17,11 @@
         private static avio_alloc_context_read_packet readCallback;
         private static avio_alloc_context_seek seekCallback;
 
-        private InputContainer(AVFormatContext* formatContext)
+        private InputContainer(AVFormatContext* formatContext, int bufferSizeLimit)
             : base(formatContext)
         {
             Decoders = new Decoder[Pointer->nb_streams];
+            MaxBufferSize = bufferSizeLimit;
         }
 
         private delegate void AVFormatContextDelegate(AVFormatContext* context);
@@ -29,6 +30,11 @@
         /// List of all stream codecs that have been opened from the file.
         /// </summary>
         public Decoder[] Decoders { get; }
+
+        /// <summary>
+        /// Gets the memory limit of packets stored in the decoder's buffer.
+        /// </summary>
+        public int MaxBufferSize { get; }
 
         /// <summary>
         /// Opens a media container and stream codecs from given path.
@@ -137,7 +143,7 @@
             ffmpeg.avformat_find_stream_info(context, null)
                 .ThrowIfError("Cannot find stream info");
 
-            var container = new InputContainer(context);
+            var container = new InputContainer(context, options.PacketBufferSizeLimit);
             container.OpenStreams(options);
             return container;
         }

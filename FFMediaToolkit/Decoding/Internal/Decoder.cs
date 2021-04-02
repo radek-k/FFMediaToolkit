@@ -12,6 +12,8 @@
     /// </summary>
     internal unsafe class Decoder : Wrapper<AVCodecContext>
     {
+        private readonly int bufferLimit;
+        private int bufferSize = 0;
         private bool reuseLastPacket;
         private MediaPacket packet;
 
@@ -24,6 +26,7 @@
         public Decoder(AVCodecContext* codec, AVStream* stream, InputContainer owner)
             : base(codec)
         {
+            bufferLimit = owner.MaxBufferSize * 1024 * 1024; // convert megabytes to bytes
             OwnerFile = owner;
             Info = StreamInfo.Create(stream, owner);
             switch (Info.Type)
@@ -73,6 +76,14 @@
         public void BufferPacket(MediaPacket packet)
         {
             BufferedPackets.Enqueue(packet);
+            bufferSize += packet.Pointer->size;
+
+            if (bufferSize > bufferLimit)
+            {
+                var deletedPacket = BufferedPackets.Dequeue();
+                bufferSize -= deletedPacket.Pointer->size;
+                deletedPacket.Dispose();
+            }
         }
 
         /// <summary>
@@ -110,6 +121,7 @@
             }
 
             BufferedPackets.Clear();
+            bufferSize = 0;
         }
 
         /// <summary>
@@ -146,6 +158,7 @@
                 if (IsBufferEmpty)
                     OwnerFile.GetPacketFromStream(Info.Index);
                 packet = BufferedPackets.Dequeue();
+                bufferSize -= packet.Pointer->size;
             }
 
             // Sends the packet to the decoder.
