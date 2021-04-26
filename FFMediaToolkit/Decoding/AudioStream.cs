@@ -54,7 +54,9 @@
                 frame.NumChannels,
                 frame.NumSamples,
                 frame.ChannelLayout,
-                SampleFormat.SingleP);
+                SampleFormat.SingleP,
+                frame.DecodingTimestamp,
+                frame.PresentationTimestamp);
 
             ffmpeg.swr_convert_frame(swrContext, converted.Pointer, frame.Pointer);
 
@@ -90,7 +92,19 @@
         public new AudioData GetFrame(TimeSpan time)
         {
             var frame = base.GetFrame(time) as AudioFrame;
-            return new AudioData(frame);
+
+            var converted = AudioFrame.Create(
+                frame.SampleRate,
+                frame.NumChannels,
+                frame.NumSamples,
+                frame.ChannelLayout,
+                SampleFormat.SingleP,
+                frame.DecodingTimestamp,
+                frame.PresentationTimestamp);
+
+            ffmpeg.swr_convert_frame(swrContext, converted.Pointer, frame.Pointer);
+
+            return new AudioData(converted);
         }
 
         /// <summary>
