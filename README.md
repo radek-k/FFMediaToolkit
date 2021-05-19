@@ -122,15 +122,15 @@ FFMediaToolkit uses the [*ref struct*](https://docs.microsoft.com/pl-pl/dotnet/c
     }
   
     // Bitmap -> ImageData (safe)
-    public static ImageData ToImageData(this Bitmap bitmap)
-    {
+    ...
         var rect = new Rectangle(Point.Empty, bitmap.Size);
         var bitLock = bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-  
         var bitmapData = ImageData.FromPointer(bitLock.Scan0, bitmap.Size, ImagePixelFormat.Bgr24);
-        bitmap.UnlockBits(bitLock);
-        return bitmapData;
-    }
+        
+        mediaFile.Video.AddFrame(bitmapData); // Encode the frame
+        
+        bitmap.UnlockBits(bitLock); // UnlockBits() must be called after encoding the frame
+   ...
     ```
 
 - **For .NET Framework/Core desktop apps with WPF UI. (Windows only):**
