@@ -3,6 +3,8 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/9vaaqchtx1d5nldj?svg=true)](https://ci.appveyor.com/project/radek-k/ffmediatoolkit) [![Nuget](https://img.shields.io/nuget/v/FFMediaToolkit.svg)](https://www.nuget.org/packages/FFMediaToolkit/)
 [![License](https://img.shields.io/github/license/radek-k/FFMediaToolkit.svg)](https://github.com/radek-k/FFMediaToolkit/blob/master/LICENSE)
 
+> ⚠ **This library is not recommended for production use.**
+
 **FFMediaToolkit** is a .NET library for creating and reading multimedia files. It uses native FFmpeg libraries by the [FFmpeg.Autogen](https://github.com/Ruslan-B/FFmpeg.AutoGen) bindings.
 
 ## Features
@@ -12,7 +14,6 @@
 - Access to any video frame by timestamp.
 - Creating videos from images with metadata, pixel format, bitrate, CRF, FPS, GoP, dimensions and other codec settings.
 - Supports reading multimedia chapters and metadata.
-- Cross-platform - works on Linux, Windows, and macOS - with .NET Core or .NET Framework projects.
 
 ## Code samples
 
@@ -84,7 +85,7 @@ PM> Install-Package FFMediaToolkit
 
 - **Windows** - You can download it from the [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) or [gyan.dev](https://www.gyan.dev/ffmpeg/builds/). You only need `*.dll` files from the `.\bin` directory (**not `.\lib`**) of the ZIP package. Place the binaries in the `.\ffmpeg\x86_64\`(64bit) in the application output directory or set `FFmpegLoader.FFmpegPath`.
 - **Linux** - Download FFmpeg using your package manager.
-- **macOS** - Install FFmpeg via [Homebrew](https://formulae.brew.sh/formula/ffmpeg).
+- **macOS**, **iOS**, **Android** - Not supported.
 
 **You need to set `FFmpegLoader.FFmpegPath` with a full path to FFmpeg libraries.**
 > If you want to use 64-bit FFmpeg, you have to disable the *Build* -> *Prefer 32-bit* option in Visual Studio project properties.
