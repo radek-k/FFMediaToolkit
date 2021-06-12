@@ -44,7 +44,7 @@
             ffmpeg.swr_init(swrContext);
 
             Configuration = config;
-            frame = AudioFrame.Create(config.SampleRate, config.Channels, config.SamplesPerFrame, channelLayout, SampleFormat.SingleP);
+            frame = AudioFrame.Create(config.SampleRate, config.Channels, config.SamplesPerFrame, channelLayout, SampleFormat.SingleP,0,0);
         }
 
         /// <summary>
@@ -74,7 +74,9 @@
                 frame.NumChannels,
                 frame.NumSamples,
                 frame.ChannelLayout,
-                Configuration.SampleFormat);
+                Configuration.SampleFormat,
+                frame.DecodingTimestamp,
+                frame.PresentationTimestamp);
             converted.PresentationTimestamp = customPtsValue;
 
             ffmpeg.swr_convert_frame(swrContext, converted.Pointer, frame.Pointer);
