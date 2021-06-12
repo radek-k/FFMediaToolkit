@@ -9,6 +9,8 @@
     /// </summary>
     internal unsafe class ImageConverter : Wrapper<SwsContext>
     {
+        private readonly Size videoFrameSize;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageConverter"/> class.
         /// This constructor should be used only for video encoding!.
@@ -28,6 +30,7 @@
         public ImageConverter(Size sourceSize, AVPixelFormat sourceFormat, Size destinationSize, AVPixelFormat destinationFormat)
             : base(null)
         {
+            videoFrameSize = sourceSize;
             var scaleMode = sourceSize == destinationSize ? ffmpeg.SWS_POINT : ffmpeg.SWS_BICUBIC;
             UpdatePointer(ffmpeg.sws_getContext(sourceSize.Width, sourceSize.Height, sourceFormat, destinationSize.Width, destinationSize.Height, destinationFormat, scaleMode, null, null, null));
 
@@ -61,6 +64,11 @@
         /// <param name="stride">Size of the single bitmap row.</param>
         internal void AVFrameToBitmap(VideoFrame videoFrame, byte* destination, int stride)
         {
+            if (videoFrame.Layout != videoFrameSize)
+            {
+                throw new FFmpegException("Cannot decode a video frame with dimensions different than the previous one.");
+            }
+
             var data = new byte*[4] { destination, null, null, null };
             var linesize = new int[4] { stride, 0, 0, 0 };
             ffmpeg.sws_scale(Pointer, videoFrame.Pointer->data, videoFrame.Pointer->linesize, 0, videoFrame.Layout.Height, data, linesize);
