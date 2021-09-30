@@ -14,14 +14,24 @@
     /// </summary>
     internal unsafe class InputContainer : Wrapper<AVFormatContext>
     {
-        private static avio_alloc_context_read_packet readCallback;
-        private static avio_alloc_context_seek seekCallback;
+        private readonly avio_alloc_context_read_packet readCallback;
+
+        private readonly avio_alloc_context_seek seekCallBack;
 
         private InputContainer(AVFormatContext* formatContext, int bufferSizeLimit)
             : base(formatContext)
         {
             Decoders = new Decoder[Pointer->nb_streams];
             MaxBufferSize = bufferSizeLimit;
+        }
+
+        private InputContainer(AVFormatContext* formatContext, avio_alloc_context_read_packet read, avio_alloc_context_seek seek, int bufferSizeLimit)
+           : base(formatContext)
+        {
+            Decoders = new Decoder[Pointer->nb_streams];
+            MaxBufferSize = bufferSizeLimit;
+            readCallback = read;
+            seekCallBack = seek;
         }
 
         private delegate void AVFormatContextDelegate(AVFormatContext* context);
@@ -50,26 +60,7 @@
         /// <param name="stream">A stream of the multimedia file.</param>
         /// <param name="options">The media settings.</param>
         /// <returns>A new instance of the <see cref="InputContainer"/> class.</returns>
-        public static InputContainer LoadStream(Stream stream, MediaOptions options)
-        {
-            return MakeContainer(null, options, context =>
-            {
-                var avioStream = new AvioStream(stream);
-
-                // Prevents garbage collection
-                readCallback = avioStream.Read;
-                seekCallback = avioStream.Seek;
-
-                int bufferLength = 4096;
-                var avioBuffer = (byte*)ffmpeg.av_malloc((ulong)bufferLength);
-
-                context->pb = ffmpeg.avio_alloc_context(avioBuffer, bufferLength, 0, null, readCallback, null, seekCallback);
-                if (context->pb == null)
-                {
-                    throw new FFmpegException("Cannot allocate AVIOContext.");
-                }
-            });
-        }
+        public static InputContainer LoadStream(Stream stream, MediaOptions options) => MakeContainer(stream, options);
 
         /// <summary>
         /// Seeks all streams in the container to the first key frame before the specified time stamp.
@@ -121,7 +112,7 @@
             ffmpeg.avformat_close_input(&ptr);
         }
 
-        private static InputContainer MakeContainer(string url, MediaOptions options, AVFormatContextDelegate contextDelegate)
+        private static AVFormatContext* MakeContext(string url, MediaOptions options, AVFormatContextDelegate contextDelegate)
         {
             FFmpegLoader.LoadFFmpeg();
 
@@ -136,6 +127,36 @@
 
             ffmpeg.avformat_find_stream_info(context, null)
                 .ThrowIfError("Cannot find stream info");
+
+            return context;
+        }
+
+        private static InputContainer MakeContainer(Stream input, MediaOptions options)
+        {
+            var avioStream = new AvioStream(input);
+            var read = (avio_alloc_context_read_packet)avioStream.Read;
+            var seek = (avio_alloc_context_seek)avioStream.Seek;
+
+            var context = MakeContext(null, options, ctx =>
+            {
+                int bufferLength = 4096;
+                var avioBuffer = (byte*)ffmpeg.av_malloc((ulong)bufferLength);
+
+                ctx->pb = ffmpeg.avio_alloc_context(avioBuffer, bufferLength, 0, null, read, null, seek);
+                if (ctx->pb == null)
+                {
+                    throw new FFmpegException("Cannot allocate AVIOContext.");
+                }
+            });
+
+            var container = new InputContainer(context, read, seek, options.PacketBufferSizeLimit);
+            container.OpenStreams(options);
+            return container;
+        }
+
+        private static InputContainer MakeContainer(string url, MediaOptions options, AVFormatContextDelegate contextDelegate)
+        {
+            var context = MakeContext(url, options, contextDelegate);
 
             var container = new InputContainer(context, options.PacketBufferSizeLimit);
             container.OpenStreams(options);
