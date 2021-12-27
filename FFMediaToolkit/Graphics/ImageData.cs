@@ -146,7 +146,7 @@
         /// <param name="width">The image width.</param>
         /// <param name="format">The image pixel format.</param>
         /// <returns>The size of a single line of the image measured in bytes.</returns>
-        public static int EstimateStride(int width, ImagePixelFormat format) => 4 * (((GetBitsPerPixel(format) * width) + 31) / 32);
+        public static int EstimateStride(int width, ImagePixelFormat format) => GetBitsPerPixel(format) * width / 8;
 
         private static unsafe Span<byte> CreateSpan(IntPtr pointer, Size imageSize, ImagePixelFormat pixelFormat)
         {
