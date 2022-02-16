@@ -21,10 +21,10 @@
         /// <param name="container">The input container.</param>
         internal unsafe StreamInfo(AVStream* stream, MediaType type, InputContainer container)
         {
-            var codec = stream->codec;
+            var codecId = stream->codecpar->codec_id;
             Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(stream->metadata));
-            CodecName = ffmpeg.avcodec_get_name(codec->codec_id);
-            CodecId = codec->codec_id.FormatEnum(12);
+            CodecName = ffmpeg.avcodec_get_name(codecId);
+            CodecId = codecId.FormatEnum(12);
             Index = stream->index;
             Type = type;
 
@@ -157,10 +157,9 @@
         /// <returns>The resulting new <see cref="StreamInfo"/> object.</returns>
         internal static unsafe StreamInfo Create(AVStream* stream, InputContainer owner)
         {
-            var codec = stream->codec;
-            if (codec->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
+            if (stream->codecpar->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
                 return new AudioStreamInfo(stream, owner);
-            if (codec->codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
+            if (stream->codecpar->codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
                 return new VideoStreamInfo(stream, owner);
             return new StreamInfo(stream, MediaType.None, owner);
         }

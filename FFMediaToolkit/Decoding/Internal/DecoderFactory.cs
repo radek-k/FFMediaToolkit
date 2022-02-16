@@ -21,7 +21,7 @@
             var format = container.Pointer;
             AVCodec* codec = null;
 
-            var index = ffmpeg.av_find_best_stream(format, stream->codec->codec_type, stream->index, -1, &codec, 0);
+            var index = ffmpeg.av_find_best_stream(format, stream->codecpar->codec_type, stream->index, -1, &codec, 0);
             index.IfError(ffmpeg.AVERROR_DECODER_NOT_FOUND, "Cannot find a codec for the specified stream.");
             if (index < 0)
             {

@@ -31,8 +31,8 @@
             Configuration = config;
             converter = new ImageConverter();
 
-            var (size, format) = GetStreamLayout(stream);
-            encodedFrame = VideoFrame.Create(size, format);
+            var frameSize = new Size(config.VideoWidth, config.VideoHeight);
+            encodedFrame = VideoFrame.Create(frameSize, (AVPixelFormat)config.VideoFormat);
         }
 
         /// <summary>
@@ -88,12 +88,6 @@
             converter.Dispose();
 
             isDisposed = true;
-        }
-
-        private static unsafe (Size, AVPixelFormat) GetStreamLayout(OutputStream<VideoFrame> videoStream)
-        {
-            var codec = videoStream.Pointer->codec;
-            return (new Size(codec->width, codec->height), codec->pix_fmt);
         }
     }
 }

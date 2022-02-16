@@ -13,16 +13,19 @@
         where TFrame : MediaFrame
     {
         private readonly MediaPacket packet;
+        private AVCodecContext* codecContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OutputStream{TFrame}"/> class.
         /// </summary>
         /// <param name="stream">The multimedia stream.</param>
+        /// <param name="codec">Codec context.</param>
         /// <param name="owner">The container that owns the stream.</param>
-        public OutputStream(AVStream* stream, OutputContainer owner)
+        public OutputStream(AVStream* stream, AVCodecContext* codec, OutputContainer owner)
             : base(stream)
         {
             OwnerFile = owner;
+            codecContext = codec;
             packet = MediaPacket.AllocateEmpty();
         }
 
@@ -30,11 +33,6 @@
         /// Gets the media container that owns this stream.
         /// </summary>
         public OutputContainer OwnerFile { get; }
-
-        /// <summary>
-        /// Gets a pointer to <see cref="AVCodecContext"/> for this stream.
-        /// </summary>
-        public AVCodecContext* CodecPointer => Pointer->codec;
 
         /// <summary>
         /// Gets the stream index.
@@ -52,18 +50,13 @@
         /// <param name="frame">The media frame.</param>
         public void Push(TFrame frame)
         {
-            ffmpeg.avcodec_send_frame(CodecPointer, frame.Pointer)
+            ffmpeg.avcodec_send_frame(codecContext, frame.Pointer)
                 .ThrowIfError("Cannot send a frame to the encoder.");
 
-            if (ffmpeg.avcodec_receive_packet(CodecPointer, packet) == 0)
+            if (ffmpeg.avcodec_receive_packet(codecContext, packet) == 0)
             {
-                packet.RescaleTimestamp(CodecPointer->time_base, TimeBase);
+                packet.RescaleTimestamp(codecContext->time_base, TimeBase);
                 packet.StreamIndex = Index;
-
-                if (CodecPointer->coded_frame->key_frame == 1)
-                {
-                    packet.IsKeyPacket = true;
-                }
 
                 OwnerFile.WritePacket(packet);
             }
@@ -77,19 +70,20 @@
             FlushEncoder();
             packet.Dispose();
 
-            var ptr = CodecPointer;
-            ffmpeg.avcodec_close(ptr);
+            ffmpeg.avcodec_close(codecContext);
+            ffmpeg.av_free(codecContext);
+            codecContext = null;
         }
 
         private void FlushEncoder()
         {
             while (true)
             {
-                ffmpeg.avcodec_send_frame(CodecPointer, null);
+                ffmpeg.avcodec_send_frame(codecContext, null);
 
-                if (ffmpeg.avcodec_receive_packet(CodecPointer, packet) == 0)
+                if (ffmpeg.avcodec_receive_packet(codecContext, packet) == 0)
                 {
-                    packet.RescaleTimestamp(CodecPointer->time_base, TimeBase);
+                    packet.RescaleTimestamp(codecContext->time_base, TimeBase);
                     packet.StreamIndex = Index;
                     OwnerFile.WritePacket(packet);
                 }

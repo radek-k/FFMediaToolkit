@@ -18,11 +18,11 @@
         internal unsafe AudioStreamInfo(AVStream* stream, InputContainer container)
              : base(stream, MediaType.Audio, container)
         {
-            var codec = stream->codec;
+            var codec = stream->codecpar;
             NumChannels = codec->channels;
             SampleRate = codec->sample_rate;
             SamplesPerFrame = codec->frame_size > 0 ? codec->frame_size : codec->sample_rate / 20;
-            SampleFormat = (SampleFormat)codec->sample_fmt;
+            SampleFormat = (SampleFormat)codec->format;
             ChannelLayout = ffmpeg.av_get_default_channel_layout(codec->channels);
         }
 

@@ -19,12 +19,12 @@
         internal unsafe VideoStreamInfo(AVStream* stream, InputContainer container)
              : base(stream, MediaType.Video, container)
         {
-            var codec = stream->codec;
+            var codec = stream->codecpar;
             IsInterlaced = codec->field_order != AVFieldOrder.AV_FIELD_PROGRESSIVE &&
                            codec->field_order != AVFieldOrder.AV_FIELD_UNKNOWN;
             FrameSize = new Size(codec->width, codec->height);
-            PixelFormat = codec->pix_fmt.FormatEnum(11);
-            AVPixelFormat = codec->pix_fmt;
+            PixelFormat = ((AVPixelFormat)codec->format).FormatEnum(11);
+            AVPixelFormat = (AVPixelFormat)codec->format;
         }
 
         /// <summary>

@@ -172,17 +172,17 @@
             for (int i = 0; i < Pointer->nb_streams; i++)
             {
                 var stream = Pointer->streams[i];
-                if (!options.ShouldLoadStreamsOfType(stream->codec->codec_type))
-                    continue;
-
-                try
+                if (options.ShouldLoadStreamsOfType(stream->codecpar->codec_type))
                 {
-                    Decoders[i] = DecoderFactory.OpenStream(this, options, stream);
-                    GetPacketFromStream(i);
-                }
-                catch (Exception)
-                {
-                    Decoders[i] = null;
+                    try
+                    {
+                        Decoders[i] = DecoderFactory.OpenStream(this, options, stream);
+                        GetPacketFromStream(i);
+                    }
+                    catch (Exception)
+                    {
+                        Decoders[i] = null;
+                    }
                 }
             }
         }
