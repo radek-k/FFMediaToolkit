@@ -51,5 +51,15 @@
         /// Represents a YUV 12bpp 4:2:0 video pixel format.
         /// </summary>
         Yuv420 = AVPixelFormat.AV_PIX_FMT_YUV420P,
+        
+        /// <summary>
+        /// Represents a Gray 16bpp little-endian video pixel format.
+        /// </summary>
+        Gray16 = AVPixelFormat.AV_PIX_FMT_GRAY16LE,
+
+        /// <summary>
+        /// Represents a Gray 8bpp video pixel format. 
+        /// </summary>
+        Gray8 = AVPixelFormat.AV_PIX_FMT_GRAY8,
     }
 }
