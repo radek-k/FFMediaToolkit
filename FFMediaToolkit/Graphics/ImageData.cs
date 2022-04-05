@@ -176,6 +176,10 @@
                     return 16;
                 case ImagePixelFormat.Yuv444:
                     return 24;
+                case ImagePixelFormat.Gray16:
+                    return 16;
+                case ImagePixelFormat.Gray8:
+                    return 8;
                 default:
                     return 0;
             }
