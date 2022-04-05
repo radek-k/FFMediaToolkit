@@ -40,10 +40,13 @@
             }
 
             int readed = inputStream.Read(readBuffer, 0, readBuffer.Length);
-            if (readed > 0)
+
+            if (readed < 1)
             {
-                Marshal.Copy(readBuffer, 0, (IntPtr)buffer, readed);
+                return ffmpeg.AVERROR_EOF;
             }
+
+            Marshal.Copy(readBuffer, 0, (IntPtr)buffer, readed);
 
             return readed;
         }
