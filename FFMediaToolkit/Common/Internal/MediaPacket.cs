@@ -57,6 +57,20 @@
         }
 
         /// <summary>
+        /// Creates a flush packet.
+        /// </summary>
+        /// <param name="streamIndex">The stream index.</param>
+        /// <returns>The flush packet.</returns>
+        public static MediaPacket CreateFlushPacket(int streamIndex)
+        {
+            var packet = ffmpeg.av_packet_alloc();
+            packet->stream_index = streamIndex;
+            packet->data = null;
+            packet->size = 0;
+            return new MediaPacket(packet);
+        }
+
+        /// <summary>
         /// Sets valid PTS/DTS values. Used only in encoding.
         /// </summary>
         /// <param name="codecTimeBase">The encoder time base.</param>

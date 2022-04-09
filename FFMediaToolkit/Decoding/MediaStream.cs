@@ -50,12 +50,13 @@
         /// <summary>
         /// Discards all buffered frame data associated with this stream.
         /// </summary>
+        [Obsolete("Do not call this method. Buffered data is automatically discarded when required")]
         public void DiscardBufferedData() => Stream.DiscardBufferedData();
 
         /// <inheritdoc/>
         public virtual void Dispose()
         {
-            DiscardBufferedData();
+            Stream.DiscardBufferedData();
             Stream.Dispose();
         }
 

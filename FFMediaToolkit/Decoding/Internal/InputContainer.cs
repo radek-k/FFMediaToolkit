@@ -71,20 +71,28 @@
         {
             ffmpeg.av_seek_frame(Pointer, streamIndex, targetTs, ffmpeg.AVSEEK_FLAG_BACKWARD).ThrowIfError($"Seek to {targetTs} failed.");
 
-            Decoders[streamIndex].FlushUnmanagedBuffers();
-            GetPacketFromStream(streamIndex);
+            foreach (var decoder in Decoders)
+            {
+                decoder?.DiscardBufferedData();
+            }
         }
 
         /// <summary>
         /// Reads a packet from the specified stream index and buffers it in the respective codec.
         /// </summary>
         /// <param name="streamIndex">Index of the stream to read from.</param>
-        public void GetPacketFromStream(int streamIndex)
+        /// <returns>True if the requested packet was read, false if EOF ocurred and a flush packet was send to the buffer.</returns>
+        public bool GetPacketFromStream(int streamIndex)
         {
             MediaPacket packet;
             do
             {
-                packet = ReadPacket();
+                if (!TryReadNextPacket(out packet))
+                {
+                    Decoders[streamIndex].BufferPacket(MediaPacket.CreateFlushPacket(streamIndex));
+                    return false;
+                }
+
                 var stream = Decoders[packet.StreamIndex];
                 if (stream == null)
                 {
@@ -98,6 +106,7 @@
                 }
             }
             while (packet?.StreamIndex != streamIndex);
+            return true;
         }
 
         /// <inheritdoc/>
@@ -190,22 +199,26 @@
         /// <summary>
         /// Reads the next packet from this file.
         /// </summary>
-        private MediaPacket ReadPacket()
+        private bool TryReadNextPacket(out MediaPacket packet)
         {
-            var pkt = MediaPacket.AllocateEmpty();
-            var result = ffmpeg.av_read_frame(Pointer, pkt.Pointer); // Gets the next packet from the file.
+            packet = MediaPacket.AllocateEmpty();
+            var result = ffmpeg.av_read_frame(Pointer, packet.Pointer); // Gets the next packet from the file.
 
             // Check if the end of file error occurred
-            if (result == ffmpeg.AVERROR_EOF)
+            if (result < 0)
             {
-                throw new EndOfStreamException("End of the file.");
-            }
-            else
-            {
-                result.ThrowIfError("Cannot read next packet from the file");
+                packet.Dispose();
+                if (result == ffmpeg.AVERROR_EOF)
+                {
+                    return false;
+                }
+                else
+                {
+                    result.ThrowIfError("Cannot read next packet from the file");
+                }
             }
 
-            return pkt;
+            return true;
         }
     }
 }

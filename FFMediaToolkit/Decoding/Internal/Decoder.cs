@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using FFMediaToolkit.Common;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Helpers;
@@ -15,6 +16,7 @@
         private readonly int bufferLimit;
         private int bufferSize = 0;
         private bool reuseLastPacket;
+        private bool flushing = false;
         private MediaPacket packet;
 
         /// <summary>
@@ -114,6 +116,8 @@
         /// </summary>
         public void DiscardBufferedData()
         {
+            ffmpeg.avcodec_flush_buffers(Pointer);
+
             foreach (var packet in BufferedPackets)
             {
                 packet.Wipe();
@@ -122,18 +126,13 @@
 
             BufferedPackets.Clear();
             bufferSize = 0;
+            flushing = false;
         }
-
-        /// <summary>
-        /// Flushes the codec buffers.
-        /// </summary>
-        public void FlushUnmanagedBuffers() => ffmpeg.avcodec_flush_buffers(Pointer);
 
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
             RecentlyDecodedFrame.Dispose();
-            FlushUnmanagedBuffers();
             ffmpeg.avcodec_close(Pointer);
         }
 
@@ -144,10 +143,20 @@
 
             do
             {
-                DecodePacket(); // Gets the next packet and sends it to the decoder
+                if (!flushing)
+                {
+                    DecodePacket(); // Gets the next packet and sends it to the decoder
+                }
+
                 error = ffmpeg.avcodec_receive_frame(Pointer, RecentlyDecodedFrame.Pointer); // Tries to decode frame from the packets.
             }
             while (error == ffmpeg.AVERROR(ffmpeg.EAGAIN) || error == -35); // The EAGAIN code means that the frame decoding has not been completed and more packets are needed.
+
+            if (error == ffmpeg.AVERROR_EOF)
+            {
+                throw new EndOfStreamException("End of file.");
+            }
+
             error.ThrowIfError("An error occurred while decoding the frame.");
         }
 
@@ -156,7 +165,10 @@
             if (!reuseLastPacket)
             {
                 if (IsBufferEmpty)
-                    OwnerFile.GetPacketFromStream(Info.Index);
+                {
+                    flushing = !OwnerFile.GetPacketFromStream(Info.Index);
+                }
+
                 packet = BufferedPackets.Dequeue();
                 bufferSize -= packet.Pointer->size;
             }
@@ -164,15 +176,13 @@
             // Sends the packet to the decoder.
             var result = ffmpeg.avcodec_send_packet(Pointer, packet);
 
-            if (result == ffmpeg.AVERROR(ffmpeg.EAGAIN))
+            reuseLastPacket = result == ffmpeg.AVERROR(ffmpeg.EAGAIN);
+
+            if (!reuseLastPacket)
             {
-                reuseLastPacket = true;
-            }
-            else
-            {
-                reuseLastPacket = false;
-                result.ThrowIfError("Cannot send a packet to the decoder.");
                 packet.Wipe();
+                packet.Dispose();
+                result.ThrowIfError("Cannot send a packet to the decoder.");
             }
         }
     }
