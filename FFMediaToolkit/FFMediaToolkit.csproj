@@ -9,7 +9,6 @@
     <Copyright>Copyright (c) 2019-2022 Radosław Kmiotek</Copyright>
     <Description>Cross-platform audio/video processing library based on FFmpeg native libraries. Supports audio/video frames extraction (fast access to any frame by timestamp), reading file metadata and encoding media files from bitmap images and audio data.</Description>
     <PackageTags>ffmpeg;video;audio;encoder;encoding;decoder;decoding;h264;mp4;c#;netstandard;netcore;frame-extraction</PackageTags>
-    <VersionPrefix>4.3.1</VersionPrefix>
     <RepositoryUrl>https://github.com/radek-k/FFMediaToolkit</RepositoryUrl>
     <PackageProjectUrl>https://github.com/radek-k/FFMediaToolkit</PackageProjectUrl>
     <PackageLicenseFile></PackageLicenseFile>
@@ -19,7 +18,14 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\FFMediaToolkit.snk</AssemblyOriginatorKeyFile>
-	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <PropertyGroup>
+     <MinVerTagPrefix>v</MinVerTagPrefix>
+     <MinVerVerbosity>normal</MinVerVerbosity>
+	  <MinVerMinimumMajorMinor>4.3</MinVerMinimumMajorMinor>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -32,6 +38,10 @@
 
   <ItemGroup>
     <PackageReference Include="FFmpeg.AutoGen" Version="5.0.0" />
+    <PackageReference Include="MinVer" Version="3.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -1,4 +1,4 @@
-image: Visual Studio 2019
+image: Visual Studio 2022
 version: '{build}'
 pull_requests:
   do_not_increment_build_number: true
@@ -12,7 +12,7 @@ build_script:
 - ps: .\build.ps1
 test: off
 artifacts:
-- path: .\artifacts\*.nupkg
+- path: .\artifacts\*.*nupkg
   name: NuGet
 deploy:
 - provider: NuGet
@@ -31,19 +31,21 @@ deploy:
     branch: develop
 - provider: NuGet
   name: production
+  server: https://api.nuget.org/v3/index.json
   api_key:
     secure: CeFoy3jmWQuzjjLDNhH8aE9liWZf8J2HUKBn8qJP/+fMQUdogxjWbGMRQQHai8Fx
   on:
     branch: master
     APPVEYOR_REPO_TAG: true
 - provider: GitHub
-  release: FFMediaToolkit-v$(appveyor_build_version)
+  release: $(APPVEYOR_REPO_TAG)
   description: 'Release description'
   auth_token:
-    secure: /GA3G04CwIagRgruOePiVXyhDo2QZtJzuU6wEzBPQfV0cbN3FVoIIFilPFCpg9lE
-  artifact: /.*\.nupkg/
+    secure: QL3qsm5xyoWBlHX8UVd/XdQR7fMmf4UKLaDa4445daqgz2xaQaY5j7t9Oxi0yMH+
+  artifact: /.*\.*nupkg/
   draft: true
   prerelease: false
+  force_update: true
   on:
     branch: master
     APPVEYOR_REPO_TAG: true
