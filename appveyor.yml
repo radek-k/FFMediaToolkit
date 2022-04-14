@@ -31,7 +31,6 @@ deploy:
     branch: develop
 - provider: NuGet
   name: production
-  server: https://api.nuget.org/v3/index.json
   api_key:
     secure: CeFoy3jmWQuzjjLDNhH8aE9liWZf8J2HUKBn8qJP/+fMQUdogxjWbGMRQQHai8Fx
   on:
