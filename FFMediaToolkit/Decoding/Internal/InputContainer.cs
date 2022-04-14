@@ -186,7 +186,6 @@
                     try
                     {
                         Decoders[i] = DecoderFactory.OpenStream(this, options, stream);
-                        GetPacketFromStream(i);
                     }
                     catch (Exception)
                     {
