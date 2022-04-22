@@ -15,6 +15,7 @@
     {
         private readonly int outputFrameStride;
         private readonly int requiredBufferSize;
+        private readonly ImageConverter converter;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoStream"/> class.
@@ -25,7 +26,7 @@
             : base(stream, options)
         {
             OutputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
-            Converter = new Lazy<ImageConverter>(() => new ImageConverter(Info.FrameSize, Info.AVPixelFormat, OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat));
+            converter = new ImageConverter(OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat);
 
             outputFrameStride = ImageData.EstimateStride(OutputFrameSize.Width, Options.VideoPixelFormat);
             requiredBufferSize = outputFrameStride * OutputFrameSize.Height;
@@ -35,8 +36,6 @@
         /// Gets informations about this stream.
         /// </summary>
         public new VideoStreamInfo Info => base.Info as VideoStreamInfo;
-
-        private Lazy<ImageConverter> Converter { get; }
 
         private Size OutputFrameSize { get; }
 
@@ -49,7 +48,7 @@
         public new ImageData GetNextFrame()
         {
             var frame = base.GetNextFrame() as VideoFrame;
-            return frame.ToBitmap(Converter.Value, Options.VideoPixelFormat, OutputFrameSize);
+            return frame.ToBitmap(converter, Options.VideoPixelFormat, OutputFrameSize);
         }
 
         /// <summary>
@@ -143,7 +142,7 @@
         public new ImageData GetFrame(TimeSpan time)
         {
             var frame = base.GetFrame(time) as VideoFrame;
-            return frame.ToBitmap(Converter.Value, Options.VideoPixelFormat, OutputFrameSize);
+            return frame.ToBitmap(converter, Options.VideoPixelFormat, OutputFrameSize);
         }
 
         /// <summary>
@@ -230,9 +229,16 @@
             }
         }
 
+        /// <inheritdoc/>
+        public override void Dispose()
+        {
+            converter.Dispose();
+            base.Dispose();
+        }
+
         private unsafe void ConvertCopyFrameToMemory(VideoFrame frame, byte* target)
         {
-            Converter.Value.AVFrameToBitmap(frame, target, outputFrameStride);
+            converter.AVFrameToBitmap(frame, target, outputFrameStride);
         }
     }
 }

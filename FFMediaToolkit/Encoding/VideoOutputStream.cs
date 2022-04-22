@@ -29,10 +29,10 @@
         {
             this.stream = stream;
             Configuration = config;
-            converter = new ImageConverter();
 
             var frameSize = new Size(config.VideoWidth, config.VideoHeight);
             encodedFrame = VideoFrame.Create(frameSize, (AVPixelFormat)config.VideoFormat);
+            converter = new ImageConverter(frameSize, (AVPixelFormat)config.VideoFormat);
         }
 
         /// <summary>
