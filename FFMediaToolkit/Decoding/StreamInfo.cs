@@ -22,7 +22,7 @@
         internal unsafe StreamInfo(AVStream* stream, MediaType type, InputContainer container)
         {
             var codecId = stream->codecpar->codec_id;
-            Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(stream->metadata));
+            Metadata = new ReadOnlyDictionary<string, string>(FFDictionary.ToDictionary(stream->metadata, true));
             CodecName = ffmpeg.avcodec_get_name(codecId);
             CodecId = codecId.FormatEnum(12);
             Index = stream->index;
