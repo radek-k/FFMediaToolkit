@@ -21,12 +21,12 @@ if($env:APPVEYOR_REPO_TAG_NAME -eq $NULL)
     # $suffix = "dev{0:D4}" -f [convert]::ToInt32($revision, 10)
     # echo "build: Development build - no commit tag. Package version suffix is $suffix"
     echo "build: Development build - commit tag not detected"
-    exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Debug -o .\artifacts --include-symbols }
+    exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Debug /p:ContinuousIntegrationBuild=true -o .\artifacts --include-symbols }
     # --version-suffix=$suffix
 }
 else
 {
     echo "build: Release build - tagged commit detected."
 
-    exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Release -o .\artifacts --include-symbols }
+    exec { & dotnet pack .\FFMediaToolkit\FFMediaToolkit.csproj -c Release /p:ContinuousIntegrationBuild=true -o .\artifacts --include-symbols }
 }
