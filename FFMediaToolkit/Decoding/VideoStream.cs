@@ -16,6 +16,7 @@
         private readonly int outputFrameStride;
         private readonly int requiredBufferSize;
         private readonly ImageConverter converter;
+        private bool isDisposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoStream"/> class.
@@ -232,7 +233,12 @@
         /// <inheritdoc/>
         public override void Dispose()
         {
-            converter.Dispose();
+            if (!isDisposed)
+            {
+                converter.Dispose();
+                isDisposed = true;
+            }
+
             base.Dispose();
         }
 

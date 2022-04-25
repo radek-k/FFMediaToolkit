@@ -10,6 +10,8 @@
     /// </summary>
     public class MediaStream : IDisposable
     {
+        private bool isDisposed;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaStream"/> class.
         /// </summary>
@@ -56,8 +58,12 @@
         /// <inheritdoc/>
         public virtual void Dispose()
         {
-            Stream.DiscardBufferedData();
-            Stream.Dispose();
+            if (!isDisposed)
+            {
+                Stream.DiscardBufferedData();
+                Stream.Dispose();
+                isDisposed = true;
+            }
         }
 
         /// <summary>

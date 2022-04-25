@@ -13,6 +13,7 @@
     public unsafe class AudioStream : MediaStream
     {
         private SwrContext* swrContext;
+        private bool isDisposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AudioStream"/> class.
@@ -132,9 +133,14 @@
         /// <inheritdoc/>
         public override void Dispose()
         {
-            fixed (SwrContext** ptr = &swrContext)
+            if (!isDisposed)
             {
-                ffmpeg.swr_free(ptr);
+                fixed (SwrContext** ptr = &swrContext)
+                {
+                    ffmpeg.swr_free(ptr);
+                }
+
+                isDisposed = true;
             }
 
             base.Dispose();
