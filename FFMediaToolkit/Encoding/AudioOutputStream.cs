@@ -44,7 +44,7 @@
             ffmpeg.swr_init(swrContext);
 
             Configuration = config;
-            frame = AudioFrame.Create(config.SampleRate, config.Channels, config.SamplesPerFrame, channelLayout, SampleFormat.SingleP,0,0);
+            frame = AudioFrame.Create(config.SampleRate, config.Channels, config.SamplesPerFrame, channelLayout, SampleFormat.SingleP, 0, 0);
         }
 
         /// <summary>

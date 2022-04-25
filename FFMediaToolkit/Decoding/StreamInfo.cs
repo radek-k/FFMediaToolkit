@@ -53,6 +53,7 @@
             {
                 IsFrameCountProvidedByContainer = true;
                 NumberOfFrames = (int)stream->nb_frames;
+#pragma warning disable CS0618 // Type or member is obsolete
                 FrameCount = NumberOfFrames.Value;
             }
             else
@@ -61,6 +62,7 @@
                 if (!IsVariableFrameRate)
                 {
                     NumberOfFrames = FrameCount;
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
                 else
                 {
