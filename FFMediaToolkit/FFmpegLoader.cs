@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Runtime.InteropServices;
     using FFMediaToolkit.Interop;
     using FFmpeg.AutoGen;
 
@@ -132,6 +133,10 @@
             {
                 HandleLibraryLoadError(ex);
             }
+            catch (NotSupportedException ex)
+            {
+                HandleLibraryLoadError(ex);
+            }
 
             IsFFmpegLoaded = true;
             LogVerbosity = logLevel;
@@ -154,7 +159,7 @@
                 var lineBuffer = stackalloc byte[lineSize];
                 var printPrefix = 1;
                 ffmpeg.av_log_format_line(p0, level, format, vl, lineBuffer, lineSize, &printPrefix);
-                var line = System.Runtime.InteropServices.Marshal.PtrToStringAnsi((IntPtr)lineBuffer);
+                var line = Marshal.PtrToStringAnsi((IntPtr)lineBuffer);
                 LogCallback?.Invoke(line);
             };
 
@@ -167,7 +172,7 @@
         /// <param name="exception">The original exception.</param>
         internal static void HandleLibraryLoadError(Exception exception)
         {
-            throw new DllNotFoundException($"Cannot load FFmpeg libraries from {FFmpegPath} directory.\nRequired FFmpeg version: 5.x (shared build)\nMake sure the \"Build\"Prefer 32-bit\" option in the project settings is turned off.\nFor more information please see https://github.com/radek-k/FFMediaToolkit#setup", exception);
+            throw new DllNotFoundException($"Cannot load FFmpeg libraries from {FFmpegPath} directory.\nRequired FFmpeg version: 6.x (shared build)\nMake sure the \"Build\"Prefer 32-bit\" option in the project settings is turned off.\nFor more information please see https://github.com/radek-k/FFMediaToolkit#setup", exception);
         }
     }
 }
