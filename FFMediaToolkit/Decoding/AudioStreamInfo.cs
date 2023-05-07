@@ -19,11 +19,14 @@
              : base(stream, MediaType.Audio, container)
         {
             var codec = stream->codecpar;
-            NumChannels = codec->channels;
+            NumChannels = codec->ch_layout.nb_channels;
             SampleRate = codec->sample_rate;
             SamplesPerFrame = codec->frame_size > 0 ? codec->frame_size : codec->sample_rate / 20;
             SampleFormat = (SampleFormat)codec->format;
-            ChannelLayout = ffmpeg.av_get_default_channel_layout(codec->channels);
+
+            AVChannelLayout layout;
+            ffmpeg.av_channel_layout_default(&layout, codec->ch_layout.nb_channels);
+            ChannelLayout = layout;
         }
 
         /// <summary>
@@ -50,6 +53,6 @@
         /// <summary>
         /// Gets the channel layout for this stream.
         /// </summary>
-        internal long ChannelLayout { get; }
+        internal AVChannelLayout ChannelLayout { get; }
     }
 }

@@ -63,7 +63,7 @@
                 return MediaType.Video;
             }
 
-            if (frame.channels > 0)
+            if (frame.ch_layout.nb_channels > 0)
             {
                 return MediaType.Audio;
             }

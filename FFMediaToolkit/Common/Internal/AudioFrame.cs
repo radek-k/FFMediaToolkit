@@ -42,7 +42,7 @@
         /// <summary>
         /// Gets the number of channels.
         /// </summary>
-        public int NumChannels => Pointer != null ? Pointer->channels : default;
+        public int NumChannels => Pointer != null ? Pointer->ch_layout.nb_channels : default;
 
         /// <summary>
         /// Gets the audio sample format.
@@ -52,7 +52,7 @@
         /// <summary>
         /// Gets the channel layout.
         /// </summary>
-        internal long ChannelLayout => Pointer != null ? (long)Pointer->channel_layout : default;
+        internal AVChannelLayout ChannelLayout => Pointer != null ? Pointer->ch_layout : default;
 
         /// <summary>
         /// Creates an audio frame with given dimensions and allocates a buffer for it.
@@ -65,15 +65,14 @@
         /// <param name="decodingTimestamp">The timestamp when the frame has to be decoded.</param>
         /// <param name="presentationTimestamp">The timestamp when the frame has to be presented.</param>
         /// <returns>The new audio frame.</returns>
-        public static AudioFrame Create(int sample_rate, int num_channels, int num_samples, long channel_layout, SampleFormat sampleFormat, long decodingTimestamp, long presentationTimestamp)
+        public static AudioFrame Create(int sample_rate, int num_channels, int num_samples, AVChannelLayout channel_layout, SampleFormat sampleFormat, long decodingTimestamp, long presentationTimestamp)
         {
             var frame = ffmpeg.av_frame_alloc();
 
             frame->sample_rate = sample_rate;
-            frame->channels = num_channels;
 
             frame->nb_samples = num_samples;
-            frame->channel_layout = (ulong)channel_layout;
+            frame->ch_layout = channel_layout;
             frame->format = (int)sampleFormat;
 
             frame->pts = presentationTimestamp;

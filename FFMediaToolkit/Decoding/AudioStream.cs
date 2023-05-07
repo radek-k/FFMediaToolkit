@@ -5,6 +5,7 @@
     using FFMediaToolkit.Audio;
     using FFMediaToolkit.Common.Internal;
     using FFMediaToolkit.Decoding.Internal;
+    using FFMediaToolkit.Helpers;
     using FFmpeg.AutoGen;
 
     /// <summary>
@@ -23,18 +24,20 @@
         internal AudioStream(Decoder stream, MediaOptions options)
             : base(stream, options)
         {
-            swrContext = ffmpeg.swr_alloc_set_opts(
-                null,
-                Info.ChannelLayout,
+            var layout = Info.ChannelLayout;
+            SwrContext* context;
+            ffmpeg.swr_alloc_set_opts2(
+                &context,
+                &layout,
                 (AVSampleFormat)SampleFormat.SingleP,
                 Info.SampleRate,
-                Info.ChannelLayout,
+                &layout,
                 (AVSampleFormat)Info.SampleFormat,
                 Info.SampleRate,
                 0,
-                null);
-
-            ffmpeg.swr_init(swrContext);
+                null).ThrowIfError("Cannot allocate SwrContext");
+            ffmpeg.swr_init(context);
+            swrContext = context;
         }
 
         /// <summary>

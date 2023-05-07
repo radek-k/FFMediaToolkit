@@ -116,8 +116,8 @@
             stream->codecpar->sample_rate = config.SampleRate;
             stream->codecpar->frame_size = config.SamplesPerFrame;
             stream->codecpar->format = (int)config.SampleFormat;
-            stream->codecpar->channels = config.Channels;
-            stream->codecpar->channel_layout = (ulong)ffmpeg.av_get_default_channel_layout(config.Channels);
+
+            ffmpeg.av_channel_layout_default(&stream->codecpar->ch_layout, config.Channels);
             stream->codecpar->bit_rate = config.Bitrate;
 
             ffmpeg.avcodec_parameters_to_context(codecContext, stream->codecpar).ThrowIfError("Cannot copy stream parameters to encoder");

@@ -29,20 +29,22 @@
         {
             this.stream = stream;
 
-            long channelLayout = ffmpeg.av_get_default_channel_layout(config.Channels);
-            swrContext = ffmpeg.swr_alloc_set_opts(
-                null,
-                channelLayout,
+            AVChannelLayout channelLayout;
+            ffmpeg.av_channel_layout_default(&channelLayout, config.Channels);
+            SwrContext* context;
+            ffmpeg.swr_alloc_set_opts2(
+                &context,
+                &channelLayout,
                 (AVSampleFormat)config.SampleFormat,
                 config.SampleRate,
-                channelLayout,
+                &channelLayout,
                 (AVSampleFormat)SampleFormat.SingleP,
                 config.SampleRate,
                 0,
-                null);
+                null).ThrowIfError("Cannot allocate SwrContext");
+            ffmpeg.swr_init(context);
 
-            ffmpeg.swr_init(swrContext);
-
+            swrContext = context;
             Configuration = config;
             frame = AudioFrame.Create(config.SampleRate, config.Channels, config.SamplesPerFrame, channelLayout, SampleFormat.SingleP, 0, 0);
         }
