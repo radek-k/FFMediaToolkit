@@ -37,10 +37,10 @@ deploy:
     branch: master
     APPVEYOR_REPO_TAG: true
 - provider: GitHub
-  release: $(APPVEYOR_REPO_TAG)
+  release: $(APPVEYOR_REPO_TAG_NAME)
   description: 'Release description'
   auth_token:
-    secure: 5obJpl3w5Trw5/FpDqp15TeYW0vOTxCI/tnIBWOVhiwGjJk2IDETwNCjqXtWvr9OrgAS7LGZfFQLf28QA/P/n44Dvyw95OznBvPXEwXSR9ncFd3jYEoKvpYhX7HZHIMl
+    secure: 5obJpl3w5Trw5/FpDqp15ZjwqW1iyqG778GM5mZCxrPfJI2tKZX0RYUFRgiU1oqi5mVmjk/tGVcmPv9hH52ZggopkvmYApdJoJZ74pCh2x4DO2u+w/jnKetL6N7Xud6B
   artifact: /.*\.*nupkg/
   draft: true
   prerelease: false
