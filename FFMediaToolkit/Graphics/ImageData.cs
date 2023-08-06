@@ -22,7 +22,7 @@
         public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, Size imageSize)
         {
             var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
-            if (data.Length != size)
+            if (data.Length < size)
             {
                 throw new ArgumentException("Pixel buffer size doesn't match size required by this image format.");
             }

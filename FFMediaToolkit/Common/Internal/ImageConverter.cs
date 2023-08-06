@@ -1,5 +1,6 @@
 ﻿namespace FFMediaToolkit.Common.Internal
 {
+    using System;
     using System.Drawing;
     using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
@@ -9,6 +10,11 @@
     /// </summary>
     internal unsafe class ImageConverter : Wrapper<SwsContext>
     {
+        // sws_scale requires up to 16 extra bytes allocated in the input buffer when resizing an image
+        // (reference: https://www.ffmpeg.org/doxygen/6.0/frame_8h_source.html#l00340)
+        private const int BufferPaddingSize = 16;
+        private byte[] tmpBuffer = { };
+
         private readonly Size destinationSize;
         private readonly AVPixelFormat destinationFormat;
         private Size lastSourceSize;
@@ -34,7 +40,22 @@
         internal void FillAVFrame(ImageData bitmap, VideoFrame destinationFrame)
         {
             UpdateContext(bitmap.ImageSize, (AVPixelFormat)bitmap.PixelFormat);
-            fixed (byte* ptr = bitmap.Data)
+
+            var requiredBufferLength = (bitmap.Stride * bitmap.ImageSize.Height) + BufferPaddingSize;
+            var shouldUseTmpBuffer = bitmap.ImageSize != destinationSize && bitmap.Data.Length < requiredBufferLength;
+
+            if (shouldUseTmpBuffer)
+            {
+                if (tmpBuffer.Length < requiredBufferLength)
+                {
+                    tmpBuffer = new byte[requiredBufferLength];
+                }
+
+                bitmap.Data.CopyTo(tmpBuffer);
+            }
+
+            var source = shouldUseTmpBuffer ? tmpBuffer : bitmap.Data;
+            fixed (byte* ptr = source)
             {
                 var data = new byte*[4] { ptr, null, null, null };
                 var linesize = new int[4] { bitmap.Stride, 0, 0, 0 };
