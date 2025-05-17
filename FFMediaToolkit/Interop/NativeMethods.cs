@@ -22,7 +22,7 @@
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return Environment.CurrentDirectory + WindowsDefaultDirectory;
+                return AppDomain.CurrentDomain.BaseDirectory + WindowsDefaultDirectory;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
