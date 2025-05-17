@@ -133,7 +133,10 @@
         protected override void OnDisposing()
         {
             RecentlyDecodedFrame.Dispose();
-            ffmpeg.avcodec_close(Pointer);
+            fixed (void* pointerRef = &PointerRef)
+            {
+                ffmpeg.avcodec_free_context((AVCodecContext**)pointerRef);
+            }
         }
 
         private void ReadNextFrame()
