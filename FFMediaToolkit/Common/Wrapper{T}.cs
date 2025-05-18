@@ -31,7 +31,7 @@
         /// <summary>
         /// Gets a reference to the wrapped pointer field.
         /// </summary>
-        protected ref readonly IntPtr PointerRef => ref pointer;
+        internal ref readonly IntPtr PointerRef => ref pointer;
 
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
