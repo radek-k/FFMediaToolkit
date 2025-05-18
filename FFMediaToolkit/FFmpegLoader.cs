@@ -118,7 +118,7 @@
                 catch (DirectoryNotFoundException)
                 {
                     throw new DirectoryNotFoundException("Cannot found the default FFmpeg directory.\n" +
-                        "On Windows you have to set \"FFmpegLoader.FFmpegPath\" with full path to the directory containing FFmpeg 5.x shared build \".dll\" files\n" +
+                        "On Windows you have to set \"FFmpegLoader.FFmpegPath\" with full path to the directory containing FFmpeg 7.x shared build \".dll\" files\n" +
                         "For more informations please see https://github.com/radek-k/FFMediaToolkit#setup");
                 }
             }
@@ -172,7 +172,7 @@
         /// <param name="exception">The original exception.</param>
         internal static void HandleLibraryLoadError(Exception exception)
         {
-            throw new DllNotFoundException($"Cannot load FFmpeg libraries from {FFmpegPath} directory.\nRequired FFmpeg version: 6.x (shared build)\nMake sure the \"Build\"Prefer 32-bit\" option in the project settings is turned off.\nFor more information please see https://github.com/radek-k/FFMediaToolkit#setup", exception);
+            throw new DllNotFoundException($"Cannot load FFmpeg libraries from {FFmpegPath} directory.\nRequired FFmpeg version: 7.x (shared build)\nMake sure the \"Build\"Prefer 32-bit\" option in the project settings is turned off.\nFor more information please see https://github.com/radek-k/FFMediaToolkit#setup", exception);
         }
     }
 }
