@@ -8,7 +8,7 @@
     /// </summary>
     internal static class NativeMethods
     {
-        private static string MacOSDefautDirectory => "/opt/local/lib/";
+        private static string MacOSDefautDirectory => "/usr/local/lib";
 
         private static string LinuxDefaultDirectory => "/usr/lib/{0}-linux-gnu";
 
