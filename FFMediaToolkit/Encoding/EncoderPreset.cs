@@ -3,7 +3,7 @@
     using System.ComponentModel;
 
     /// <summary>
-    /// The presets for H264 and H265 (HEVC) video encoders.
+    /// The presets for H264, H265 (HEVC), and H266 (VVC) video encoders.
     /// <para>Fast presets = faster encoding, worse compression.</para>
     /// <para>Slow presets = longer encoding, better compression.</para>
     /// </summary>

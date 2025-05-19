@@ -78,7 +78,12 @@
         public int? CRF { get; set; }
 
         /// <summary>
-        /// Gets or sets the encoder preset. It supports only H.264 and H.265 codecs.
+        /// Gets or sets the Quantization Parameter. It supports only the H.266 codec.
+        /// </summary>
+        public int? QP { get; set; }
+
+        /// <summary>
+        /// Gets or sets the encoder preset. It supports only H.264, H.265, and H.266 codecs.
         /// </summary>
         public EncoderPreset EncoderPreset { get; set; }
 
