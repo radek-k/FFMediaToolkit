@@ -54,8 +54,9 @@
             if (format == null)
                 throw new NotSupportedException($"Cannot find a container format for the \"{extension}\" file extension.");
 
-            var formatContext = ffmpeg.avformat_alloc_context();
-            formatContext->oformat = format;
+            AVFormatContext* formatContext = null;
+            ffmpeg.avformat_alloc_output_context2(&formatContext, format, null, null).ThrowIfError("Cannot allocate output format context");
+
             return new OutputContainer(formatContext);
         }
 

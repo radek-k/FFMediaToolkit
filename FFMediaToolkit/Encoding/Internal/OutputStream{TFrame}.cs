@@ -80,10 +80,9 @@
 
         private void FlushEncoder()
         {
+            ffmpeg.avcodec_send_frame(codecContext, null);
             while (true)
             {
-                ffmpeg.avcodec_send_frame(codecContext, null);
-
                 if (ffmpeg.avcodec_receive_packet(codecContext, packet) == 0)
                 {
                     packet.RescaleTimestamp(codecContext->time_base, TimeBase);

@@ -25,7 +25,6 @@
                 throw new InvalidOperationException("The media container doesn't support video!");
 
             var codec = ffmpeg.avcodec_find_encoder(codecId);
-
             if (codec == null)
                 throw new InvalidOperationException($"Cannot find an encoder with the {codecId}!");
 
@@ -37,22 +36,20 @@
                 throw new InvalidOperationException("Cannot allocate AVStream");
 
             stream->time_base = config.TimeBase;
-            stream->r_frame_rate = config.FramerateRational;
+            stream->avg_frame_rate = config.FramerateRational;
 
             var codecContext = ffmpeg.avcodec_alloc_context3(codec);
             if (codecContext == null)
                 throw new InvalidOperationException("Cannot allocate AVCodecContext");
 
-            stream->codecpar->codec_id = codecId;
-            stream->codecpar->codec_type = AVMediaType.AVMEDIA_TYPE_VIDEO;
-            stream->codecpar->width = config.VideoWidth;
-            stream->codecpar->height = config.VideoHeight;
-            stream->codecpar->format = (int)config.VideoFormat;
-            stream->codecpar->bit_rate = config.Bitrate;
-
-            ffmpeg.avcodec_parameters_to_context(codecContext, stream->codecpar).ThrowIfError("Cannot copy stream parameters to encoder");
+            codecContext->codec_type = AVMediaType.AVMEDIA_TYPE_VIDEO;
+            codecContext->codec_id = codecId;
+            codecContext->width = config.VideoWidth;
+            codecContext->height = config.VideoHeight;
+            codecContext->pix_fmt = (AVPixelFormat)config.VideoFormat;
+            codecContext->bit_rate = config.Bitrate;
+            codecContext->framerate = config.FramerateRational;
             codecContext->time_base = stream->time_base;
-            codecContext->framerate = stream->r_frame_rate;
             codecContext->gop_size = config.KeyframeRate;
 
             var dict = new FFDictionary(config.CodecOptions);
@@ -72,17 +69,16 @@
                 dict["preset"] = config.EncoderPreset.GetDescription();
             }
 
-            var ptr = dict.Pointer;
-            ffmpeg.avcodec_open2(codecContext, codec, &ptr).ThrowIfError("Failed to open video encoder.");
-
-            dict.Update(ptr);
-
-            ffmpeg.avcodec_parameters_from_context(stream->codecpar, codecContext).ThrowIfError("Cannot copy encoder parameters to output stream");
-
             if ((container.Pointer->oformat->flags & ffmpeg.AVFMT_GLOBALHEADER) != 0)
             {
                 codecContext->flags |= ffmpeg.AV_CODEC_FLAG_GLOBAL_HEADER;
             }
+
+            var ptr = dict.Pointer;
+            ffmpeg.avcodec_open2(codecContext, codec, &ptr).ThrowIfError("Failed to open video encoder.");
+            dict.Update(ptr);
+
+            ffmpeg.avcodec_parameters_from_context(stream->codecpar, codecContext).ThrowIfError("Cannot copy encoder parameters to output stream");
 
             return new OutputStream<VideoFrame>(stream, codecContext, container);
         }
@@ -128,6 +124,11 @@
             ffmpeg.avcodec_parameters_to_context(codecContext, stream->codecpar).ThrowIfError("Cannot copy stream parameters to encoder");
             codecContext->time_base = config.TimeBase;
 
+            if ((container.Pointer->oformat->flags & ffmpeg.AVFMT_GLOBALHEADER) != 0)
+            {
+                codecContext->flags |= ffmpeg.AV_CODEC_FLAG_GLOBAL_HEADER;
+            }
+
             var dict = new FFDictionary(config.CodecOptions);
             var ptr = dict.Pointer;
 
@@ -136,11 +137,6 @@
             dict.Update(ptr);
 
             ffmpeg.avcodec_parameters_from_context(stream->codecpar, codecContext).ThrowIfError("Cannot copy encoder parameters to output stream");
-
-            if ((container.Pointer->oformat->flags & ffmpeg.AVFMT_GLOBALHEADER) != 0)
-            {
-                codecContext->flags |= ffmpeg.AV_CODEC_FLAG_GLOBAL_HEADER;
-            }
 
             return new OutputStream<AudioFrame>(stream, codecContext, container);
         }
