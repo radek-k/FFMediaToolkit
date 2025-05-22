@@ -19,17 +19,25 @@
         /// <returns>The new video stream.</returns>
         public static OutputStream<VideoFrame> CreateVideo(OutputContainer container, VideoEncoderSettings config)
         {
-            var codecId = config.Codec == VideoCodec.Default ? container.Pointer->oformat->video_codec : (AVCodecID)config.Codec;
+            AVCodec* codec;
+            if (!string.IsNullOrEmpty(config.CodecName))
+            {
+                codec = ffmpeg.avcodec_find_encoder_by_name(config.CodecName);
+            }
+            else
+            {
+                var codecId = config.Codec == VideoCodec.Default ? container.Pointer->oformat->video_codec : (AVCodecID)config.Codec;
+                if (codecId == AVCodecID.AV_CODEC_ID_NONE)
+                    throw new InvalidOperationException("The media container doesn't support video!");
 
-            if (codecId == AVCodecID.AV_CODEC_ID_NONE)
-                throw new InvalidOperationException("The media container doesn't support video!");
+                codec = ffmpeg.avcodec_find_encoder(codecId);
+            }
 
-            var codec = ffmpeg.avcodec_find_encoder(codecId);
             if (codec == null)
-                throw new InvalidOperationException($"Cannot find an encoder with the {codecId}!");
+                throw new InvalidOperationException($"Cannot find the requested video codec");
 
             if (codec->type != AVMediaType.AVMEDIA_TYPE_VIDEO)
-                throw new InvalidOperationException($"The {codecId} encoder doesn't support video!");
+                throw new InvalidOperationException($"The {codec->id} encoder doesn't support video!");
 
             var stream = ffmpeg.avformat_new_stream(container.Pointer, codec);
             if (stream == null)
@@ -43,7 +51,7 @@
                 throw new InvalidOperationException("Cannot allocate AVCodecContext");
 
             codecContext->codec_type = AVMediaType.AVMEDIA_TYPE_VIDEO;
-            codecContext->codec_id = codecId;
+            codecContext->codec_id = codec->id;
             codecContext->width = config.VideoWidth;
             codecContext->height = config.VideoHeight;
             codecContext->pix_fmt = (AVPixelFormat)config.VideoFormat;
@@ -91,18 +99,25 @@
         /// <returns>The new audio stream.</returns>
         public static OutputStream<AudioFrame> CreateAudio(OutputContainer container, AudioEncoderSettings config)
         {
-            var codecId = config.Codec == AudioCodec.Default ? container.Pointer->oformat->audio_codec : (AVCodecID)config.Codec;
+            AVCodec* codec;
+            if (!string.IsNullOrEmpty(config.CodecName))
+            {
+                codec = ffmpeg.avcodec_find_encoder_by_name(config.CodecName);
+            }
+            else
+            {
+                var codecId = config.Codec == AudioCodec.Default ? container.Pointer->oformat->audio_codec : (AVCodecID)config.Codec;
+                if (codecId == AVCodecID.AV_CODEC_ID_NONE)
+                    throw new InvalidOperationException("The media container doesn't support audio!");
 
-            if (codecId == AVCodecID.AV_CODEC_ID_NONE)
-                throw new InvalidOperationException("The media container doesn't support audio!");
-
-            var codec = ffmpeg.avcodec_find_encoder(codecId);
+                codec = ffmpeg.avcodec_find_encoder(codecId);
+            }
 
             if (codec == null)
-                throw new InvalidOperationException($"Cannot find an encoder with the {codecId}!");
+                throw new InvalidOperationException($"Cannot find the requested audio codec");
 
             if (codec->type != AVMediaType.AVMEDIA_TYPE_AUDIO)
-                throw new InvalidOperationException($"The {codecId} encoder doesn't support audio!");
+                throw new InvalidOperationException($"The {codec->id} encoder doesn't support audio!");
 
             var stream = ffmpeg.avformat_new_stream(container.Pointer, codec);
             if (stream == null)
@@ -112,7 +127,7 @@
             if (codecContext == null)
                 throw new InvalidOperationException("Cannot allocate AVCodecContext");
 
-            stream->codecpar->codec_id = codecId;
+            stream->codecpar->codec_id = codec->id;
             stream->codecpar->codec_type = AVMediaType.AVMEDIA_TYPE_AUDIO;
             stream->codecpar->sample_rate = config.SampleRate;
             stream->codecpar->frame_size = config.SamplesPerFrame;

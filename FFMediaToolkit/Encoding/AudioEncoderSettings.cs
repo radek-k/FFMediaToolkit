@@ -61,7 +61,13 @@
         /// <summary>
         /// Gets or sets the codec for this stream.
         /// If set to <see cref="AudioCodec.Default"/>, encoder will use default audio codec for current container.
+        /// If <see cref="CodecName"/> property is set, this value will be ignored.
         /// </summary>
         public AudioCodec Codec { get; set; }
+
+        /// <summary>
+        /// Gets or sets the encoder name. Overwrites <see cref="Codec"/> property.
+        /// </summary>
+        public string CodecName { get; set; }
     }
 }
