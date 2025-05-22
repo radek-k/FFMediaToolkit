@@ -32,7 +32,7 @@ deploy:
 - provider: NuGet
   name: production
   api_key:
-    secure: EWYOXnkIXZb8l2dTfNhXJ0Y5dLZV7u/P+CUr+F3RM2TXNR+bJEj6/hp2Pton6Vgh
+    secure: ma6VOuNBMjh9UUtr2LvxSnLepmxr855/6U4/bMT/oqgEgol1yCQVrh1VWw4NLIPW
   on:
     branch: master
     APPVEYOR_REPO_TAG: true
@@ -40,7 +40,7 @@ deploy:
   release: $(APPVEYOR_REPO_TAG_NAME)
   description: 'Release description'
   auth_token:
-    secure: 5obJpl3w5Trw5/FpDqp15ZjwqW1iyqG778GM5mZCxrPfJI2tKZX0RYUFRgiU1oqi5mVmjk/tGVcmPv9hH52ZggopkvmYApdJoJZ74pCh2x4DO2u+w/jnKetL6N7Xud6B
+    secure: 5obJpl3w5Trw5/FpDqp15U+qxbAC5AztY0k3F8hjsZ3wecH0tX0qc66LA/HVxCSNnHf5NarxmkS0xr6952ByAmiwPDPcBJPF98xtkg5pdnMOhhken8Ux/oekK/sQzf2g
   artifact: /.*\.*nupkg/
   draft: true
   prerelease: false
