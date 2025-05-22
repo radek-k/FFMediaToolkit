@@ -62,7 +62,12 @@
                 dict["crf"] = config.CRF.Value.ToString();
             }
 
-            if (config.Codec.IsMatch(VideoCodec.H264, VideoCodec.H265))
+            if (config.QP.HasValue && config.Codec.IsMatch(VideoCodec.H266))
+            {
+                dict["qp"] = config.QP.Value.ToString();
+            }
+
+            if (config.Codec.IsMatch(VideoCodec.H264, VideoCodec.H265, VideoCodec.H266))
             {
                 dict["preset"] = config.EncoderPreset.GetDescription();
             }

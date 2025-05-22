@@ -180,6 +180,8 @@
                     return 16;
                 case ImagePixelFormat.Gray8:
                     return 8;
+                case ImagePixelFormat.Rgba64:
+                    return 64;
                 default:
                     return 0;
             }

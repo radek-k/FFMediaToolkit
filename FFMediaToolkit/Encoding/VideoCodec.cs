@@ -39,6 +39,11 @@
         H265 = AVCodecID.AV_CODEC_ID_HEVC,
 
         /// <summary>
+        /// Versitile Video Coding (VVC) - H.266 codec
+        /// </summary>
+        H266 = AVCodecID.AV_CODEC_ID_VVC,
+
+        /// <summary>
         /// Microsoft Windows Media Video 9 (WMV3)
         /// </summary>
         WMV = AVCodecID.AV_CODEC_ID_WMV3,
