@@ -8,11 +8,11 @@
     /// </summary>
     internal static class NativeMethods
     {
-        private static string MacOSDefautDirectory => "/opt/local/lib/";
+        private static string MacOSDefautDirectory => "/usr/local/lib";
 
-        private static string LinuxDefaultDirectory => $"/usr/lib/{(Environment.Is64BitOperatingSystem ? "x86_64" : "x86")}-linux-gnu";
+        private static string LinuxDefaultDirectory => "/usr/lib/{0}-linux-gnu";
 
-        private static string WindowsDefaultDirectory => $@"\runtimes\{(Environment.Is64BitProcess ? "win-x64" : "win-x86")}\native";
+        private static string WindowsDefaultDirectory => @"\runtimes\{0}\native";
 
         /// <summary>
         /// Gets the default FFmpeg directory for current platform.
@@ -22,11 +22,46 @@
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return Environment.CurrentDirectory + WindowsDefaultDirectory;
+                string archName;
+                switch (RuntimeInformation.ProcessArchitecture)
+                {
+                    case Architecture.X86:
+                        archName = "win-x86";
+                        break;
+                    case Architecture.X64:
+                        archName = "win-x64";
+                        break;
+                    case Architecture.Arm64:
+                        archName = "win-arm64";
+                        break;
+                    default:
+                        throw new PlatformNotSupportedException("This OS architecture is not supported by the FFMediaToolkit");
+                }
+
+                return AppDomain.CurrentDomain.BaseDirectory + string.Format(WindowsDefaultDirectory, archName);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                return LinuxDefaultDirectory;
+                string archName;
+                switch (RuntimeInformation.ProcessArchitecture)
+                {
+                    case Architecture.X86:
+                        archName = "x86";
+                        break;
+                    case Architecture.X64:
+                        archName = "x86_64";
+                        break;
+                    case Architecture.Arm:
+                        archName = "arm";
+                        break;
+                    case Architecture.Arm64:
+                        archName = "aarch64";
+                        break;
+                    default:
+                        throw new PlatformNotSupportedException("This OS architecture is not supported by the FFMediaToolkit");
+                }
+
+                return string.Format(LinuxDefaultDirectory, archName);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -34,7 +69,7 @@
             }
             else
             {
-                throw new PlatformNotSupportedException("This OS is not supported by the FFMediaToolkit");
+                throw new PlatformNotSupportedException("This OS platform is not supported by the FFMediaToolkit");
             }
         }
     }
