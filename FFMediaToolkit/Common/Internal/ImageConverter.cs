@@ -1,6 +1,5 @@
 ﻿namespace FFMediaToolkit.Common.Internal
 {
-    using System;
     using System.Drawing;
     using FFMediaToolkit.Graphics;
     using FFmpeg.AutoGen;
@@ -13,12 +12,13 @@
         // sws_scale requires up to 16 extra bytes allocated in the input buffer when resizing an image
         // (reference: https://www.ffmpeg.org/doxygen/6.0/frame_8h_source.html#l00340)
         private const int BufferPaddingSize = 16;
-        private byte[] tmpBuffer = { };
 
         private readonly Size destinationSize;
         private readonly AVPixelFormat destinationFormat;
+
         private Size lastSourceSize;
         private AVPixelFormat lastSourcePixelFormat;
+        private byte[] tmpBuffer = { };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageConverter"/> class.

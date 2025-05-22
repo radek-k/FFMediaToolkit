@@ -28,6 +28,11 @@
         /// </summary>
         public T* Pointer => isDisposed ? null : (T*)pointer;
 
+        /// <summary>
+        /// Gets a reference to the wrapped pointer field.
+        /// </summary>
+        internal ref readonly IntPtr PointerRef => ref pointer;
+
         /// <inheritdoc/>
         public void Dispose() => Disposing(true);
 

@@ -34,12 +34,13 @@
     public class MediaOptions
     {
         private const string Threads = "threads";
-        private const string Auto = "auto";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaOptions"/> class.
         /// </summary>
-        public MediaOptions() => DecoderThreads = null;
+        public MediaOptions()
+        {
+        }
 
         /// <summary>
         /// Gets or sets the limit of memory used by the packet buffer. Default limit is 40 MB per stream.
@@ -76,8 +77,19 @@
         /// </summary>
         public int? DecoderThreads
         {
-            get => int.TryParse(DecoderOptions[Threads], out var count) ? (int?)count : null;
-            set => DecoderOptions[Threads] = value.HasValue ? value.ToString() : Auto;
+            get => DecoderOptions.TryGetValue(Threads, out string value) &&
+                int.TryParse(value, out var count) ? (int?)count : null;
+            set
+            {
+                if (value.HasValue)
+                {
+                    DecoderOptions[Threads] = value.ToString();
+                }
+                else
+                {
+                    DecoderOptions.Remove(Threads);
+                }
+            }
         }
 
         /// <summary>

@@ -28,7 +28,7 @@
             PixelFormat = ((AVPixelFormat)codec->format).FormatEnum(11);
             AVPixelFormat = (AVPixelFormat)codec->format;
 
-            var matrix = (IntPtr)ffmpeg.av_stream_get_side_data(stream, AVPacketSideDataType.AV_PKT_DATA_DISPLAYMATRIX, null);
+            var matrix = (IntPtr)ffmpeg.av_packet_side_data_get(codec->coded_side_data, codec->nb_coded_side_data, AVPacketSideDataType.AV_PKT_DATA_DISPLAYMATRIX);
             Rotation = CalculateRotation(matrix);
         }
 

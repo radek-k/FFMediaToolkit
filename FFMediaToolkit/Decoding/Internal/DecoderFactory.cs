@@ -33,10 +33,12 @@
                 .ThrowIfError("Cannot open the stream codec!");
             codecContext->pkt_timebase = stream->time_base;
 
-            var dict = new FFDictionary(options.DecoderOptions, false).Pointer;
-
-            ffmpeg.avcodec_open2(codecContext, codec, &dict)
-                .ThrowIfError("Cannot open the stream codec!");
+            var dict = new FFDictionary(options.DecoderOptions, false);
+            fixed (void* dictPtrRef = &dict.PointerRef)
+            {
+                ffmpeg.avcodec_open2(codecContext, codec, (AVDictionary**)dictPtrRef)
+                    .ThrowIfError("Cannot open the stream codec!");
+            }
 
             return new Decoder(codecContext, stream, container);
         }
