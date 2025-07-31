@@ -3,8 +3,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/9vaaqchtx1d5nldj?svg=true)](https://ci.appveyor.com/project/radek-k/ffmediatoolkit) [![Nuget](https://img.shields.io/nuget/v/FFMediaToolkit.svg)](https://www.nuget.org/packages/FFMediaToolkit/)
 [![License](https://img.shields.io/github/license/radek-k/FFMediaToolkit.svg)](https://github.com/radek-k/FFMediaToolkit/blob/master/LICENSE)
 
-> ⚠ **This library is not recommended for production use.**
-
 **FFMediaToolkit** is a .NET library for creating and reading multimedia files. It uses native FFmpeg libraries by the [FFmpeg.Autogen](https://github.com/Ruslan-B/FFmpeg.AutoGen) bindings.
 
 ## Features
@@ -18,29 +16,38 @@
 ## Code samples
 
 - Extract all video frames as PNG files
-  
+ 
     ```c#
+    // Open video file
+    using var file = MediaFile.Open(@"D:\example\movie.mp4", new MediaOptions() { VideoPixelFormat = ImagePixelFormat.Rgba32 });
+    
+    // Get pixel buffer from SkiaSharp bitmap
+    using var bitmap = new SKBitmap(file.Video.Info.FrameSize.Width, file.Video.Info.FrameSize.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+    var pixelBuffer = bitmap.GetPixelSpan();
+
     int i = 0;
-    var file = MediaFile.Open(@"C:\videos\movie.mp4");
-    while(file.Video.TryGetNextFrame(out var imageData))
+    // Iterate over all frames in the video - decoded frame will be written to the buffer
+    while (file.Video.TryGetNextFrame(pixelBuffer))
     {
-        imageData.ToBitmap().Save($@"C:\images\frame_{i++}.png");
-        // See the #Usage details for example .ToBitmap() implementation
-        // The .Save() method may be different depending on your graphics library
+        // Save image as PNG file
+        using var fs = File.OpenWrite($@"D:\example\frame_{i++}.png");
+        bitmap.Encode(fs, SKEncodedImageFormat.Png, 100);
     }
     ```
+    >This example uses [SkiaSharp](https://github.com/mono/SkiaSharp) to save decoded frames. See [Usage details](#usage-details) section for examples with other graphics libraries.
+  
 
 - Video decoding
   
     ```c#
-    // Opens a multimedia file.
-    // You can use the MediaOptions properties to set decoder options.
+    // Open a multimedia file
+    // You can use the MediaOptions properties to set decoder options
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
     
-     // Gets the frame at 5th second of the video.
+    // Get the frame at 5th second of the video
     var frame5s = file.Video.GetFrame(TimeSpan.FromSeconds(5));
     
-    // Print informations about the video stream.
+    // Print information about the video stream
     Console.WriteLine($"Bitrate: {file.Info.Bitrate / 1000.0} kb/s");
     var info = file.Video.Info;
     Console.WriteLine($"Duration: {info.Duration}");
@@ -56,16 +63,19 @@
 - Encode video from images.
   
     ```c#
-    // You can set there codec, bitrate, frame rate and many other options.
-    var settings = new VideoEncoderSettings(width: 1920, height: 1080, framerate: 30, codec: VideoCodec.H264);
-    settings.EncoderPreset = EncoderPreset.Fast;
-    settings.CRF = 17;
-    using(var file = MediaBuilder.CreateContainer(@"C:\videos\example.mp4").WithVideo(settings).Create())
+    // You can set codec, bitrate, frame rate and many other options here
+    var settings = new VideoEncoderSettings(width: 1920, height: 1080, framerate: 30, codec: VideoCodec.H264) {
+        EncoderPreset = EncoderPreset.Fast,
+        CRF = 17,
+    };
+    // Create output file
+    using var file = MediaBuilder.CreateContainer(@"D:\example\video.mp4").WithVideo(settings).Create();
+    for(int i = 0; i < 300; i++)
     {
-        while(file.Video.FramesCount < 300)
-        {
-            file.Video.AddFrame(/*Your code*/);
-        }
+        // Load image using SkiaSharp (other libraries are also supported if provide access to pixel buffer)
+        using var bmp = SKBitmap.Decode($@"D:\example\frame_{i}.png");
+        // Encode the video frame
+        file.Video.AddFrame(new ImageData(bmp.GetPixelSpan(), ImagePixelFormat.Rgba32, bmp.Width, bmp.Height));
     }
     ```
 
@@ -76,90 +86,107 @@ Install the **FFMediaToolkit** package from [NuGet](https://www.nuget.org/packag
 ```shell
 dotnet add package FFMediaToolkit
 ```
-  
-```Package
-PM> Install-Package FFMediaToolkit
-```
 
-**FFmpeg libraries are not included in the package.** To use FFMediaToolkit, you need the **FFmpeg shared build** binaries: `avcodec`, `avformat`, `avutil`, `swresample`, `swscale`.
 
-- **Windows** - You can download it from the [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) or [gyan.dev](https://www.gyan.dev/ffmpeg/builds/). You only need `*.dll` files from the `.\bin` directory (**not `.\lib`**) of the ZIP package. Place the binaries in the `.\ffmpeg\x86_64\`(64bit) in the application output directory or set `FFmpegLoader.FFmpegPath`.
-- **Linux** - Download FFmpeg using your package manager.
+**FFmpeg libraries are not included in the package.** To use FFMediaToolkit, you need the **FFmpeg shared build** binaries: `avcodec` (v61), `avformat` (v61), `avutil` (v59), `swresample` (v5), `swscale` (v8).
+
+> Supported FFmpeg version: 7.x (shared build)
+
+- **Windows** - You can download it from the [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) or [gyan.dev](https://www.gyan.dev/ffmpeg/builds/). You only need `*.dll` files from the `.\bin` directory (**not `.\lib`**) of the ZIP package. Place the binaries in `.\runtimes\win-[x64\arm64]\native\` in the application output directory or set `FFmpegLoader.FFmpegPath`.
+- **Linux** - Download FFmpeg using your package manager. Default path is `/usr/lib/*-linux-gnu`
 - **macOS**, **iOS**, **Android** - Not supported.
 
 **You need to set `FFmpegLoader.FFmpegPath` with a full path to FFmpeg libraries.**
-> If you want to use 64-bit FFmpeg, you have to disable the *Build* -> *Prefer 32-bit* option in Visual Studio project properties.
+
+In .NET Framework projects you have to disable the *Build* -> *Prefer 32-bit* option in Visual Studio project properties.
 
 ## Usage details
 
-FFMediaToolkit uses the [*ref struct*](https://docs.microsoft.com/pl-pl/dotnet/csharp/language-reference/keywords/ref#ref-struct-types) `ImageData` for bitmap images. The `.Data` property contains pixels data in a [`Span<byte>`](https://docs.microsoft.com/pl-pl/dotnet/api/system.span-1?view=netstandard-2.1).
+FFMediaToolkit supports decoding video frames into pixel buffers which can be `Span<byte>`, `byte[]` or unmanaged memory. You can specify target pixel format by setting the `MediaOptions.VideoPixelFormat` property. The default format is `Bgr24`.
 
-> **If you want to process or save the `ImageData`, you should convert it to another graphics object, using one of the following methods.**
+If you want to process or save the decoded frame, you can pass it to another graphics library, as shown in the examples below.
 
-> **These methods are not included in the program to avoid additional dependencies and provide compatibility with many graphics libraries.**
-
-- **For [ImageSharp](https://github.com/SixLabors/ImageSharp) library (.NET Standard/Core - cross-platform):**
-  
+- For **[SkiaSharp](https://github.com/mono/SkiaSharp) library:**
+    - Video decoding
+      ```c#
+      using var file = MediaFile.Open(@"D:\example\video.mp4", new MediaOptions() {
+          StreamsToLoad = MediaMode.Video, 
+          VideoPixelFormat = ImagePixelFormat.Rgba32
+      });
+      using var bitmap = new SKBitmap(file.Video.Info.FrameSize.Width, file.Video.Info.FrameSize.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+      var buffer = bitmap.GetPixelSpan();
+      
+      while(file.Video.TryGetNextFrame(buffer)) {
+          // do something
+      }
+      ```
+  - Video encoding
     ```c#
-    using SixLabors.ImageSharp;
-    using SixLabors.ImageSharp.PixelFormats;
-    ...
-    public static Image<Bgr24> ToBitmap(this ImageData imageData)
-    {
-        return Image.LoadPixelData<Bgr24>(imageData.Data, imageData.ImageSize.Width, imageData.ImageSize.Height);
+    using var bmp = SKBitmap.Decode($@"D:\example\frame.png");
+    mediaFile.Video.AddFrame(new ImageData(bmp.GetPixelSpan(), ImagePixelFormat.Rgba32, bmp.Width, bmp.Height));
+    ```
+
+- For **[ImageSharp](https://github.com/SixLabors/ImageSharp) library:**
+  - Video decoding
+    ```c#
+    var stride = ImageData.EstimateStride(file.Video.Info.FrameSize.Width, ImagePixelFormat.Bgr24);
+    var buffer = new byte[stride * file.Video.Info.FrameSize.Height];
+    var bmp = Image.WrapMemory<Bgr24>(buffer, file.Video.Info.FrameSize.Width, file.Video.Info.FrameSize.Height);
+    
+    while(file.Video.TryGetNextFrame(buffer)) {
+        // do something
     }
     ```
 
-- **For .NET Framework `System.Drawing.Bitmap` (Windows only):**
-  
+- **For GDI+ `System.Drawing.Bitmap` (Windows only):**
+  - Video decoding
+      ```c#
+      // Create bitmap once
+      var rect = new Rectangle(Point.Empty, file.Video.Info.FrameSize);
+      var bitmap = new Bitmap(rect.Width, rect.Height, PixelFormat.Format24bppRgb);
+      // ...
+      // Read next frame
+      var bitLock = bitmap.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+      file.Video.TryGetNextFrame(bitLock.Scan0, bitLock.Stride);
+      bitmap.UnlockBits(bitLock);
+      ```
+  - Video encoding
     ```c#
-    // ImageData -> Bitmap (unsafe)
-    public static unsafe Bitmap ToBitmap(this ImageData bitmap)
-    {
-        fixed(byte* p = bitmap.Data)
-        {
-            return new Bitmap(bitmap.ImageSize.Width, bitmap.ImageSize.Height, bitmap.Stride, PixelFormat.Format24bppRgb, new IntPtr(p));
-        }
-    }
-  
-    // Bitmap -> ImageData (safe)
-    ...
-        var rect = new Rectangle(Point.Empty, bitmap.Size);
-        var bitLock = bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-        var bitmapData = ImageData.FromPointer(bitLock.Scan0, bitmap.Size, ImagePixelFormat.Bgr24);
-        
-        mediaFile.Video.AddFrame(bitmapData); // Encode the frame
-        
-        bitmap.UnlockBits(bitLock); // UnlockBits() must be called after encoding the frame
-   ...
+    var rect = new Rectangle(Point.Empty, bitmap.Size);
+    var bitLock = bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+    
+    var bitmapData = ImageData.FromPointer(bitLock.Scan0, bitmap.Size, ImagePixelFormat.Bgr24);
+    mediaFile.Video.AddFrame(bitmapData); // Encode the frame
+    
+    bitmap.UnlockBits(bitLock); // UnlockBits() must be called after encoding the frame
     ```
-
-- **For .NET Framework/Core desktop apps with WPF UI. (Windows only):**
   
+- **For desktop apps with WPF UI (Windows only):**
+  - Video decoding 
+  
+      ```c#
+      using System.Windows.Media.Imaging;
+      
+    // Create bitmap once
+    var bmp = new WriteableBitmap(media.Video.Info.FrameSize.Width, media.Video.Info.FrameSize.Height, 96, 96, PixelFormats.Bgr24, null);
+    // ...
+    // Read next frame
+    bmp.Lock();
+    var success = media.Video.TryGetNextFrame(bmp.BackBuffer, bmp.BackBufferStride);
+    if(success) {
+          bmp.AddDirtyRect(new Int32Rect(0, 0, media.Video.Info.FrameSize.Width, media.Video.Info.FrameSize.Height));
+    }
+    bmp.Unlock();
+    ```
+  - Video encoding
     ```c#
-    using System.Windows.Media.Imaging;
-    ...
-    // ImageData -> BitmapSource (unsafe)
-    public static unsafe BitmapSource ToBitmap(this ImageData bitmapData)
-    {
-        fixed(byte* ptr = bitmapData.Data)
-        {
-            return BitmapSource.Create(bitmapData.ImageSize.Width, bitmapData.ImageSize.Height, 96, 96, PixelFormats.Bgr32, null, new IntPtr(ptr), bitmapData.Data.Length, bitmapData.Stride);
-        }
-    }
-  
-    // BitmapSource -> ImageData (safe)
-    public static ImageData ToImageData(this BitmapSource bitmap)
-    {
-        var wb = new WriteableBitmap(bitmap);
-        return ImageData.FromPointer(wb.BackBuffer, ImagePixelFormat.Bgra32, wb.PixelWidth, wb.PixelHeight);
-    }
-    ```
-
-- **FFMediaToolkit will also work with any other graphics library that supports creating images from `Span<byte>`, byte array or memory pointer**
+    var bitmapSource = new BitmapImage(new Uri(@"D:\example\image.png"));
+    var wb = new WriteableBitmap(bitmap);
+    mediaFile.Video.AddFrame(ImageData.FromPointer(wb.BackBuffer, ImagePixelFormat.Bgra32, wb.PixelWidth, wb.PixelHeight));
+      ```
 
 ## Visual Basic usage
-Writing decoded bitmap directly to the WPF `WriteableBitmap` buffer using the `TryReadFrameToPointer` method:
+Writing decoded bitmap directly to the WPF `WriteableBitmap` buffer:
 ````vb
 Dim file As FileStream = New FileStream("path to the video file", FileMode.Open, FileAccess.Read)
 Dim media As MediaFile = MediaFile.Load(file)
