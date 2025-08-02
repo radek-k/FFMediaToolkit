@@ -31,5 +31,15 @@
         /// Prints the most detailed messages.
         /// </summary>
         Verbose = ffmpeg.AV_LOG_VERBOSE,
+
+        /// <summary>
+        /// DEBUG log level.
+        /// </summary>
+        Debug = ffmpeg.AV_LOG_DEBUG,
+
+        /// <summary>
+        /// TRACE log level.
+        /// </summary>
+        Trace = ffmpeg.AV_LOG_TRACE,
     }
 }
