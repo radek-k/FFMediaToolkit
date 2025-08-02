@@ -79,11 +79,10 @@
         public void Dispose()
         {
             if (isDisposed)
-            {
                 return;
-            }
 
-            stream.Dispose();
+            stream.FlushEncoder();
+
             encodedFrame.Dispose();
             converter.Dispose();
 

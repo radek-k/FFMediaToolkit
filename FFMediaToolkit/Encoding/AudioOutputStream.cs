@@ -50,6 +50,11 @@
         }
 
         /// <summary>
+        /// Finalizes an instance of the <see cref="AudioOutputStream"/> class.
+        /// </summary>
+        ~AudioOutputStream() => Dispose(false);
+
+        /// <summary>
         /// Gets the video encoding configuration used to create this stream.
         /// </summary>
         public AudioEncoderSettings Configuration { get; }
@@ -135,17 +140,28 @@
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (isDisposed)
-            {
-                return;
-            }
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-            stream.Dispose();
-            frame.Dispose();
-
+        private void ReleaseUnmanagedResources()
+        {
             fixed (SwrContext** ptr = &swrContext)
             {
                 ffmpeg.swr_free(ptr);
+            }
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            ReleaseUnmanagedResources();
+            if (disposing)
+            {
+                stream.FlushEncoder();
+                frame.Dispose();
             }
 
             isDisposed = true;

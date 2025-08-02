@@ -12,6 +12,8 @@
     /// </summary>
     internal unsafe class OutputContainer : Wrapper<AVFormatContext>
     {
+        private bool isHeaderWritten;
+
         private OutputContainer(AVFormatContext* formatContext)
             : base(formatContext)
         {
@@ -119,9 +121,9 @@
             var ptr = ContainerOptions.Pointer;
 
             ffmpeg.avio_open(&Pointer->pb, path, ffmpeg.AVIO_FLAG_WRITE).ThrowIfError("Cannot create the output file.");
-            ffmpeg.avformat_write_header(Pointer, &ptr);
-
             IsFileCreated = true;
+            ffmpeg.avformat_write_header(Pointer, &ptr).ThrowIfError("Cannot write format header");
+            isHeaderWritten = true;
         }
 
         /// <summary>
@@ -135,12 +137,28 @@
                 throw new InvalidOperationException("The file must be opened before writing a packet. Use the OutputContainer.CreateFile() method.");
             }
 
-            ffmpeg.av_interleaved_write_frame(Pointer, packet);
+            ffmpeg.av_interleaved_write_frame(Pointer, packet).ThrowIfError("Cannot write packet");
+        }
+
+        /// <summary>
+        /// Writes file trailer
+        /// </summary>
+        public void WriteTrailer()
+        {
+            if (isHeaderWritten)
+            {
+                ffmpeg.av_write_trailer(Pointer).ThrowIfError("Cannot write file trailer");
+            }
         }
 
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
+            if (IsFileCreated)
+            {
+                ffmpeg.avio_closep(&Pointer->pb);
+            }
+
             foreach (var output in Video)
             {
                 output.stream.Dispose();
@@ -149,12 +167,6 @@
             foreach (var output in Audio)
             {
                 output.stream.Dispose();
-            }
-
-            if (IsFileCreated)
-            {
-                ffmpeg.av_write_trailer(Pointer);
-                ffmpeg.avio_close(Pointer->pb);
             }
 
             ffmpeg.avformat_free_context(Pointer);

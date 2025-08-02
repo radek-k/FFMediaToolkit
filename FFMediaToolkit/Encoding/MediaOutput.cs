@@ -30,11 +30,6 @@
         }
 
         /// <summary>
-        /// Finalizes an instance of the <see cref="MediaOutput"/> class.
-        /// </summary>
-        ~MediaOutput() => Dispose();
-
-        /// <summary>
         /// Gets the video streams in the media file.
         /// </summary>
         public VideoOutputStream[] VideoStreams { get; }
@@ -60,8 +55,18 @@
             if (isDisposed)
                 return;
 
-            container.Dispose();
+            foreach (var videoStream in VideoStreams)
+            {
+                videoStream.Dispose();
+            }
 
+            foreach (var audioStream in AudioStreams)
+            {
+                audioStream.Dispose();
+            }
+
+            container.WriteTrailer();
+            container.Dispose();
             isDisposed = true;
         }
     }
