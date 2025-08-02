@@ -54,6 +54,11 @@
         public ImagePixelFormat VideoFormat { get; set; } = ImagePixelFormat.Yuv420;
 
         /// <summary>
+        /// Gets or sets value indicating whether video frames will be flipped vertically.
+        /// </summary>
+        public bool FlipVertically { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets video frame rate (FPS) value. The default value is 30 frames/s.
         /// </summary>
         public int Framerate

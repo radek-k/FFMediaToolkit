@@ -15,6 +15,7 @@
 
         private readonly Size destinationSize;
         private readonly AVPixelFormat destinationFormat;
+        private readonly bool flipVertically;
 
         private Size lastSourceSize;
         private AVPixelFormat lastSourcePixelFormat;
@@ -25,11 +26,13 @@
         /// </summary>
         /// <param name="destinationSize">Destination image size.</param>
         /// <param name="destinationFormat">Destination image format.</param>
-        public ImageConverter(Size destinationSize, AVPixelFormat destinationFormat)
+        /// <param name="flipVertically">If <see langword="true"/>, video frames will be flipped vertically.</param>
+        public ImageConverter(Size destinationSize, AVPixelFormat destinationFormat, bool flipVertically)
             : base(null)
         {
             this.destinationSize = destinationSize;
             this.destinationFormat = destinationFormat;
+            this.flipVertically = flipVertically;
         }
 
         /// <summary>
@@ -57,8 +60,8 @@
             var source = shouldUseTmpBuffer ? tmpBuffer : bitmap.Data;
             fixed (byte* ptr = source)
             {
-                var data = new byte*[4] { ptr, null, null, null };
-                var linesize = new int[4] { bitmap.Stride, 0, 0, 0 };
+                var data = new byte*[4] { flipVertically ? ptr + (bitmap.Stride * (bitmap.ImageSize.Height - 1)) : ptr, null, null, null };
+                var linesize = new int[4] { flipVertically ? -bitmap.Stride : bitmap.Stride, 0, 0, 0 };
                 ffmpeg.sws_scale(Pointer, data, linesize, 0, bitmap.ImageSize.Height, destinationFrame.Pointer->data, destinationFrame.Pointer->linesize);
             }
         }
@@ -72,6 +75,12 @@
         internal void AVFrameToBitmap(VideoFrame videoFrame, byte* destination, int stride)
         {
             UpdateContext(videoFrame.Layout, videoFrame.PixelFormat);
+
+            if (flipVertically)
+            {
+                destination += stride * (destinationSize.Height - 1);
+                stride = -stride;
+            }
 
             var data = new byte*[4] { destination, null, null, null };
             var linesize = new int[4] { stride, 0, 0, 0 };

@@ -27,7 +27,7 @@
             : base(stream, options)
         {
             OutputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
-            converter = new ImageConverter(OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat);
+            converter = new ImageConverter(OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat, options.FlipVertically);
 
             outputFrameStride = ImageData.EstimateStride(OutputFrameSize.Width, Options.VideoPixelFormat);
             requiredBufferSize = outputFrameStride * OutputFrameSize.Height;

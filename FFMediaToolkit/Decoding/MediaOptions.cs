@@ -63,6 +63,11 @@
         public Size? TargetVideoSize { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether video frames will be flipped vertically.
+        /// </summary>
+        public bool FlipVertically { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets the threshold value used to choose the best seek method. Set this to video GoP value (if know) to improve stream seek performance.
         /// </summary>
         public int VideoSeekThreshold { get; set; } = 12;
