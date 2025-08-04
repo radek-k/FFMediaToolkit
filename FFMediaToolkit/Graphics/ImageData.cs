@@ -7,10 +7,10 @@
     /// <summary>
     /// Represent a lightweight container for bitmap images.
     /// </summary>
-    public ref struct ImageData
+    public ref struct ImageData // IDisposable for ref structs is not supported in .NET Standard
     {
         private readonly Span<byte> span;
-        private readonly IMemoryOwner<byte> pooledMemory;
+        private IMemoryOwner<byte> pooledMemory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageData"/> struct using a <see cref="Span{T}"/> as the data source.
@@ -147,6 +147,18 @@
         /// <param name="format">The image pixel format.</param>
         /// <returns>The size of a single line of the image measured in bytes.</returns>
         public static int EstimateStride(int width, ImagePixelFormat format) => 4 * (((GetBitsPerPixel(format) * width) + 31) / 32);
+
+        /// <summary>
+        /// Returns the pixel buffer to the memory pool and allows it to be reused in the next GetFrame/GetNextFrame method call. This method must be called when the decoded frame is no longer used.
+        /// </summary>
+        public void Dispose()
+        {
+            if (pooledMemory != null)
+            {
+                pooledMemory.Dispose();
+                pooledMemory = null;
+            }
+        }
 
         private static unsafe Span<byte> CreateSpan(IntPtr pointer, Size imageSize, ImagePixelFormat pixelFormat)
         {
