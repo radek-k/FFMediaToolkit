@@ -34,10 +34,10 @@
             switch (Info.Type)
             {
                 case MediaType.Audio:
-                    RecentlyDecodedFrame = new AudioFrame();
+                    RecentlyDecodedFrame = AudioFrame.CreateEmpty();
                     break;
                 case MediaType.Video:
-                    RecentlyDecodedFrame = new VideoFrame();
+                    RecentlyDecodedFrame = VideoFrame.CreateEmpty();
                     break;
                 default:
                     throw new Exception("Tried to create a decoder from an unsupported stream or codec type.");

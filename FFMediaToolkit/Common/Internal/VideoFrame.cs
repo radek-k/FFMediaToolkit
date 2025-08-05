@@ -12,14 +12,6 @@
     internal unsafe class VideoFrame : MediaFrame
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="VideoFrame"/> class with empty frame data.
-        /// </summary>
-        public VideoFrame()
-            : base(ffmpeg.av_frame_alloc())
-        {
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="VideoFrame"/> class using existing <see cref="AVFrame"/>.
         /// </summary>
         /// <param name="frame">The video <see cref="AVFrame"/>.</param>
@@ -49,12 +41,14 @@
         public static VideoFrame Create(Size dimensions, AVPixelFormat pixelFormat)
         {
             var frame = ffmpeg.av_frame_alloc();
+            if (frame == null)
+                throw new FFmpegException("Cannot allocate video AVFrame", ffmpeg.ENOMEM);
 
             frame->width = dimensions.Width;
             frame->height = dimensions.Height;
             frame->format = (int)pixelFormat;
 
-            ffmpeg.av_frame_get_buffer(frame, 32);
+            ffmpeg.av_frame_get_buffer(frame, 0).ThrowIfError("Cannot allocate video AVFrame buffer");
 
             return new VideoFrame(frame);
         }
@@ -63,7 +57,14 @@
         /// Creates an empty frame for decoding.
         /// </summary>
         /// <returns>The empty <see cref="VideoFrame"/>.</returns>
-        public static VideoFrame CreateEmpty() => new VideoFrame();
+        public static VideoFrame CreateEmpty()
+        {
+            var frame = ffmpeg.av_frame_alloc();
+            if (frame == null)
+                throw new FFmpegException("Cannot allocate video AVFrame", ffmpeg.ENOMEM);
+
+            return new VideoFrame(frame);
+        }
 
         /// <summary>
         /// Overrides this video frame data with the converted <paramref name="bitmap"/> using specified <see cref="ImageConverter"/> object.

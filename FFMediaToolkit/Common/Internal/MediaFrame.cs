@@ -35,6 +35,15 @@
         }
 
         /// <summary>
+        /// Gets or sets the frame duration
+        /// </summary>
+        public long Duration
+        {
+            get => Pointer->duration;
+            set => Pointer->duration = value;
+        }
+
+        /// <summary>
         /// Changes the pointer to the media frame.
         /// </summary>
         /// <param name="newFrame">The new pointer to a <see cref="AVFrame"/> object.</param>

@@ -52,7 +52,9 @@
         public static MediaPacket AllocateEmpty()
         {
             var packet = ffmpeg.av_packet_alloc();
-            packet->stream_index = -1;
+            if (packet == null)
+                throw new FFmpegException("Cannot allocate AVPacket", ffmpeg.ENOMEM);
+
             return new MediaPacket(packet);
         }
 
@@ -63,11 +65,9 @@
         /// <returns>The flush packet.</returns>
         public static MediaPacket CreateFlushPacket(int streamIndex)
         {
-            var packet = ffmpeg.av_packet_alloc();
-            packet->stream_index = streamIndex;
-            packet->data = null;
-            packet->size = 0;
-            return new MediaPacket(packet);
+            var packet = AllocateEmpty();
+            packet.StreamIndex = streamIndex;
+            return packet;
         }
 
         /// <summary>

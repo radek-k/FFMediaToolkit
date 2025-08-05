@@ -29,6 +29,11 @@
             }
 
             var codecContext = ffmpeg.avcodec_alloc_context3(codec);
+            if (codecContext == null)
+            {
+                throw new FFmpegException("Cannot allocate codec context", ffmpeg.ENOMEM);
+            }
+
             ffmpeg.avcodec_parameters_to_context(codecContext, stream->codecpar)
                 .ThrowIfError("Cannot open the stream codec!");
             codecContext->pkt_timebase = stream->time_base;

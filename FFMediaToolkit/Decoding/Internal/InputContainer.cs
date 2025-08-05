@@ -126,6 +126,11 @@
             FFmpegLoader.LoadFFmpeg();
 
             var context = ffmpeg.avformat_alloc_context();
+            if (context == null)
+            {
+                throw new FFmpegException("Cannot allocate AVFormatContext", ffmpeg.ENOMEM);
+            }
+
             options.DemuxerOptions.ApplyFlags(context);
             var dict = new FFDictionary(options.DemuxerOptions.PrivateOptions, false).Pointer;
 
@@ -150,6 +155,10 @@
             {
                 int bufferLength = 4096;
                 var avioBuffer = (byte*)ffmpeg.av_malloc((ulong)bufferLength);
+                if (avioBuffer == null)
+                {
+                    throw new FFmpegException("Cannot allocate IO buffer", ffmpeg.ENOMEM);
+                }
 
                 ctx->pb = ffmpeg.avio_alloc_context(avioBuffer, bufferLength, 0, null, read, null, seek);
                 if (ctx->pb == null)
@@ -203,18 +212,17 @@
             packet = MediaPacket.AllocateEmpty();
             var result = ffmpeg.av_read_frame(Pointer, packet.Pointer); // Gets the next packet from the file.
 
-            // Check if the end of file error occurred
             if (result < 0)
             {
                 packet.Dispose();
+
+                // Check if the end of file error occurred
                 if (result == ffmpeg.AVERROR_EOF)
                 {
                     return false;
                 }
-                else
-                {
-                    result.ThrowIfError("Cannot read next packet from the file");
-                }
+
+                result.ThrowIfError("Cannot read next packet from the file");
             }
 
             return true;
