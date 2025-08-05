@@ -108,7 +108,7 @@
             {
                 ReadNextFrame();
             }
-            while (RecentlyDecodedFrame.PresentationTimestamp < targetTs);
+            while (RecentlyDecodedFrame.PresentationTimestamp + RecentlyDecodedFrame.Duration < targetTs);
         }
 
         /// <summary>

@@ -79,31 +79,20 @@
         /// <returns>The nearest frame's data.</returns>
         internal MediaFrame GetFrame(TimeSpan time)
         {
-            var ts = time.ToTimestamp(Info.TimeBase);
-            var frame = GetFrameByTimestamp(ts);
-            return frame;
-        }
-
-        private MediaFrame GetFrameByTimestamp(long ts)
-        {
             var frame = Stream.RecentlyDecodedFrame;
-            ts = Math.Max(0, Math.Min(ts, Info.DurationRaw));
+            var ts = Math.Max(0, Math.Min(time.ToTimestamp(Info.TimeBase), Info.DurationRaw));
 
-            if (ts > frame.PresentationTimestamp && ts < frame.PresentationTimestamp + Threshold)
+            if (ts < frame.PresentationTimestamp || ts >= frame.PresentationTimestamp + Threshold)
             {
-                return Stream.GetNextFrame();
+                Stream.OwnerFile.SeekFile(ts, Info.Index);
             }
-            else if (ts != frame.PresentationTimestamp)
-            {
-                if (ts < frame.PresentationTimestamp || ts >= frame.PresentationTimestamp + Threshold)
-                {
-                    Stream.OwnerFile.SeekFile(ts, Info.Index);
-                }
 
+            if (ts < frame.PresentationTimestamp || ts >= frame.PresentationTimestamp + frame.Duration)
+            {
                 Stream.SkipFrames(ts);
             }
 
-            return Stream.RecentlyDecodedFrame;
+            return frame;
         }
     }
 }
