@@ -17,19 +17,19 @@
         private OutputContainer(AVFormatContext* formatContext)
             : base(formatContext)
         {
-            Video = new List<(OutputStream<VideoFrame>, VideoEncoderSettings)>();
-            Audio = new List<(OutputStream<AudioFrame>, AudioEncoderSettings)>();
+            Video = new List<(Encoder<VideoFrame>, VideoEncoderSettings)>();
+            Audio = new List<(Encoder<AudioFrame>, AudioEncoderSettings)>();
         }
 
         /// <summary>
         /// Gets the video streams.
         /// </summary>
-        public List<(OutputStream<VideoFrame> stream, VideoEncoderSettings config)> Video { get; }
+        public List<(Encoder<VideoFrame> stream, VideoEncoderSettings config)> Video { get; }
 
         /// <summary>
         /// Gets the audio streams.
         /// </summary>
-        public List<(OutputStream<AudioFrame> stream, AudioEncoderSettings config)> Audio { get; }
+        public List<(Encoder<AudioFrame> stream, AudioEncoderSettings config)> Audio { get; }
 
         /// <summary>
         /// Gets a value indicating whether the file is created.
@@ -85,7 +85,7 @@
                 throw new InvalidOperationException("The stream must be added before creating a file.");
             }
 
-            Video.Add((OutputStreamFactory.CreateVideo(this, config), config));
+            Video.Add((EncoderFactory.CreateVideo(this, config), config));
         }
 
         /// <summary>
@@ -99,7 +99,7 @@
                 throw new InvalidOperationException("The stream must be added before creating a file.");
             }
 
-            Audio.Add((OutputStreamFactory.CreateAudio(this, config), config));
+            Audio.Add((EncoderFactory.CreateAudio(this, config), config));
         }
 
         /// <summary>

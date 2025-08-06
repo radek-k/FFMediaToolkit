@@ -13,7 +13,7 @@
     /// </summary>
     public class VideoOutputStream : IDisposable
     {
-        private readonly OutputStream<VideoFrame> stream;
+        private readonly Encoder<VideoFrame> encoder;
         private readonly VideoFrame encodedFrame;
         private readonly ImageConverter converter;
 
@@ -23,11 +23,11 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoOutputStream"/> class.
         /// </summary>
-        /// <param name="stream">The video stream.</param>
+        /// <param name="encoder">The video stream.</param>
         /// <param name="config">The stream setting.</param>
-        internal VideoOutputStream(OutputStream<VideoFrame> stream, VideoEncoderSettings config)
+        internal VideoOutputStream(Encoder<VideoFrame> encoder, VideoEncoderSettings config)
         {
-            this.stream = stream;
+            this.encoder = encoder;
             Configuration = config;
 
             var frameSize = new Size(config.VideoWidth, config.VideoHeight);
@@ -57,7 +57,7 @@
 
             encodedFrame.UpdateFromBitmap(frame, converter);
             encodedFrame.PresentationTimestamp = customPtsValue;
-            stream.Push(encodedFrame);
+            encoder.Push(encodedFrame);
 
             lastFramePts = customPtsValue;
         }
@@ -81,7 +81,7 @@
             if (isDisposed)
                 return;
 
-            stream.FlushEncoder();
+            encoder.FlushEncoder();
 
             encodedFrame.Dispose();
             converter.Dispose();

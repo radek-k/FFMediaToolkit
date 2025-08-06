@@ -11,7 +11,7 @@
     /// Represents a output multimedia stream.
     /// </summary>
     /// <typeparam name="TFrame">The type of frames in the stream.</typeparam>
-    internal unsafe class OutputStream<TFrame> : IDisposable
+    internal unsafe class Encoder<TFrame> : IDisposable
         where TFrame : MediaFrame
     {
         private readonly MediaPacket packet;
@@ -20,12 +20,12 @@
         private bool isDisposed;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OutputStream{TFrame}"/> class.
+        /// Initializes a new instance of the <see cref="Encoder{TFrame}"/> class.
         /// </summary>
         /// <param name="stream">The multimedia stream.</param>
         /// <param name="codec">Codec context.</param>
         /// <param name="owner">The container that owns the stream.</param>
-        public OutputStream(AVStream* stream, AVCodecContext* codec, OutputContainer owner)
+        public Encoder(AVStream* stream, AVCodecContext* codec, OutputContainer owner)
         {
             OwnerFile = owner;
             codecContext = codec;

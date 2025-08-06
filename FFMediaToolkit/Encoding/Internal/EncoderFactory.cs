@@ -9,7 +9,7 @@
     /// <summary>
     /// Contains method for creating media streams.
     /// </summary>
-    internal static unsafe class OutputStreamFactory
+    internal static unsafe class EncoderFactory
     {
         /// <summary>
         /// Creates a new video stream for the specified <see cref="OutputContainer"/>.
@@ -17,7 +17,7 @@
         /// <param name="container">The media container.</param>
         /// <param name="config">The stream settings.</param>
         /// <returns>The new video stream.</returns>
-        public static OutputStream<VideoFrame> CreateVideo(OutputContainer container, VideoEncoderSettings config)
+        public static Encoder<VideoFrame> CreateVideo(OutputContainer container, VideoEncoderSettings config)
         {
             AVCodec* codec;
             if (!string.IsNullOrEmpty(config.CodecName))
@@ -88,7 +88,7 @@
 
             ffmpeg.avcodec_parameters_from_context(stream->codecpar, codecContext).ThrowIfError("Cannot copy encoder parameters to output stream");
 
-            return new OutputStream<VideoFrame>(stream, codecContext, container);
+            return new Encoder<VideoFrame>(stream, codecContext, container);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@
         /// <param name="container">The media container.</param>
         /// <param name="config">The stream settings.</param>
         /// <returns>The new audio stream.</returns>
-        public static OutputStream<AudioFrame> CreateAudio(OutputContainer container, AudioEncoderSettings config)
+        public static Encoder<AudioFrame> CreateAudio(OutputContainer container, AudioEncoderSettings config)
         {
             AVCodec* codec;
             if (!string.IsNullOrEmpty(config.CodecName))
@@ -153,7 +153,7 @@
 
             ffmpeg.avcodec_parameters_from_context(stream->codecpar, codecContext).ThrowIfError("Cannot copy encoder parameters to output stream");
 
-            return new OutputStream<AudioFrame>(stream, codecContext, container);
+            return new Encoder<AudioFrame>(stream, codecContext, container);
         }
     }
 }
