@@ -94,7 +94,7 @@
             {
                 fixed (byte* ptr = buffer)
                 {
-                    ConvertCopyFrameToMemory(base.GetNextFrame() as VideoFrame, ptr);
+                    converter.AVFrameToBitmap(base.GetNextFrame() as VideoFrame, ptr, outputFrameStride);
                 }
 
                 return true;
@@ -124,7 +124,7 @@
 
             try
             {
-                ConvertCopyFrameToMemory(base.GetNextFrame() as VideoFrame, (byte*)buffer);
+                converter.AVFrameToBitmap(base.GetNextFrame() as VideoFrame, (byte*)buffer, outputFrameStride);
                 return true;
             }
             catch (EndOfStreamException)
@@ -190,7 +190,7 @@
             {
                 fixed (byte* ptr = buffer)
                 {
-                    ConvertCopyFrameToMemory(base.GetFrame(time) as VideoFrame, ptr);
+                    converter.AVFrameToBitmap(base.GetFrame(time) as VideoFrame, ptr, outputFrameStride);
                 }
 
                 return true;
@@ -221,7 +221,7 @@
 
             try
             {
-                ConvertCopyFrameToMemory(base.GetFrame(time) as VideoFrame, (byte*)buffer);
+                converter.AVFrameToBitmap(base.GetFrame(time) as VideoFrame, (byte*)buffer, outputFrameStride);
                 return true;
             }
             catch (EndOfStreamException)
@@ -240,11 +240,6 @@
             }
 
             base.Dispose();
-        }
-
-        private unsafe void ConvertCopyFrameToMemory(VideoFrame frame, byte* target)
-        {
-            converter.AVFrameToBitmap(frame, target, outputFrameStride);
         }
     }
 }

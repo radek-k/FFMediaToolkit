@@ -113,9 +113,9 @@
                 return;
             }
 
-            if (Video == null)
+            if (Video.Count == 0 && Audio.Count == 0)
             {
-                throw new InvalidOperationException("Cannot create empty media file. You have to add video stream before locking the file");
+                throw new InvalidOperationException("Cannot create empty media file. You have to add stream before locking the file");
             }
 
             var ptr = ContainerOptions.Pointer;

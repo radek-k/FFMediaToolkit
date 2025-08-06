@@ -14,6 +14,7 @@
     internal unsafe class Decoder : Wrapper<AVCodecContext>
     {
         private readonly int bufferLimit;
+        private readonly Queue<MediaPacket> bufferedPackets;
         private int bufferSize = 0;
         private bool reuseLastPacket;
         private bool flushing = false;
@@ -43,7 +44,7 @@
                     throw new Exception("Tried to create a decoder from an unsupported stream or codec type.");
             }
 
-            BufferedPackets = new Queue<MediaPacket>();
+            bufferedPackets = new Queue<MediaPacket>();
         }
 
         /// <summary>
@@ -64,12 +65,7 @@
         /// <summary>
         /// Indicates whether the codec has buffered packets.
         /// </summary>
-        public bool IsBufferEmpty => BufferedPackets.Count == 0;
-
-        /// <summary>
-        /// Gets a FIFO collection of media packets that the codec has buffered.
-        /// </summary>
-        private Queue<MediaPacket> BufferedPackets { get; }
+        public bool IsBufferEmpty => bufferedPackets.Count == 0;
 
         /// <summary>
         /// Adds the specified packet to the codec buffer.
@@ -77,25 +73,15 @@
         /// <param name="packet">The packet to be buffered.</param>
         public void BufferPacket(MediaPacket packet)
         {
-            BufferedPackets.Enqueue(packet);
+            bufferedPackets.Enqueue(packet);
             bufferSize += packet.Pointer->size;
 
             if (bufferSize > bufferLimit)
             {
-                var deletedPacket = BufferedPackets.Dequeue();
+                var deletedPacket = bufferedPackets.Dequeue();
                 bufferSize -= deletedPacket.Pointer->size;
                 deletedPacket.Dispose();
             }
-        }
-
-        /// <summary>
-        /// Reads the next frame from the stream.
-        /// </summary>
-        /// <returns>The decoded frame.</returns>
-        public MediaFrame GetNextFrame()
-        {
-            ReadNextFrame();
-            return RecentlyDecodedFrame;
         }
 
         /// <summary>
@@ -118,12 +104,12 @@
         {
             ffmpeg.avcodec_flush_buffers(Pointer);
 
-            foreach (var bufferedPacket in BufferedPackets)
+            foreach (var bufferedPacket in bufferedPackets)
             {
                 bufferedPacket.Dispose();
             }
 
-            BufferedPackets.Clear();
+            bufferedPackets.Clear();
             bufferSize = 0;
             flushing = false;
             if (reuseLastPacket)
@@ -135,17 +121,10 @@
             ffmpeg.av_frame_unref(RecentlyDecodedFrame.Pointer);
         }
 
-        /// <inheritdoc/>
-        protected override void OnDisposing()
-        {
-            RecentlyDecodedFrame.Dispose();
-            fixed (void* pointerRef = &PointerRef)
-            {
-                ffmpeg.avcodec_free_context((AVCodecContext**)pointerRef);
-            }
-        }
-
-        private void ReadNextFrame()
+        /// <summary>
+        /// Reads the next frame from the stream.
+        /// </summary>
+        public void ReadNextFrame()
         {
             ffmpeg.av_frame_unref(RecentlyDecodedFrame.Pointer);
             int error;
@@ -169,6 +148,16 @@
             error.ThrowIfError("An error occurred while decoding the frame.");
         }
 
+        /// <inheritdoc/>
+        protected override void OnDisposing()
+        {
+            RecentlyDecodedFrame.Dispose();
+            fixed (void* pointerRef = &PointerRef)
+            {
+                ffmpeg.avcodec_free_context((AVCodecContext**)pointerRef);
+            }
+        }
+
         private void DecodePacket()
         {
             if (!reuseLastPacket)
@@ -178,7 +167,7 @@
                     flushing = !OwnerFile.GetPacketFromStream(Info.Index);
                 }
 
-                packet = BufferedPackets.Dequeue();
+                packet = bufferedPackets.Dequeue();
                 bufferSize -= packet.Pointer->size;
             }
 

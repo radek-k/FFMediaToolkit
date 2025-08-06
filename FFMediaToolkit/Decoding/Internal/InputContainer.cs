@@ -96,7 +96,6 @@
                 var stream = Decoders[packet.StreamIndex];
                 if (stream == null)
                 {
-                    packet.Wipe();
                     packet.Dispose();
                     packet = null;
                 }

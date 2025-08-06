@@ -2,8 +2,7 @@
 {
     using System;
     using System.ComponentModel;
-    using FFMediaToolkit.Common;
-    using FFmpeg.AutoGen;
+    using System.Linq;
 
     /// <summary>
     /// Contains extension methods.
@@ -30,18 +29,8 @@
         /// <param name="valueToCompare">Objects to check.</param>
         /// <returns><see langword="true"/> is the object is equal to at least one of specified objects.</returns>
         public static bool IsMatch<T>(this T value, params T[] valueToCompare)
-            where T : struct, Enum
-        {
-            foreach (T x in valueToCompare)
-            {
-                if (value.Equals(x))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+            where T : struct, Enum =>
+            valueToCompare.Any(x => value.Equals(x));
 
         /// <summary>
         /// Normalizes this enumeration value - makes it lowercase and trims the specified amount of chars.
@@ -50,25 +39,5 @@
         /// <param name="charsToTrim">Number of chars to trim.</param>
         /// <returns>The normalized string.</returns>
         internal static string FormatEnum(this Enum value, int charsToTrim) => value.ToString().Substring(charsToTrim).ToLower();
-
-        /// <summary>
-        /// Gets the type of content in the <see cref="AVFrame"/>.
-        /// </summary>
-        /// <param name="frame">The <see cref="AVFrame"/>.</param>
-        /// <returns>The type of frame content.</returns>
-        internal static MediaType GetMediaType(this AVFrame frame)
-        {
-            if (frame.width > 0 && frame.height > 0)
-            {
-                return MediaType.Video;
-            }
-
-            if (frame.ch_layout.nb_channels > 0)
-            {
-                return MediaType.Audio;
-            }
-
-            return MediaType.None;
-        }
     }
 }

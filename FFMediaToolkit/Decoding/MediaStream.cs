@@ -10,6 +10,7 @@
     /// </summary>
     public class MediaStream : IDisposable
     {
+        private readonly Decoder decoder;
         private readonly long threshold;
         private bool isDisposed;
 
@@ -21,7 +22,7 @@
         /// <param name="seekThreshold">Seek threshold in milliseconds.</param>
         internal MediaStream(Decoder stream, MediaOptions options, int seekThreshold)
         {
-            Stream = stream;
+            decoder = stream;
             Options = options;
             threshold = TimeSpan.FromMilliseconds(seekThreshold).ToTimestamp(Info.TimeBase);
         }
@@ -29,38 +30,36 @@
         /// <summary>
         /// Gets informations about this stream.
         /// </summary>
-        public StreamInfo Info => Stream.Info;
+        public StreamInfo Info => decoder.Info;
 
         /// <summary>
         /// Gets the timestamp of the recently decoded frame in the media stream.
         /// </summary>
-        public TimeSpan Position => Math.Max(Stream.RecentlyDecodedFrame.PresentationTimestamp, 0).ToTimeSpan(Info.TimeBase);
+        public TimeSpan Position => Math.Max(decoder.RecentlyDecodedFrame.PresentationTimestamp, 0).ToTimeSpan(Info.TimeBase);
 
         /// <summary>
         /// Indicates whether the stream has buffered frame data.
         /// </summary>
-        public bool IsBufferEmpty => Stream.IsBufferEmpty;
+        public bool IsBufferEmpty => decoder.IsBufferEmpty;
 
         /// <summary>
         /// Gets the options configured for this <see cref="MediaStream"/>.
         /// </summary>
         protected MediaOptions Options { get; }
 
-        private Decoder Stream { get; }
-
         /// <summary>
         /// Discards all buffered frame data associated with this stream.
         /// </summary>
         [Obsolete("Do not call this method. Buffered data is automatically discarded when required")]
-        public void DiscardBufferedData() => Stream.DiscardBufferedData();
+        public void DiscardBufferedData() => decoder.DiscardBufferedData();
 
         /// <inheritdoc/>
         public virtual void Dispose()
         {
             if (!isDisposed)
             {
-                Stream.DiscardBufferedData();
-                Stream.Dispose();
+                decoder.DiscardBufferedData();
+                decoder.Dispose();
                 isDisposed = true;
             }
         }
@@ -69,7 +68,11 @@
         /// Gets the data belonging to the next frame in the stream.
         /// </summary>
         /// <returns>The next frame's data.</returns>
-        internal MediaFrame GetNextFrame() => Stream.GetNextFrame();
+        internal MediaFrame GetNextFrame()
+        {
+            decoder.ReadNextFrame();
+            return decoder.RecentlyDecodedFrame;
+        }
 
         /// <summary>
         /// Seeks the stream to the specified time and returns the nearest frame's data.
@@ -78,17 +81,17 @@
         /// <returns>The nearest frame's data.</returns>
         internal MediaFrame GetFrame(TimeSpan time)
         {
-            var frame = Stream.RecentlyDecodedFrame;
+            var frame = decoder.RecentlyDecodedFrame;
             var ts = Math.Max(0, Math.Min(time.ToTimestamp(Info.TimeBase), Info.DurationRaw));
 
             if (ts < frame.PresentationTimestamp || ts >= frame.PresentationTimestamp + threshold)
             {
-                Stream.OwnerFile.SeekFile(ts, Info.Index);
+                decoder.OwnerFile.SeekFile(ts, Info.Index);
             }
 
             if (ts < frame.PresentationTimestamp || ts >= frame.PresentationTimestamp + frame.Duration)
             {
-                Stream.SkipFrames(ts);
+                decoder.SkipFrames(ts);
             }
 
             return frame;

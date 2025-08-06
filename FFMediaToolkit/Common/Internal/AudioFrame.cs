@@ -10,15 +10,9 @@
     /// </summary>
     internal unsafe class AudioFrame : MediaFrame
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AudioFrame"/> class using existing <see cref="AVFrame"/>.
-        /// </summary>
-        /// <param name="frame">The audio <see cref="AVFrame"/>.</param>
-        public AudioFrame(AVFrame* frame)
+        private AudioFrame(AVFrame* frame)
             : base(frame)
         {
-            if (frame->GetMediaType() != MediaType.Audio)
-                throw new ArgumentException("Cannot create an AudioFrame instance from the AVFrame with type: " + frame->GetMediaType());
         }
 
         /// <summary>
@@ -183,17 +177,6 @@
 
                 newData.CopyTo(currData);
             }
-        }
-
-        /// <inheritdoc/>
-        internal override unsafe void Update(AVFrame* newFrame)
-        {
-            if (newFrame->GetMediaType() != MediaType.Audio)
-            {
-                throw new ArgumentException("The new frame doesn't contain audio data.");
-            }
-
-            base.Update(newFrame);
         }
     }
 }

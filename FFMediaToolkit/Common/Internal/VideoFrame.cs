@@ -11,15 +11,9 @@
     /// </summary>
     internal unsafe class VideoFrame : MediaFrame
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VideoFrame"/> class using existing <see cref="AVFrame"/>.
-        /// </summary>
-        /// <param name="frame">The video <see cref="AVFrame"/>.</param>
-        public VideoFrame(AVFrame* frame)
+        private VideoFrame(AVFrame* frame)
             : base(frame)
         {
-            if (frame->GetMediaType() == MediaType.Audio)
-                throw new ArgumentException("Cannot create a VideoFrame instance from the AVFrame containing audio.");
         }
 
         /// <summary>
@@ -90,17 +84,6 @@
             }
 
             return bitmap;
-        }
-
-        /// <inheritdoc/>
-        internal override unsafe void Update(AVFrame* newFrame)
-        {
-            if (newFrame->GetMediaType() != MediaType.Video)
-            {
-                throw new ArgumentException("The new frame doesn't contain video data.");
-            }
-
-            base.Update(newFrame);
         }
     }
 }
