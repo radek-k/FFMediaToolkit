@@ -12,6 +12,7 @@
     <PackageTags>ffmpeg;video;audio;encoder;encoding;decoder;decoding;h264;mp4;c#;netstandard;netcore;frame-extraction</PackageTags>
     <RepositoryUrl>https://github.com/radek-k/FFMediaToolkit</RepositoryUrl>
     <PackageProjectUrl>https://github.com/radek-k/FFMediaToolkit</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile></PackageLicenseFile>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -48,6 +49,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
   
   <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard2.0'))">
