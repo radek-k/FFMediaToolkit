@@ -118,6 +118,14 @@
             }
         }
 
+        /// <summary>
+        /// Resets stream position to the beginning.
+        /// </summary>
+        public void Reset()
+        {
+            container.SeekFile(0, -1);
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {

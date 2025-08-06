@@ -118,15 +118,21 @@
         {
             ffmpeg.avcodec_flush_buffers(Pointer);
 
-            foreach (var packet in BufferedPackets)
+            foreach (var bufferedPacket in BufferedPackets)
             {
-                packet.Wipe();
-                packet.Dispose();
+                bufferedPacket.Dispose();
             }
 
             BufferedPackets.Clear();
             bufferSize = 0;
             flushing = false;
+            if (reuseLastPacket)
+            {
+                packet.Dispose();
+                reuseLastPacket = false;
+            }
+
+            ffmpeg.av_frame_unref(RecentlyDecodedFrame.Pointer);
         }
 
         /// <inheritdoc/>
@@ -183,7 +189,6 @@
 
             if (!reuseLastPacket)
             {
-                packet.Wipe();
                 packet.Dispose();
                 result.ThrowIfError("Cannot send a packet to the decoder.");
             }
