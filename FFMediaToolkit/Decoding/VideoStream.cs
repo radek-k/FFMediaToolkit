@@ -24,7 +24,7 @@
         /// <param name="stream">The video stream.</param>
         /// <param name="options">The decoder settings.</param>
         internal VideoStream(Decoder stream, MediaOptions options)
-            : base(stream, options)
+            : base(stream, options, options.VideoSeekThreshold)
         {
             OutputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
             converter = new ImageConverter(OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat, options.FlipVertically);

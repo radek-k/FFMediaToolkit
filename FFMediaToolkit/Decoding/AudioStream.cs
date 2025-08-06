@@ -22,7 +22,7 @@
         /// <param name="stream">The audio stream.</param>
         /// <param name="options">The decoder settings.</param>
         internal AudioStream(Decoder stream, MediaOptions options)
-            : base(stream, options)
+            : base(stream, options, options.AudioSeekThreshold)
         {
             var layout = Info.ChannelLayout;
             SwrContext* context;
