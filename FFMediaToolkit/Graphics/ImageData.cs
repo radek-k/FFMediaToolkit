@@ -18,18 +18,18 @@
         /// <param name="data">The bitmap data.</param>
         /// <param name="pixelFormat">The pixel format.</param>
         /// <param name="imageSize">The image dimensions.</param>
+        /// <param name="stride">Number of bytes in a single row of bitmap data.</param>
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
-        public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, Size imageSize)
+        public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, Size imageSize, int stride)
         {
-            var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
-            if (data.Length < size)
+            if (data.Length < stride * imageSize.Height)
             {
                 throw new ArgumentException("Pixel buffer size doesn't match size required by this image format.");
             }
 
             span = data;
             pooledMemory = null;
-
+            Stride = stride;
             ImageSize = imageSize;
             PixelFormat = pixelFormat;
         }
@@ -41,17 +41,30 @@
         /// <param name="pixelFormat">The pixel format.</param>
         /// <param name="width">The image width.</param>
         /// <param name="height">The image height.</param>
+        /// <param name="stride">Number of bytes in a single row of bitmap data.</param>
         /// <exception cref="ArgumentException">When data span size doesn't match size calculated from width, height and the pixel format.</exception>
-        public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, int width, int height)
-            : this(data, pixelFormat, new Size(width, height))
+        public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, int width, int height, int stride)
+            : this(data, pixelFormat, new Size(width, height), stride)
         {
         }
 
-        private ImageData(IMemoryOwner<byte> memory, Size size, ImagePixelFormat pixelFormat)
+        /// <inheritdoc cref="ImageData(Span{byte}, FFMediaToolkit.Graphics.ImagePixelFormat, System.Drawing.Size, int)"/>
+        public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, Size imageSize)
+            : this(data, pixelFormat, imageSize, EstimateStride(imageSize.Width, pixelFormat))
+        {
+        }
+
+        /// <inheritdoc cref="ImageData(Span{byte}, FFMediaToolkit.Graphics.ImagePixelFormat, int, int, int)"/>
+        public ImageData(Span<byte> data, ImagePixelFormat pixelFormat, int width, int height)
+            : this(data, pixelFormat, new Size(width, height), EstimateStride(width, pixelFormat))
+        {
+        }
+
+        private ImageData(IMemoryOwner<byte> memory, int stride, Size size, ImagePixelFormat pixelFormat)
         {
             span = null;
             pooledMemory = memory;
-
+            Stride = stride;
             ImageSize = size;
             PixelFormat = pixelFormat;
         }
@@ -79,7 +92,7 @@
         /// <summary>
         /// Gets the estimated number of bytes in one row of image pixels.
         /// </summary>
-        public int Stride => EstimateStride(ImageSize.Width, PixelFormat);
+        public int Stride { get; }
 
         /// <summary>
         /// Rents a memory buffer from pool and creates a new instance of <see cref="ImageData"/> class from it.
@@ -89,10 +102,11 @@
         /// <returns>The new <see cref="ImageData"/> instance.</returns>
         public static ImageData CreatePooled(Size imageSize, ImagePixelFormat pixelFormat)
         {
-            var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
+            var stride = EstimateStride(imageSize.Width, pixelFormat);
+            var size = stride * imageSize.Height;
             var pool = MemoryPool<byte>.Shared;
             var memory = pool.Rent(size);
-            return new ImageData(memory, imageSize, pixelFormat);
+            return new ImageData(memory, stride, imageSize, pixelFormat);
         }
 
         /// <summary>
@@ -101,20 +115,30 @@
         /// <param name="pixels">The byte array containing bitmap data.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
         /// <param name="imageSize">The image dimensions.</param>
+        /// <param name="stride">Number of bytes in a single row of bitmap data.</param>
         /// <returns>A new <see cref="ImageData"/> instance.</returns>
+        public static ImageData FromArray(byte[] pixels, ImagePixelFormat pixelFormat, Size imageSize, int stride)
+            => new ImageData(pixels, pixelFormat, imageSize, stride);
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="ImageData"/> class using a byte array as the data source.
+        /// </summary>
+        /// <param name="pixels">The byte array containing bitmap data.</param>
+        /// <param name="pixelFormat">The bitmap pixel format.</param>
+        /// <param name="width">The image width.</param>
+        /// <param name="height">The image height.</param>
+        /// <param name="stride">Number of bytes in a single row of bitmap data.</param>
+        /// <returns>A new <see cref="ImageData"/> instance.</returns>
+        public static ImageData FromArray(byte[] pixels, ImagePixelFormat pixelFormat, int width, int height, int stride)
+            => new ImageData(pixels, pixelFormat, new Size(width, height), stride);
+
+        /// <inheritdoc cref="FromArray(byte[],FFMediaToolkit.Graphics.ImagePixelFormat,System.Drawing.Size,int)"/>
         public static ImageData FromArray(byte[] pixels, ImagePixelFormat pixelFormat, Size imageSize)
-            => new ImageData(new Span<byte>(pixels), pixelFormat, imageSize);
+            => new ImageData(pixels, pixelFormat, imageSize);
 
-        /// <summary>
-        /// Creates a new instance of the <see cref="ImageData"/> class using a byte array as the data source.
-        /// </summary>
-        /// <param name="pixels">The byte array containing bitmap data.</param>
-        /// <param name="pixelFormat">The bitmap pixel format.</param>
-        /// <param name="width">The image width.</param>
-        /// <param name="height">The image height.</param>
-        /// <returns>A new <see cref="ImageData"/> instance.</returns>
+        /// <inheritdoc cref="FromArray(byte[],FFMediaToolkit.Graphics.ImagePixelFormat,int,int,int)"/>
         public static ImageData FromArray(byte[] pixels, ImagePixelFormat pixelFormat, int width, int height)
-            => FromArray(pixels, pixelFormat, new Size(width, height));
+            => new ImageData(pixels, pixelFormat, new Size(width, height));
 
         /// <summary>
         /// Creates a new instance of the <see cref="ImageData"/> class using a pointer to the unmanaged memory as the data source.
@@ -122,11 +146,13 @@
         /// <param name="pointer">The byte array containing bitmap data.</param>
         /// <param name="pixelFormat">The bitmap pixel format.</param>
         /// <param name="imageSize">The image dimensions.</param>
+        /// <param name="stride">Number of bytes in a single row of bitmap data.</param>
         /// <returns>A new <see cref="ImageData"/> instance.</returns>
-        public static ImageData FromPointer(IntPtr pointer, ImagePixelFormat pixelFormat, Size imageSize)
+        public static unsafe ImageData FromPointer(IntPtr pointer, ImagePixelFormat pixelFormat, Size imageSize, int stride)
         {
-            var span = CreateSpan(pointer, imageSize, pixelFormat);
-            return new ImageData(span, pixelFormat, imageSize);
+            var size = stride * imageSize.Height;
+            var span = new Span<byte>((void*)pointer, size);
+            return new ImageData(span, pixelFormat, imageSize, stride);
         }
 
         /// <summary>
@@ -136,9 +162,18 @@
         /// <param name="pixelFormat">The bitmap pixel format.</param>
         /// <param name="width">The image width.</param>
         /// <param name="height">The image height.</param>
+        /// <param name="stride">Number of bytes in a single row of bitmap data.</param>
         /// <returns>A new <see cref="ImageData"/> instance.</returns>
+        public static ImageData FromPointer(IntPtr pointer, ImagePixelFormat pixelFormat, int width, int height, int stride)
+            => FromPointer(pointer, pixelFormat, new Size(width, height), stride);
+
+        /// <inheritdoc cref="ImageData.FromPointer(System.IntPtr,FFMediaToolkit.Graphics.ImagePixelFormat,System.Drawing.Size, int)"/>
+        public static ImageData FromPointer(IntPtr pointer, ImagePixelFormat pixelFormat, Size imageSize)
+            => FromPointer(pointer, pixelFormat, imageSize, EstimateStride(imageSize.Width, pixelFormat));
+
+        /// <inheritdoc cref="ImageData.FromPointer(System.IntPtr,FFMediaToolkit.Graphics.ImagePixelFormat, int, int, int)"/>
         public static ImageData FromPointer(IntPtr pointer, ImagePixelFormat pixelFormat, int width, int height)
-            => FromPointer(pointer, pixelFormat, new Size(width, height));
+            => FromPointer(pointer, pixelFormat, new Size(width, height), EstimateStride(width, pixelFormat));
 
         /// <summary>
         /// Gets the estimated image line size based on the pixel format and width.
@@ -158,12 +193,6 @@
                 pooledMemory.Dispose();
                 pooledMemory = null;
             }
-        }
-
-        private static unsafe Span<byte> CreateSpan(IntPtr pointer, Size imageSize, ImagePixelFormat pixelFormat)
-        {
-            var size = EstimateStride(imageSize.Width, pixelFormat) * imageSize.Height;
-            return new Span<byte>((void*)pointer, size);
         }
 
         private static int GetBitsPerPixel(ImagePixelFormat format)
