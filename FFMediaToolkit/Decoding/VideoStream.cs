@@ -13,8 +13,7 @@
     /// </summary>
     public class VideoStream : MediaStream
     {
-        private readonly int outputFrameStride;
-        private readonly int requiredBufferSize;
+        private readonly Size outputFrameSize;
         private readonly ImageConverter converter;
         private bool isDisposed;
 
@@ -26,11 +25,11 @@
         internal VideoStream(Decoder stream, MediaOptions options)
             : base(stream, options, options.VideoSeekThreshold)
         {
-            OutputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
-            converter = new ImageConverter(OutputFrameSize, (AVPixelFormat)options.VideoPixelFormat, options.FlipVertically);
+            outputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
+            converter = new ImageConverter(outputFrameSize, (AVPixelFormat)options.VideoPixelFormat, options.FlipVertically);
 
-            outputFrameStride = ImageData.EstimateStride(OutputFrameSize.Width, Options.VideoPixelFormat);
-            requiredBufferSize = outputFrameStride * OutputFrameSize.Height;
+            FrameStride = ImageData.EstimateStride(outputFrameSize.Width, Options.VideoPixelFormat);
+            FrameByteCount = FrameStride * outputFrameSize.Height;
         }
 
         /// <summary>
@@ -38,7 +37,15 @@
         /// </summary>
         public new VideoStreamInfo Info => base.Info as VideoStreamInfo;
 
-        private Size OutputFrameSize { get; }
+        /// <summary>
+        /// Gets the number of bytes in a single row of decoded frame data.
+        /// </summary>
+        public int FrameStride { get; }
+
+        /// <summary>
+        /// Gets the number of bytes required to store the decoded frame.
+        /// </summary>
+        public int FrameByteCount { get; }
 
         /// <summary>
         /// Reads the next frame from the video stream.
@@ -46,11 +53,7 @@
         /// <returns>A decoded bitmap.</returns>
         /// <exception cref="EndOfStreamException">End of the stream.</exception>
         /// <exception cref="FFmpegException">Internal decoding error.</exception>
-        public new ImageData GetNextFrame()
-        {
-            var frame = base.GetNextFrame() as VideoFrame;
-            return frame.ToBitmap(converter, Options.VideoPixelFormat, OutputFrameSize);
-        }
+        public new ImageData GetNextFrame() => CreatePooledBitmap(base.GetNextFrame() as VideoFrame);
 
         /// <summary>
         /// Reads the next frame from the video stream.
@@ -85,7 +88,7 @@
         /// <exception cref="FFmpegException">Internal decoding error.</exception>
         public unsafe bool TryGetNextFrame(Span<byte> buffer)
         {
-            if (buffer.Length < requiredBufferSize)
+            if (buffer.Length < FrameByteCount)
             {
                 throw new ArgumentException(nameof(buffer), "Destination buffer is smaller than the converted bitmap data.");
             }
@@ -94,7 +97,7 @@
             {
                 fixed (byte* ptr = buffer)
                 {
-                    converter.AVFrameToBitmap(base.GetNextFrame() as VideoFrame, ptr, outputFrameStride);
+                    converter.AVFrameToBitmap(base.GetNextFrame() as VideoFrame, ptr, FrameStride);
                 }
 
                 return true;
@@ -117,14 +120,14 @@
         /// <exception cref="FFmpegException">Internal decoding error.</exception>
         public unsafe bool TryGetNextFrame(IntPtr buffer, int bufferStride)
         {
-            if (bufferStride != outputFrameStride)
+            if (bufferStride != FrameStride)
             {
                 throw new ArgumentException(nameof(bufferStride), "Destination buffer is smaller than the converted bitmap data.");
             }
 
             try
             {
-                converter.AVFrameToBitmap(base.GetNextFrame() as VideoFrame, (byte*)buffer, outputFrameStride);
+                converter.AVFrameToBitmap(base.GetNextFrame() as VideoFrame, (byte*)buffer, FrameStride);
                 return true;
             }
             catch (EndOfStreamException)
@@ -140,11 +143,7 @@
         /// <returns>The decoded video frame.</returns>
         /// <exception cref="EndOfStreamException">End of the stream.</exception>
         /// <exception cref="FFmpegException">Internal decoding error.</exception>
-        public new ImageData GetFrame(TimeSpan time)
-        {
-            var frame = base.GetFrame(time) as VideoFrame;
-            return frame.ToBitmap(converter, Options.VideoPixelFormat, OutputFrameSize);
-        }
+        public new ImageData GetFrame(TimeSpan time) => CreatePooledBitmap(base.GetFrame(time) as VideoFrame);
 
         /// <summary>
         /// Reads the video frame found at the specified timestamp.
@@ -181,7 +180,7 @@
         /// <exception cref="FFmpegException">Internal decoding error.</exception>
         public unsafe bool TryGetFrame(TimeSpan time, Span<byte> buffer)
         {
-            if (buffer.Length < requiredBufferSize)
+            if (buffer.Length < FrameByteCount)
             {
                 throw new ArgumentException(nameof(buffer), "Destination buffer is smaller than the converted bitmap data.");
             }
@@ -190,7 +189,7 @@
             {
                 fixed (byte* ptr = buffer)
                 {
-                    converter.AVFrameToBitmap(base.GetFrame(time) as VideoFrame, ptr, outputFrameStride);
+                    converter.AVFrameToBitmap(base.GetFrame(time) as VideoFrame, ptr, FrameStride);
                 }
 
                 return true;
@@ -214,14 +213,14 @@
         /// <exception cref="FFmpegException">Internal decoding error.</exception>
         public unsafe bool TryGetFrame(TimeSpan time, IntPtr buffer, int bufferStride)
         {
-            if (bufferStride != outputFrameStride)
+            if (bufferStride != FrameStride)
             {
                 throw new ArgumentException(nameof(bufferStride), "Destination buffer is smaller than the converted bitmap data.");
             }
 
             try
             {
-                converter.AVFrameToBitmap(base.GetFrame(time) as VideoFrame, (byte*)buffer, outputFrameStride);
+                converter.AVFrameToBitmap(base.GetFrame(time) as VideoFrame, (byte*)buffer, FrameStride);
                 return true;
             }
             catch (EndOfStreamException)
@@ -240,6 +239,17 @@
             }
 
             base.Dispose();
+        }
+
+        private unsafe ImageData CreatePooledBitmap(VideoFrame frame)
+        {
+            var bitmap = ImageData.CreatePooled(outputFrameSize, Options.VideoPixelFormat);
+            fixed (byte* ptr = bitmap.Data)
+            {
+                converter.AVFrameToBitmap(frame, ptr, bitmap.Stride);
+            }
+
+            return bitmap;
         }
     }
 }
