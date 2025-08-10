@@ -59,31 +59,5 @@
 
             return new VideoFrame(frame);
         }
-
-        /// <summary>
-        /// Overrides this video frame data with the converted <paramref name="bitmap"/> using specified <see cref="ImageConverter"/> object.
-        /// </summary>
-        /// <param name="bitmap">The bitmap to convert.</param>
-        /// <param name="converter">A <see cref="ImageConverter"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video.</param>
-        public void UpdateFromBitmap(ImageData bitmap, ImageConverter converter) => converter.FillAVFrame(bitmap, this);
-
-        /// <summary>
-        /// Converts this video frame to the <see cref="ImageData"/> with the specified pixel format.
-        /// </summary>
-        /// <param name="converter">A <see cref="ImageConverter"/> object, used for caching the FFMpeg <see cref="SwsContext"/> when converting many frames of the same video.</param>
-        /// <param name="targetFormat">The output bitmap pixel format.</param>
-        /// /// <param name="targetSize">The output bitmap size.</param>
-        /// <returns>A <see cref="ImageData"/> instance containing converted bitmap data.</returns>
-        public ImageData ToBitmap(ImageConverter converter, ImagePixelFormat targetFormat, Size targetSize)
-        {
-            var bitmap = ImageData.CreatePooled(targetSize, targetFormat); // Rents memory for the output bitmap.
-            fixed (byte* ptr = bitmap.Data)
-            {
-                // Converts the raw video frame using the given size and pixel format and writes it to the ImageData bitmap.
-                converter.AVFrameToBitmap(this, ptr, bitmap.Stride);
-            }
-
-            return bitmap;
-        }
     }
 }

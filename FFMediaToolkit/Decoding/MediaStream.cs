@@ -11,7 +11,7 @@
     public class MediaStream : IDisposable
     {
         private readonly Decoder decoder;
-        private readonly long threshold;
+        private readonly long seekThreshold;
         private bool isDisposed;
 
         /// <summary>
@@ -24,7 +24,7 @@
         {
             decoder = stream;
             Options = options;
-            threshold = TimeSpan.FromMilliseconds(seekThreshold).ToTimestamp(Info.TimeBase);
+            this.seekThreshold = TimeSpan.FromMilliseconds(seekThreshold).ToTimestamp(Info.TimeBase);
         }
 
         /// <summary>
@@ -82,16 +82,16 @@
         internal MediaFrame GetFrame(TimeSpan time)
         {
             var frame = decoder.RecentlyDecodedFrame;
-            var ts = Math.Max(0, Math.Min(time.ToTimestamp(Info.TimeBase), Info.DurationRaw));
+            var requestedTs = Math.Max(0, Math.Min(time.ToTimestamp(Info.TimeBase), Info.DurationRaw));
 
-            if (ts < frame.PresentationTimestamp || ts >= frame.PresentationTimestamp + threshold)
+            if (requestedTs < frame.PresentationTimestamp || requestedTs >= frame.PresentationTimestamp + seekThreshold)
             {
-                decoder.OwnerFile.SeekFile(ts, Info.Index);
+                decoder.OwnerFile.SeekFile(requestedTs, Info.Index);
             }
 
-            if (ts < frame.PresentationTimestamp || ts >= frame.PresentationTimestamp + frame.Duration)
+            while (frame.PresentationTimestamp + frame.Duration <= requestedTs)
             {
-                decoder.SkipFrames(ts);
+                decoder.ReadNextFrame();
             }
 
             return frame;

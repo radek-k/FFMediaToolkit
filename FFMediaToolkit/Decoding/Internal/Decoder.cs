@@ -85,19 +85,6 @@
         }
 
         /// <summary>
-        /// Decodes frames until reach the specified time stamp. Useful to seek few frames forward.
-        /// </summary>
-        /// <param name="targetTs">The target time stamp.</param>
-        public void SkipFrames(long targetTs)
-        {
-            do
-            {
-                ReadNextFrame();
-            }
-            while (RecentlyDecodedFrame.PresentationTimestamp + RecentlyDecodedFrame.Duration < targetTs);
-        }
-
-        /// <summary>
         /// Discards all packet data buffered by this instance.
         /// </summary>
         public void DiscardBufferedData()
@@ -151,7 +138,7 @@
         /// <inheritdoc/>
         protected override void OnDisposing()
         {
-            RecentlyDecodedFrame.Dispose();
+            RecentlyDecodedFrame?.Dispose();
             fixed (void* pointerRef = &PointerRef)
             {
                 ffmpeg.avcodec_free_context((AVCodecContext**)pointerRef);

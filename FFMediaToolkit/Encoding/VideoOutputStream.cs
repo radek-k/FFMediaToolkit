@@ -55,7 +55,7 @@
             if (customPtsValue <= lastFramePts)
                 throw new Exception("Cannot add a frame that occurs chronologically before the most recently written frame!");
 
-            encodedFrame.UpdateFromBitmap(frame, converter);
+            converter.FillAVFrame(frame, encodedFrame);
             encodedFrame.PresentationTimestamp = customPtsValue;
             encoder.Push(encodedFrame);
 
