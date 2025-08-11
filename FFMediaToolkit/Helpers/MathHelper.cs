@@ -23,12 +23,7 @@
         /// <param name="timeBase">The time base unit.</param>
         /// <returns>The converted <see cref="TimeSpan"/>.</returns>
         public static TimeSpan ToTimeSpan(this long timestamp, AVRational timeBase)
-        {
-            var ts = Convert.ToDouble(timestamp);
-            var tb = timeBase.ToDouble();
-
-            return TimeSpan.FromMilliseconds(ts * tb * 1000);
-        }
+            => TimeSpan.FromTicks(timestamp * TimeSpan.TicksPerSecond * timeBase.num / timeBase.den);
 
         /// <summary>
         /// Converts this <see cref="TimeSpan"/> to a frame number based on the specified frame rate/>.
@@ -37,7 +32,7 @@
         /// <param name="framerate">The stream frame rate.</param>
         /// <returns>The frame number.</returns>
         public static int ToFrameNumber(this TimeSpan time, AVRational framerate)
-            => (int)(time.TotalSeconds * framerate.num / framerate.den);
+            => framerate.den == 0 ? 0 : (int)(time.Ticks * framerate.num / (framerate.den * TimeSpan.TicksPerSecond));
 
         /// <summary>
         /// Converts the <see cref="TimeSpan"/> to a timestamp in the <paramref name="timeBase"/> units.
@@ -46,6 +41,6 @@
         /// <param name="timeBase">The stream time base.</param>
         /// <returns>The timestamp.</returns>
         public static long ToTimestamp(this TimeSpan time, AVRational timeBase)
-            => Convert.ToInt64(time.TotalSeconds * timeBase.den / timeBase.num);
+            => time.Ticks * timeBase.den / (timeBase.num * TimeSpan.TicksPerSecond);
     }
 }
