@@ -45,7 +45,10 @@
     var file = MediaFile.Open(@"C:\videos\movie.mp4");
     
     // Get the frame at 5th second of the video
-    var frame5s = file.Video.GetFrame(TimeSpan.FromSeconds(5));
+    var frame = file.Video.GetFrame(TimeSpan.FromSeconds(5));
+    // ...
+    // Frame should be disposed when no longer needed
+    frame.Dispose(); 
     
     // Print information about the video stream
     Console.WriteLine($"Bitrate: {file.Info.Bitrate / 1000.0} kb/s");
@@ -129,8 +132,7 @@ If you want to process or save the decoded frame, you can pass it to another gra
 - For **[ImageSharp](https://github.com/SixLabors/ImageSharp) library:**
   - Video decoding
     ```c#
-    var stride = ImageData.EstimateStride(file.Video.Info.FrameSize.Width, ImagePixelFormat.Bgr24);
-    var buffer = new byte[stride * file.Video.Info.FrameSize.Height];
+    var buffer = new byte[file.Video.FrameByteCount];
     var bmp = Image.WrapMemory<Bgr24>(buffer, file.Video.Info.FrameSize.Width, file.Video.Info.FrameSize.Height);
     
     while(file.Video.TryGetNextFrame(buffer)) {
@@ -155,7 +157,7 @@ If you want to process or save the decoded frame, you can pass it to another gra
     var rect = new Rectangle(Point.Empty, bitmap.Size);
     var bitLock = bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
     
-    var bitmapData = ImageData.FromPointer(bitLock.Scan0, bitmap.Size, ImagePixelFormat.Bgr24);
+    var bitmapData = ImageData.FromPointer(bitLock.Scan0, ImagePixelFormat.Bgr24, bitmap.Size);
     mediaFile.Video.AddFrame(bitmapData); // Encode the frame
     
     bitmap.UnlockBits(bitLock); // UnlockBits() must be called after encoding the frame
