@@ -43,6 +43,16 @@
         }
 
         /// <summary>
+        /// Gets or sets manually chosen audio decoder. Default is automatic selection based on stream.
+        /// </summary>
+        public string AudioCodecName { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets manually chosen video decoder. Default is automatic selection based on stream.
+        /// </summary>
+        public string VideoCodecName { get; set; } = null;
+
+        /// <summary>
         /// Gets or sets the limit of memory used by the packet buffer. Default limit is 40 MB per stream.
         /// </summary>
         public int PacketBufferSizeLimit { get; set; } = 40;
