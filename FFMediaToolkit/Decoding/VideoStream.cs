@@ -26,6 +26,14 @@
             : base(stream, options, options.VideoSeekThreshold)
         {
             outputFrameSize = options.TargetVideoSize ?? Info.FrameSize;
+            
+            if (options.RespectSampleAspectRatio &&
+                Info.SampleAspectRatio.num > 1)
+            {
+                double width = (double)Info.SampleAspectRatio.num / Info.SampleAspectRatio.den * Info.FrameSize.Width;
+                outputFrameSize = new Size((int)width, Info.FrameSize.Height);
+            }
+            
             converter = new ImageConverter(outputFrameSize, (AVPixelFormat)options.VideoPixelFormat, options.FlipVertically);
 
             FrameStride = ImageData.EstimateStride(outputFrameSize.Width, Options.VideoPixelFormat);

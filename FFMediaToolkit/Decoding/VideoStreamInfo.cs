@@ -27,6 +27,7 @@
             FrameSize = new Size(codec->width, codec->height);
             PixelFormat = ((AVPixelFormat)codec->format).FormatEnum(11);
             AVPixelFormat = (AVPixelFormat)codec->format;
+            SampleAspectRatio = stream->sample_aspect_ratio;
 
             var packetSideData = ffmpeg.av_packet_side_data_get(codec->coded_side_data, codec->nb_coded_side_data, AVPacketSideDataType.AV_PKT_DATA_DISPLAYMATRIX);
             if (packetSideData != null)
@@ -54,6 +55,12 @@
         /// Gets a lowercase string representing the video pixel format.
         /// </summary>
         public string PixelFormat { get; }
+        
+        /// <summary>
+        /// Gets sample aspect ratio.
+        /// 0 if unknown.
+        /// </summary>
+        public AVRational SampleAspectRatio { get; }
 
         /// <summary>
         /// Gets the video pixel format.
