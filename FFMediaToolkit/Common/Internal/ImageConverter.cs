@@ -96,8 +96,8 @@
             {
                 ffmpeg.sws_freeContext(Pointer);
 
-                var scaleMode = sourceSize == destinationSize ? ffmpeg.SWS_POINT : ffmpeg.SWS_BICUBIC;
-                var swsContext = ffmpeg.sws_getContext(sourceSize.Width, sourceSize.Height, sourceFormat, destinationSize.Width, destinationSize.Height, destinationFormat, scaleMode, null, null, null);
+                var scaleMode = sourceSize == destinationSize ? SwsFlags.SWS_POINT : SwsFlags.SWS_BICUBIC;
+                var swsContext = ffmpeg.sws_getContext(sourceSize.Width, sourceSize.Height, sourceFormat, destinationSize.Width, destinationSize.Height, destinationFormat, (int)scaleMode, null, null, null);
 
                 if (swsContext == null)
                 {
